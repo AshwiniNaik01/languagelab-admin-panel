@@ -7,6 +7,7 @@ import Button from "../components/ui/Button";
 import TeacherForm from "../components/form/TeacherForm";
 import { initialTeachers, initialColleges } from "../services/dbService";
 
+
 export default function TeachersPage() {
   const [teachers, setTeachers] = useState(initialTeachers);
   const [isFormOpen, setIsFormOpen] = useState(false);
