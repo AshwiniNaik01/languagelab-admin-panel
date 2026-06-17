@@ -4,27 +4,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   House,
-  Building2,
-  FileBadge2,
-  Users,
   FolderOpen,
+  ClipboardList,
+  Gamepad2,
   Settings,
   LogOut,
-  Activity,
-  UserCheck
+  ArrowLeftRight
 } from "lucide-react";
 
-export default function Sidebar() {
+export default function TeacherSidebar() {
   const pathname = usePathname();
 
   const links = [
-    { href: "/", label: "Dashboard", icon: House },
-    { href: "/colleges", label: "Colleges", icon: Building2 },
-    { href: "/licenses", label: "Licenses", icon: FileBadge2 },
-    { href: "/teachers", label: "Teachers", icon: Users },
-    { href: "/students", label: "Students", icon: UserCheck },
-    { href: "/content", label: "Content Curriculum", icon: FolderOpen },
-    { href: "/sessions", label: "Active Sessions", icon: Activity },
+    { href: "/teacher", label: "Overview", icon: House },
+    { href: "/teacher/curriculum", label: "Topics & Modules", icon: FolderOpen },
+    { href: "/teacher/assessments", label: "Assessments Builder", icon: ClipboardList },
+    { href: "/teacher/games", label: "Vocabulary Games", icon: Gamepad2 },
   ];
 
   return (
@@ -32,15 +27,15 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-6">
         <div className="flex items-center gap-3">
-          <div className="bg-orange-500 p-2.5 rounded-xl shadow-md shadow-orange-500/20">
-            <FolderOpen className="text-white" size={20} />
+          <div className="bg-orange-600 p-2.5 rounded-xl shadow-md shadow-orange-600/20">
+            <ClipboardList className="text-white" size={20} />
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-800 leading-none">
-              Language<span className="text-orange-500">Lab</span>
+              Lab<span className="text-orange-500">Teacher</span>
             </h1>
             <p className="text-[10px] font-medium text-orange-400 mt-1 uppercase tracking-wider">
-              Control Panel
+              Instructor Portal
             </p>
           </div>
         </div>
@@ -50,7 +45,7 @@ export default function Sidebar() {
       <nav className="flex-1 px-4 py-4 overflow-y-auto space-y-1">
         {links.map((link) => {
           const Icon = link.icon;
-          const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
+          const isActive = pathname === link.href || (link.href !== "/teacher" && pathname.startsWith(link.href));
           
           return (
             <Link
@@ -58,7 +53,7 @@ export default function Sidebar() {
               href={link.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
+                  ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
                   : "text-gray-600 hover:text-orange-600 hover:bg-orange-50/50"
               }`}
             >
@@ -69,17 +64,17 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Settings & Logout footer */}
+      {/* Switch role & Logout */}
       <div className="p-4 border-t border-orange-50 space-y-1">
         <Link
-          href="/settings"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:text-orange-600 hover:bg-orange-50/50 transition-all duration-200"
+          href="/"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 transition-all duration-200"
         >
-          <Settings size={18} />
-          Settings
+          <ArrowLeftRight size={18} />
+          SuperAdmin View
         </Link>
         <button
-          onClick={() => alert("Simulating SuperAdmin Logout...")}
+          onClick={() => alert("Simulating Instructor Logout...")}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50/80 transition-all duration-200 text-left"
         >
           <LogOut size={18} />
