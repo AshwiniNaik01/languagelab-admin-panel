@@ -24,14 +24,11 @@ export default function NewCollegePage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">Add Affiliated College</h2>
-          <p className="text-sm text-slate-500">Register a new university or college location key.</p>
-        </div>
+      
 
-        <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-lg">
+        
           <CollegeForm onSubmit={handleSubmit} onCancel={() => router.push("/colleges")} />
-        </div>
+        
       </div>
     </AdminLayout>
   );
