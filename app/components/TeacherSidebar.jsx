@@ -64,7 +64,7 @@ export default function TeacherSidebar() {
       </div>
 
       {/* Accordion Menu */}
-      <nav className="flex-1 px-3 py-6 overflow-y-auto space-y-3 select-none">
+      <nav className="flex-1 px-3 py-6 overflow-y-auto scrollbar-none space-y-3 select-none">
         
         {/* Overview */}
         <Link
