@@ -2,124 +2,153 @@
 
 import InputField from "./InputField";
 import Button from "../ui/Button";
-import MultiSelectDropdown from "./MultiSelectDropdown";
 import { useState } from "react";
+import Swal from "sweetalert2";
+import Cookies from "js-cookie";
+import { createTeacher, updateTeacher } from "../../services/teacher";
 
-export default function TeacherForm({ initialData = {}, colleges = [], onSubmit, onCancel }) {
-  const [selectedColleges, setSelectedColleges] = useState(initialData.assigned_colleges || []);
+export default function TeacherForm({ initialData = {}, onCancel, onSuccess }) {
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
-    data.assigned_colleges = selectedColleges;
-    data.is_active = data.is_active === "on" || data.is_active === true;
-    onSubmit(data);
-  };
 
-  const collegeOptions = colleges.map(c => c.college_name);
-  const collegeIdsMap = colleges.reduce((acc, curr) => {
-    acc[curr.college_name] = curr._id;
-    acc[curr._id] = curr.college_name;
-    return acc;
-  }, {});
+    // ❌ remove empty password
+    if (!data.password) delete data.password;
 
-  const currentSelectedNames = selectedColleges.map(id => collegeIdsMap[id] || id);
+    // ✅ FIX: match schema field name
+    if (data.profileImage) {
+      data.profilePhoto = data.profileImage;
+      delete data.profileImage;
+    }
 
-  const handleCollegeChange = (names) => {
-    const ids = names.map(name => collegeIdsMap[name] || name);
-    setSelectedColleges(ids);
+    // ✅ default values for backend schema
+    data.status = data.status || "active";
+    data.is_active = data.is_active !== "false";
+
+    try {
+      setLoading(true);
+
+      const token = Cookies.get("token");
+
+      const config = {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      };
+
+      let response;
+
+      if (initialData._id) {
+        response = await updateTeacher(initialData._id, data, config);
+
+        Swal.fire({
+          icon: "success",
+          title: "Updated!",
+          text: "Teacher updated successfully",
+        });
+      } else {
+        response = await createTeacher(data, config);
+
+        console.log("API Response:", response.data);
+
+        Swal.fire({
+          icon: "success",
+          title: "Created!",
+          text: "Teacher created successfully",
+        });
+      }
+
+      if (onSuccess) onSuccess(response.data);
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.response?.data?.message || "Something went wrong",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto bg-white p-6 rounded-2xl border border-orange-100 shadow-sm">
-      <h3 className="text-lg font-bold text-gray-800 border-b border-orange-50 pb-2">
-        {initialData._id ? "Edit Teacher Details" : "Create New Teacher Staff"}
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 max-w-xl mx-auto bg-white p-6 rounded-2xl border"
+    >
+      <h3 className="text-lg font-bold">
+        {initialData._id ? "Edit Teacher" : "Create Teacher"}
       </h3>
 
+      {/* FULL NAME + EMAIL */}
       <div className="grid grid-cols-2 gap-4">
         <InputField
           label="Full Name"
           name="full_name"
-          placeholder="e.g. Dr. Sarah Jenkins"
           defaultValue={initialData.full_name}
           required
         />
+
         <InputField
-          label="Email Address"
+          label="Email"
           name="email"
           type="email"
-          placeholder="e.g. teacher@college.edu"
           defaultValue={initialData.email}
           required
         />
       </div>
 
+      {/* PASSWORD + ROLE */}
       <div className="grid grid-cols-2 gap-4">
         <InputField
           label="Password"
           name="password"
           type="password"
-          placeholder={initialData._id ? "••••••••" : "Enter password"}
+          placeholder={
+            initialData._id ? "Leave blank to keep old password" : ""
+          }
           required={!initialData._id}
         />
+
         <InputField
-          label="Phone Number"
+          label="Role"
+          name="role"
+          defaultValue={initialData.role || "teacher"}
+        />
+      </div>
+
+      {/* PHONE + PROFILE PHOTO */}
+      <div className="grid grid-cols-2 gap-4">
+        <InputField
+          label="Phone"
           name="phone"
-          placeholder="e.g. +1 555-0144"
           defaultValue={initialData.phone}
         />
       </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <InputField
-          label="Profile Photo URL"
-          name="profilePhoto"
-          placeholder="S3 photo path"
-          defaultValue={initialData.profilePhoto}
-        />
-        <div>
-          <label className="block mb-2 text-sm font-semibold text-gray-700">Status</label>
-          <select 
-            name="status" 
-            defaultValue={initialData.status || "active"} 
-            className="w-full rounded-xl border border-orange-300 bg-white px-4 py-3 text-sm focus:border-orange-500 focus:outline-none"
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="suspended">Suspended</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="z-30 relative">
-        <MultiSelectDropdown
-          label="Assign Colleges"
-          options={collegeOptions}
-          value={currentSelectedNames}
-          onChange={handleCollegeChange}
-        />
-      </div>
-
-      <div className="flex items-center gap-3 py-2">
-        <input
-          type="checkbox"
-          name="is_active"
-          id="teacher_is_active"
-          defaultChecked={initialData.is_active !== false}
-          className="accent-orange-500 w-4 h-4 rounded"
-        />
-        <label htmlFor="teacher_is_active" className="text-sm font-semibold text-gray-700">
-          Mark Teacher as Active
+      <div>
+        <label className="block mb-2 text-sm font-semibold text-gray-700">
+          Profile Photo
         </label>
+
+        <input
+          type="file"
+          accept="image/*"
+          name="profilePhoto"
+          className="w-full border rounded px-3 py-2"
+        />
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-orange-50">
-        <Button variant="secondary" onClick={onCancel}>
+      {/* ACTIONS */}
+      <div className="flex justify-end gap-3">
+        <Button type="button" variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">
-          Save Teacher
+
+        <Button type="submit" disabled={loading}>
+          {loading ? "Saving..." : initialData._id ? "Update" : "Create"}
         </Button>
       </div>
     </form>
