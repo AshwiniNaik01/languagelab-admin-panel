@@ -16,18 +16,18 @@ export default function ScrollableTable({
   }, [data, sortOrder]);
 
   return (
-    <div className="w-full max-w-7xl mx-auto bg-[#FFFBF5] rounded-3xl border border-orange-100 shadow-[0_10px_25px_rgba(0,0,0,0.05)] overflow-hidden">
+    <div className="w-full max-w-7xl mx-auto bg-white rounded-2xl border border-orange-200 shadow-md overflow-hidden">
 
       <div className="overflow-y-auto" style={{ maxHeight }}>
         <table className="min-w-full border-collapse">
 
           {/* HEADER */}
-          <thead className="sticky top-0 bg-orange-200 z-20 border-b border-orange-300">
+          <thead className="sticky top-0 bg-gradient-to-r from-orange-500 to-amber-600 z-20 border-b border-orange-700">
             <tr>
               {columns.map((col, index) => (
                 <th
                   key={index}
-                  className="px-6 py-5 text-left text-sm font-semibold uppercase tracking-wide text-black"
+                  className="px-6 py-4.5 text-left text-xs font-black uppercase tracking-wider text-white"
                 >
                   <div className="flex items-center gap-3">
                     <span>{col.header}</span>
@@ -37,12 +37,12 @@ export default function ScrollableTable({
                         onClick={() =>
                           setSortOrder(sortOrder === "top" ? "bottom" : "top")
                         }
-                        className="text-black/70 hover:text-black transition"
+                        className="text-orange-100 hover:text-white transition"
                       >
                         {sortOrder === "top" ? (
-                          <FaArrowUp size={14} />
+                          <FaArrowUp size={12} />
                         ) : (
-                          <FaArrowDown size={14} />
+                          <FaArrowDown size={12} />
                         )}
                       </button>
                     )}
@@ -59,16 +59,16 @@ export default function ScrollableTable({
                 <tr
                   key={rowIndex}
                   className={`border-b border-orange-100 transition
-                    ${rowIndex % 2 === 0 ? "bg-[#FFFBF5]" : "bg-[#FFF1E6]"}
-                    hover:bg-[#FFE6CC]`}
+                    ${rowIndex % 2 === 0 ? "bg-white" : "bg-[#FFF8F4]/30"}
+                    hover:bg-orange-50`}
                 >
                   {columns.map((col, colIndex) => (
                     <td
                       key={colIndex}
-                      className={`px-6 py-5 whitespace-nowrap text-sm transition ${
+                      className={`px-6 py-4.5 whitespace-nowrap text-sm transition ${
                         colIndex === 0
-                          ? "font-semibold text-black"
-                          : "text-black/70"
+                          ? "font-semibold text-[#3C1E0A]"
+                          : "text-[#5C4033]"
                       }`}
                     >
                       {typeof col.accessor === "function"
@@ -82,7 +82,7 @@ export default function ScrollableTable({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="py-12 text-center italic text-black/50"
+                  className="py-12 text-center italic text-slate-400"
                 >
                   {emptyMessage}
                 </td>

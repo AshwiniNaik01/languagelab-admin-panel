@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 
 export default function TeacherLayout({ children }) {
   return (
-    <div className="h-screen flex bg-[#FAF7F5]">
+    <div className="h-screen flex bg-[#FFF8F4]">
       <TeacherSidebar />
 
       <div className="flex flex-col flex-1">

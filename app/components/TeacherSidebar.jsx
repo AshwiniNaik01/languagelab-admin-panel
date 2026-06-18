@@ -1,84 +1,174 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSidebar } from "./SidebarContext";
 import {
   House,
   FolderOpen,
   ClipboardList,
   Gamepad2,
-  Settings,
   LogOut,
-  ArrowLeftRight
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 export default function TeacherSidebar() {
   const pathname = usePathname();
+  const { isCollapsed } = useSidebar();
+  const [openSection, setOpenSection] = useState("curriculum");
 
-  const links = [
-    { href: "/teacher", label: "Overview", icon: House },
-    { href: "/teacher/curriculum", label: "Topics & Modules", icon: FolderOpen },
-    { href: "/teacher/assessments", label: "Assessments Builder", icon: ClipboardList },
-    { href: "/teacher/games", label: "Vocabulary Games", icon: Gamepad2 },
-  ];
+  // Keep accordion open if it contains the active tab link
+  useEffect(() => {
+    if (isCollapsed) return;
+    if (pathname.startsWith("/teacher/curriculum")) {
+      setOpenSection("curriculum");
+    } else if (pathname.startsWith("/teacher/assessments") || pathname.startsWith("/teacher/games")) {
+      setOpenSection("evaluation");
+    }
+  }, [pathname, isCollapsed]);
+
+  const toggleSection = (section) => {
+    if (isCollapsed) return;
+    setOpenSection(openSection === section ? "" : section);
+  };
+
+  const isLinkActive = (href) => {
+    return pathname === href || (href !== "/teacher" && pathname.startsWith(href));
+  };
 
   return (
-    <aside className="w-64 bg-white border-r border-orange-100 flex flex-col h-screen shrink-0">
-      {/* Logo */}
-      <div className="p-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-orange-600 p-2.5 rounded-xl shadow-md shadow-orange-600/20">
-            <ClipboardList className="text-white" size={20} />
+    <aside 
+      className={`bg-[#2A1204] border-r border-orange-500/30 flex flex-col h-screen shrink-0 text-[#FFF8F4] font-sans shadow-2xl shadow-orange-500/5 transition-all duration-300 ${
+        isCollapsed ? "w-20" : "w-64"
+      }`}
+    >
+      {/* Header Logo */}
+      <div className="p-6 border-b border-orange-500/20 bg-gradient-to-b from-orange-950/20 to-transparent">
+        <div className="flex items-center gap-3 justify-center">
+          <div className="bg-gradient-to-tr from-orange-500 via-amber-500 to-yellow-400 p-2.5 rounded-2xl shadow-lg shadow-orange-500/20 shrink-0">
+            <ClipboardList className="text-[#3C1E0A]" size={20} />
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-800 leading-none">
-              Lab<span className="text-orange-500">Teacher</span>
-            </h1>
-            <p className="text-[10px] font-medium text-orange-400 mt-1 uppercase tracking-wider">
-              Instructor Portal
-            </p>
-          </div>
+          {!isCollapsed && (
+            <div>
+              <h1 className="text-lg font-black tracking-tight text-white leading-none">
+                Lab<span className="text-orange-500">Teacher</span>
+              </h1>
+              <p className="text-[9px] font-black text-orange-450/80 mt-1 uppercase tracking-widest">
+                Instructor Portal
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Menu Links */}
-      <nav className="flex-1 px-4 py-4 overflow-y-auto space-y-1">
-        {links.map((link) => {
-          const Icon = link.icon;
-          const isActive = pathname === link.href || (link.href !== "/teacher" && pathname.startsWith(link.href));
-          
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                isActive
-                  ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
-                  : "text-gray-600 hover:text-orange-600 hover:bg-orange-50/50"
-              }`}
-            >
-              <Icon size={18} />
-              {link.label}
-            </Link>
-          );
-        })}
+      {/* Accordion Menu */}
+      <nav className="flex-1 px-3 py-6 overflow-y-auto space-y-3 select-none">
+        
+        {/* Overview */}
+        <Link
+          href="/teacher"
+          className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-300 ${
+            isCollapsed ? "justify-center px-0" : ""
+          } ${
+            pathname === "/teacher" 
+              ? "bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-400 text-[#3C1E0A] shadow-lg shadow-orange-500/20 scale-102" 
+              : "text-orange-200/80 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <House size={16} />
+          {!isCollapsed && <span>Overview</span>}
+        </Link>
+
+        {/* Section: Curriculum Materials */}
+        <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
+          <button
+            onClick={() => toggleSection("curriculum")}
+            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${
+              isCollapsed ? "justify-center px-0" : ""
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <FolderOpen size={15} />
+              {!isCollapsed && <span>Course Materials</span>}
+            </div>
+            {!isCollapsed && (openSection === "curriculum" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+          </button>
+
+          {!isCollapsed && openSection === "curriculum" && (
+            <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
+              <Link
+                href="/teacher/curriculum"
+                className={`flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                  isLinkActive("/teacher/curriculum") ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                <FolderOpen size={14} />
+                Topics & Modules
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Section: Evaluation */}
+        <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
+          <button
+            onClick={() => toggleSection("evaluation")}
+            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-955/40 hover:bg-orange-955/60 transition-all duration-300 ${
+              isCollapsed ? "justify-center px-0" : ""
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <ClipboardList size={15} />
+              {!isCollapsed && <span>Evaluation</span>}
+            </div>
+            {!isCollapsed && (openSection === "evaluation" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+          </button>
+
+          {!isCollapsed && openSection === "evaluation" && (
+            <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
+              <Link
+                href="/teacher/assessments"
+                className={`flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                  isLinkActive("/teacher/assessments") ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                <ClipboardList size={14} />
+                Assessments
+              </Link>
+
+              <Link
+                href="/teacher/games"
+                className={`flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                  isLinkActive("/teacher/games") ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                <Gamepad2 size={14} />
+                Vocab Games
+              </Link>
+            </div>
+          )}
+        </div>
+
       </nav>
 
-      {/* Switch role & Logout */}
-      <div className="p-4 border-t border-orange-50 space-y-1">
-        <Link
-          href="/"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 transition-all duration-200"
-        >
-          <ArrowLeftRight size={18} />
-          SuperAdmin View
-        </Link>
+      {/* Logout Footer */}
+      <div className="p-4 border-t border-orange-500/20 bg-orange-950/10">
         <button
-          onClick={() => alert("Simulating Instructor Logout...")}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50/80 transition-all duration-200 text-left"
+          onClick={() => {
+            document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "admin=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            localStorage.removeItem("lab_topics");
+            localStorage.removeItem("lab_subtopics");
+            window.location.href = "/admin-login";
+          }}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-orange-400 hover:bg-red-500/10 transition-all duration-200 text-left cursor-pointer ${
+            isCollapsed ? "justify-center px-0" : ""
+          }`}
         >
-          <LogOut size={18} />
-          Logout
+          <LogOut size={16} />
+          {!isCollapsed && <span>Logout Panel</span>}
         </button>
       </div>
     </aside>

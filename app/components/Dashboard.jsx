@@ -14,217 +14,216 @@ import {
 
 export default function Dashboard() {
   return (
-    <div className="min-h-screen bg-[#fff7f3] px-6 py-6 font-sans">
-      {/* HEADER */}
-      <div className="flex justify-between items-start mb-5">
+    <div className="min-h-screen bg-[#FFF8F4] px-8 py-8 font-sans space-y-8">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-gradient-to-r from-orange-500/5 to-amber-500/5 p-6 rounded-3xl border border-orange-500/10 backdrop-blur-sm">
         <div>
-          <h1 className="text-[22px] font-semibold text-[#1f2937] leading-tight">
-            Welcome back 👋
+          <h1 className="text-2xl md:text-3xl font-black text-[#3C1E0A] leading-tight tracking-tight">
+            Welcome back, Curator 👋
           </h1>
-          <p className="text-[13px] text-gray-500 mt-1">
-            Here’s the complete overview of your platform.
+          <p className="text-xs md:text-sm text-orange-950/70 font-semibold mt-1">
+            System overview and active statistics dashboard is live.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="text-[12px] bg-white border border-[#ffe4d6] px-3 py-2 rounded-xl shadow-sm text-gray-600">
-            May 01, 2024 - May 31, 2024
+          <div className="text-xs font-black text-[#3C1E0A] bg-white border border-orange-500/20 px-4 py-2.5 rounded-2xl shadow-sm">
+            📅 Active Session: May 2026
           </div>
         </div>
       </div>
 
-      {/* STATS ROW */}
-      <div className="grid grid-cols-5 gap-4 mb-5">
+      {/* STATS GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
         <StatCard
-          icon={<FaUniversity />}
+          icon={<FaUniversity className="text-[#3C1E0A]" />}
           title="Total Colleges"
-          value="25"
-          sub="+3 this month"
+          value="25 Registered"
+          sub="+3 colleges this month"
+          color="from-orange-400 to-amber-400"
         />
         <StatCard
-          icon={<FaUserGraduate />}
+          icon={<FaUserGraduate className="text-[#3C1E0A]" />}
           title="Total Students"
-          value="12,450"
-          sub="+850 this month"
+          value="12,450 Users"
+          sub="+850 enrolled this month"
+          color="from-amber-400 to-yellow-400"
         />
         <StatCard
-          icon={<FaKey />}
+          icon={<FaKey className="text-[#3C1E0A]" />}
           title="Active Licenses"
-          value="22"
-          sub="2 expiring soon"
+          value="22 Assigned"
+          sub="2 keys expiring shortly"
+          color="from-orange-500 to-orange-400"
         />
         <StatCard
-          icon={<FaBookOpen />}
+          icon={<FaBookOpen className="text-[#3C1E0A]" />}
           title="Published Courses"
-          value="35"
-          sub="+4 this month"
+          value="35 Materials"
+          sub="+4 modules added this week"
+          color="from-amber-500 to-orange-400"
         />
         <StatCard
-          icon={<FaChartLine />}
+          icon={<FaChartLine className="text-[#3C1E0A]" />}
           title="Assessments Taken"
-          value="8,950"
-          sub="+1,280 this month"
+          value="8,950 Tests"
+          sub="+1,280 submitted recently"
+          color="from-yellow-400 to-orange-400"
         />
       </div>
 
-      {/* MAIN GRID */}
-      <div className="grid grid-cols-12 gap-5">
-        {/* LICENSE EXPIRING */}
-        <div className="col-span-3 bg-white border border-[#ffe4d6] rounded-2xl p-5 shadow-sm">
-          <h2 className="text-[14px] font-semibold mb-4">
-            License Expiring Soon
-          </h2>
-          <button className="text-xs text-[#f97316] hover:text-[#ea580c] hover:underline flex items-center gap-1 transition-all duration-200 font-medium">
-            View All <i className="fas fa-arrow-right text-[10px]"></i>
-          </button>
+      {/* MAIN CONTENT ROW */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* LICENSE MONITOR */}
+        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider">
+                License Monitors
+              </h2>
+              <span className="text-[10px] bg-red-100 text-red-700 px-2 py-1 rounded-full font-black uppercase tracking-widest">
+                Action Required
+              </span>
+            </div>
 
-          <LicenseItem
-            name="ABC College of Engineering"
-            plan="Premium Plan"
-            days="7 days left"
-            date="May 08, 2024"
-          />
-          <LicenseItem
-            name="XYZ Institute of Technology"
-            plan="Standard Plan"
-            days="12 days left"
-            date="May 13, 2024"
-          />
-          <LicenseItem
-            name="PQR Group of Colleges"
-            plan="Basic Plan"
-            days="19 days left"
-            date="May 20, 2024"
-          />
-        </div>
-
-        {/* RECENT ACTIVITY */}
-        <div className="col-span-5 bg-white border border-[#ffe4d6] rounded-2xl p-5 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-[14px] font-semibold text-gray-700">
-              Recent College Activity
-            </h2>
-            <button className="text-xs text-[#f97316] hover:text-[#ea580c] hover:underline flex items-center gap-1 transition-all duration-200 font-medium">
-              View All <i className="fas fa-arrow-right text-[10px]"></i>
-            </button>
+            <div className="space-y-4">
+              <LicenseItem
+                name="ABC College of Engineering"
+                plan="Premium License Package"
+                days="7 days left"
+                date="Exp: May 08, 2026"
+                urgency="high"
+              />
+              <LicenseItem
+                name="XYZ Institute of Technology"
+                plan="Standard License Package"
+                days="12 days left"
+                date="Exp: May 13, 2026"
+                urgency="medium"
+              />
+              <LicenseItem
+                name="PQR Group of Colleges"
+                plan="Basic Academic Package"
+                days="19 days left"
+                date="Exp: May 20, 2026"
+                urgency="low"
+              />
+            </div>
           </div>
-
-          <ActivityItem
-            name="MMCOE, Pune"
-            sub="120 new students added"
-            time="10:30 AM"
-          />
-          <ActivityItem
-            name="PCCOE, Pune"
-            sub="80 new students added"
-            time="11:15 AM"
-          />
-          <ActivityItem
-            name="VIT, Mumbai"
-            sub="60 new students added"
-            time="01:20 PM"
-          />
-          <ActivityItem
-            name="DY Patil College"
-            sub="45 new students added"
-            time="03:30 PM"
-          />
-          <ActivityItem
-            name="LNCT Group, Bhopal"
-            sub="30 new students added"
-            time="04:45 PM"
-          />
+          <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
+            View All License Ledgers
+          </button>
         </div>
 
-        {/* QUICK ACTIONS */}
-        <div className="col-span-4 bg-white border border-[#ffe4d6] rounded-2xl p-5 shadow-sm">
-          <h2 className="text-[14px] font-semibold mb-4">Quick Actions</h2>
+        {/* COLLEGE ACTIVITY LEDGER */}
+        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider">
+                College Activity
+              </h2>
+              <span className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-full font-black uppercase tracking-widest">
+                Live Feed
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              <ActivityItem
+                name="MMCOE, Pune"
+                sub="120 new students onboarded"
+                time="10:30 AM"
+              />
+              <ActivityItem
+                name="PCCOE, Pune"
+                sub="80 new students onboarded"
+                time="11:15 AM"
+              />
+              <ActivityItem
+                name="VIT, Mumbai"
+                sub="60 new students onboarded"
+                time="01:20 PM"
+              />
+              <ActivityItem
+                name="DY Patil College"
+                sub="45 new students onboarded"
+                time="03:30 PM"
+              />
+            </div>
+          </div>
+          <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
+            Export Live Ledger Log
+          </button>
+        </div>
+
+        {/* QUICK MANAGEMENT PANEL */}
+        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm">
+          <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider mb-6">
+            Quick Management
+          </h2>
 
           <div className="grid grid-cols-2 gap-4">
-            <ActionCard icon={<FaPlus />} label="Add College" />
-            <ActionCard icon={<FaKey />} label="Create License" />
-            <ActionCard icon={<FaUserPlus />} label="Add Staff" />
-            <ActionCard icon={<FaUpload />} label="Upload Content" />
-            <ActionCard icon={<FaBookOpen />} label="Create Course" />
-            <ActionCard icon={<FaClipboardList />} label="Create Assessment" />
+            <ActionCard icon={<FaPlus />} label="Add College" link="/colleges/new" />
+            <ActionCard icon={<FaKey />} label="Issue License" link="/licenses/new" />
+            <ActionCard icon={<FaUserPlus />} label="Register Teacher" link="/teachers/new" />
+            <ActionCard icon={<FaUpload />} label="Upload Material" link="/content" />
+            <ActionCard icon={<FaBookOpen />} label="Manage Curriculum" link="/content" />
+            <ActionCard icon={<FaClipboardList />} label="Configure Testing" link="/sessions" />
           </div>
         </div>
+
       </div>
 
-      {/* BOTTOM GRID */}
-      <div className="grid grid-cols-12 gap-5 mt-5">
-        {/* RECENT ACTIVITIES */}
-        <div className="col-span-7 bg-white border border-[#ffe4d6] rounded-2xl p-5 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-[14px] font-semibold">Recent Activities</h2>
-            <button className="text-xs text-[#f97316] hover:text-[#ea580c] hover:underline flex items-center gap-1 transition-all duration-200 font-medium">
-              View All Activities{" "}
-              <i className="fas fa-arrow-right text-[10px]"></i>
-            </button>
-          </div>
+      {/* PLATFORM METRICS ROW */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* RECENT AUDIT LOG */}
+        <div className="lg:col-span-8 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm">
+          <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider mb-6">
+            Recent Audit Log
+          </h2>
 
-          <div className="space-y-3 text-[13px]">
-            <div className="flex justify-between items-center py-2 border-b border-[#f0f4fa]">
-              <div className="flex items-center gap-2">
-                <i className="fas fa-plus-circle text-[#10b981] text-sm"></i>
-                <span>
-                  <strong>New College Added</strong> - MMCOE, Pune has been
-                  added to the platform
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center py-2 border-b border-[#f0f4fa]">
-              <div className="flex items-center gap-2">
-                <i className="fas fa-sync-alt text-[#f59e0b] text-sm"></i>
-                <span>
-                  <strong>License Renewed</strong> - ABC College of Engineering
-                  license renewed
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center py-2 border-b border-[#f0f4fa]">
-              <div className="flex items-center gap-2">
-                <i className="fas fa-graduation-cap text-[#8b5cf6] text-sm"></i>
-                <span>
-                  <strong>New Course Published</strong> - Business English
-                  Communication course published
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center py-2 border-b border-[#f0f4fa]">
-              <div className="flex items-center gap-2">
-                <i className="fas fa-user-plus text-[#3b82f6] text-sm"></i>
-                <span>
-                  <strong>New Staff Added</strong> - Rahul Sharma joined as
-                  College Staff
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center py-2 border-b border-[#f0f4fa]">
-              <div className="flex items-center gap-2">
-                <i className="fas fa-trophy text-[#ef4444] text-sm"></i>
-                <span>
-                  <strong>1000 Students Completed Course</strong> - Business
-                  English Communication course completed
-                </span>
-              </div>
-            </div>
+          <div className="space-y-4">
+            <AuditItem
+              type="add"
+              title="New College Registered"
+              desc="MMCOE, Pune was registered onto the platform database."
+              time="1 hour ago"
+            />
+            <AuditItem
+              type="renew"
+              title="License Agreement Extended"
+              desc="ABC College of Engineering license terms were renewed."
+              time="3 hours ago"
+            />
+            <AuditItem
+              type="publish"
+              title="Curriculum Update Published"
+              desc="'Business Communication Essentials' course modules are now live."
+              time="5 hours ago"
+            />
+            <AuditItem
+              type="staff"
+              title="Instructor Access Created"
+              desc="Instructor profile initialized for Prof. Rahul Sharma."
+              time="1 day ago"
+            />
           </div>
         </div>
 
-        {/* PLATFORM OVERVIEW */}
-        <div className="col-span-5 bg-white border border-[#ffe4d6] rounded-2xl p-5 shadow-sm">
-          <h2 className="text-[14px] font-semibold mb-3">Platform Overview</h2>
+        {/* PLATFORM ENGAGEMENT */}
+        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm">
+          <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider mb-4">
+            User Engagement
+          </h2>
 
-          <div className="text-[28px] font-bold text-gray-800">12,450</div>
-          <p className="text-[12px] text-gray-500 mb-4">Total Students</p>
+          <div className="mb-4">
+            <div className="text-3xl font-black text-[#3C1E0A]">12,450</div>
+            <p className="text-xs text-orange-950/60 font-bold">Total Platform Active Students</p>
+          </div>
 
-          {/* CHART (MATCHED HEIGHT STYLE FROM IMAGE) */}
-          <div className="h-36 flex items-end gap-2 p-3 rounded-xl bg-gradient-to-r from-orange-100 to-orange-50">
+          {/* TRANSITIONAL MINI BAR CHART */}
+          <div className="h-32 flex items-end gap-2.5 p-4 rounded-2xl bg-orange-500/5 border border-orange-500/10 mb-4">
             <Bar h="35%" />
             <Bar h="55%" />
             <Bar h="45%" />
@@ -234,45 +233,68 @@ export default function Dashboard() {
             <Bar h="78%" />
           </div>
 
-          {/* MINI STATS */}
-          <div className="grid grid-cols-3 gap-3 mt-4 text-[12px]">
-            <MiniStat label="Total Content" value="1,250" />
-            <MiniStat label="Total Staff" value="48" />
-            <MiniStat label="Assessments" value="320" />
+          {/* KEY METRIC LABELS */}
+          <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-orange-500/10">
+            <div>
+              <p className="font-black text-sm text-[#3C1E0A]">1.2k</p>
+              <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Units</p>
+            </div>
+            <div>
+              <p className="font-black text-sm text-[#3C1E0A]">48</p>
+              <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Curators</p>
+            </div>
+            <div>
+              <p className="font-black text-sm text-[#3C1E0A]">320</p>
+              <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Tests</p>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   );
 }
 
-/* ---------------- COMPONENTS ---------------- */
+/* ---------------- CHILD COMPONENTS ---------------- */
 
-function StatCard({ icon, title, value, sub }) {
+function StatCard({ icon, title, value, sub, color }) {
   return (
-    <div className="bg-white border border-[#ffe4d6] rounded-xl p-4 flex items-center gap-3 shadow-sm h-24">
-      <div className="text-orange-500 text-[18px] bg-orange-50 p-2 rounded-lg">
-        {icon}
+    <div className="bg-white border border-orange-500/20 rounded-2xl p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-orange-500/40 transition duration-300 h-32">
+      {/* Decorative Gradient Tag */}
+      <div className={`absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r ${color}`} />
+      
+      <div className="flex justify-between items-start">
+        <span className="text-xs font-black text-orange-950/60 uppercase tracking-widest">{title}</span>
+        <div className="bg-orange-500/10 p-2 rounded-xl">
+          {icon}
+        </div>
       </div>
-      <div>
-        <p className="text-[12px] text-gray-500">{title}</p>
-        <p className="text-[18px] font-semibold text-gray-800">{value}</p>
-        <p className="text-[11px] text-green-600">{sub}</p>
+
+      <div className="mt-2">
+        <p className="text-lg font-black text-[#3C1E0A] tracking-tight">{value}</p>
+        <p className="text-[10px] font-bold text-green-600 mt-0.5">{sub}</p>
       </div>
     </div>
   );
 }
 
-function LicenseItem({ name, plan, days, date }) {
+function LicenseItem({ name, plan, days, date, urgency }) {
+  const badgeColor = 
+    urgency === "high" ? "text-red-600 bg-red-50 border-red-200" :
+    urgency === "medium" ? "text-orange-600 bg-orange-50 border-orange-200" :
+    "text-amber-600 bg-amber-50 border-amber-200";
+
   return (
-    <div className="flex justify-between items-center py-3 border-b border-[#f3e0d6]">
+    <div className="flex justify-between items-center py-3 border-b border-orange-500/10">
       <div>
-        <p className="text-[13px] font-medium">{name}</p>
-        <p className="text-[11px] text-gray-500">{plan}</p>
+        <p className="text-xs font-black text-[#3C1E0A]">{name}</p>
+        <p className="text-[10px] text-orange-950/60 font-bold mt-0.5">{plan}</p>
       </div>
       <div className="text-right">
-        <p className="text-[11px] text-orange-500 font-semibold">{days}</p>
-        <p className="text-[11px] text-gray-400">{date}</p>
+        <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${badgeColor}`}>
+          {days}
+        </span>
+        <p className="text-[9px] font-bold text-orange-950/50 mt-1 uppercase tracking-wider">{date}</p>
       </div>
     </div>
   );
@@ -280,43 +302,58 @@ function LicenseItem({ name, plan, days, date }) {
 
 function ActivityItem({ name, sub, time }) {
   return (
-    <div className="flex justify-between py-3 border-b border-[#f3e0d6] text-[13px]">
+    <div className="flex justify-between items-center py-3 border-b border-orange-500/10">
       <div>
-        <p className="font-medium">{name}</p>
-        <p className="text-[11px] text-gray-500">{sub}</p>
+        <p className="text-xs font-black text-[#3C1E0A]">{name}</p>
+        <p className="text-[10px] text-orange-950/60 font-bold mt-0.5">{sub}</p>
       </div>
-      <p className="text-[11px] text-gray-400">{time}</p>
+      <span className="text-[10px] font-black text-[#3C1E0A]/60 bg-orange-500/5 px-2 py-0.5 rounded-lg border border-orange-500/10">
+        {time}
+      </span>
     </div>
   );
 }
 
-function Row({ text, time }) {
+function ActionCard({ icon, label, link }) {
   return (
-    <div className="flex justify-between border-b border-[#f3e0d6] pb-2">
-      <p className="text-gray-600">{text}</p>
-      <p className="text-gray-400 text-[11px]">{time}</p>
-    </div>
+    <a
+      href={link}
+      className="border border-orange-500/20 rounded-2xl p-4 flex flex-col items-center justify-center gap-2.5 bg-[#FFF8F4]/50 hover:bg-gradient-to-br hover:from-orange-500 hover:to-amber-500 hover:text-white text-orange-700 hover:border-transparent transition duration-300 shadow-sm hover:shadow-md hover:shadow-orange-500/10 group cursor-pointer h-24"
+    >
+      <div className="text-lg text-[#3C1E0A] group-hover:text-white transition duration-300">
+        {icon}
+      </div>
+      <p className="text-[10px] font-black text-center text-[#3C1E0A] group-hover:text-white tracking-widest uppercase transition duration-300">
+        {label}
+      </p>
+    </a>
   );
 }
 
-function ActionCard({ icon, label }) {
-  return (
-    <div className="border border-[#ffe4d6] rounded-xl p-3 flex flex-col items-center justify-center gap-2 hover:bg-orange-50 transition h-20">
-      <div className="text-orange-500">{icon}</div>
-      <p className="text-[11px] text-center">{label}</p>
-    </div>
-  );
-}
+function AuditItem({ type, title, desc, time }) {
+  const icon = 
+    type === "add" ? "✨" :
+    type === "renew" ? "🔄" :
+    type === "publish" ? "📚" : "👤";
 
-function MiniStat({ label, value }) {
   return (
-    <div>
-      <p className="font-semibold text-[13px]">{value}</p>
-      <p className="text-gray-500 text-[11px]">{label}</p>
+    <div className="flex items-start gap-3.5 p-3 rounded-2xl hover:bg-orange-500/5 border border-transparent hover:border-orange-500/10 transition duration-300">
+      <div className="w-8 h-8 rounded-xl bg-orange-500/10 flex items-center justify-center text-sm">
+        {icon}
+      </div>
+      <div className="flex-1">
+        <div className="flex justify-between items-center">
+          <h4 className="text-xs font-black text-[#3C1E0A]">{title}</h4>
+          <span className="text-[9px] font-bold text-orange-950/50 uppercase tracking-widest">{time}</span>
+        </div>
+        <p className="text-[11px] text-orange-950/70 font-semibold mt-0.5">{desc}</p>
+      </div>
     </div>
   );
 }
 
 function Bar({ h }) {
-  return <div className="w-3 bg-orange-400 rounded-md" style={{ height: h }} />;
+  return (
+    <div className="flex-1 bg-gradient-to-t from-orange-600 to-amber-500 rounded-lg shadow-sm hover:opacity-85 transition duration-300 cursor-pointer" style={{ height: h }} />
+  );
 }

@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 
 export default function AdminLayout({ children }) {
   return (
-    <div className="h-screen flex bg-[#FAF7F5]">
+    <div className="h-screen flex bg-white">
 
       <Sidebar />
 
