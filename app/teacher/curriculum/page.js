@@ -2,151 +2,277 @@
 
 import { useState } from "react";
 import TeacherLayout from "../../layouts/TeacherLayout";
-import ScrollableTable from "../../components/Table";
-import Button from "../../components/ui/Button";
 import ContentForm from "../../components/form/ContentForm";
 import MediaModulesForm from "../../components/form/MediaModulesForm";
+import Button from "../../components/ui/Button";
 import { initialTopics, initialSubTopics } from "../../services/dbService";
+import { FiPlus, FiFolder, FiX, FiSearch } from "react-icons/fi";
 
 export default function TeacherCurriculumPage() {
-  const [topics, setTopics] = useState(initialTopics);
+  const [topics] = useState(initialTopics);
   const [subtopics, setSubtopics] = useState(initialSubTopics);
-  
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formType, setFormType] = useState("topic"); // topic, subtopic, module
 
-  const handleOpenCreateTopic = () => {
-    setFormType("topic");
-    setIsFormOpen(true);
+  const [selectedTopic, setSelectedTopic] = useState(
+    initialTopics[0]?._id || null
+  );
+
+  const [modal, setModal] = useState(null);
+  const [search, setSearch] = useState("");
+
+  const open = (t) => setModal(t);
+  const close = () => setModal(null);
+
+  const addSubtopic = (data) => {
+    setSubtopics((prev) => [
+      ...prev,
+      { _id: "sub_" + Date.now(), ...data }
+    ]);
+    close();
   };
 
-  const handleOpenCreateSubtopic = () => {
-    setFormType("subtopic");
-    setIsFormOpen(true);
+  const deleteSubtopic = (id) => {
+    setSubtopics((prev) => prev.filter((s) => s._id !== id));
   };
 
-  const handleOpenCreateModule = () => {
-    setFormType("module");
-    setIsFormOpen(true);
-  };
-
-  const handleTopicSubmit = (data) => {
-    const newTopic = {
-      _id: "topic_" + Date.now(),
-      ...data,
-      created_by: "teach1",
-      is_active: true
-    };
-    setTopics(prev => [...prev, newTopic]);
-    setIsFormOpen(false);
-  };
-
-  const handleSubtopicSubmit = (data) => {
-    const newSub = {
-      _id: "sub_" + Date.now(),
-      ...data,
-      created_by: "teach1",
-      is_active: true
-    };
-    setSubtopics(prev => [...prev, newSub]);
-    setIsFormOpen(false);
-  };
-
-  const handleModuleSubmit = (data) => {
-    alert(`Media module submitted successfully!\nTitle: ${data.title}\nType: ${data.module_type}`);
-    setIsFormOpen(false);
-  };
-
-  const topicColumns = [
-    {
-      header: "Topic Title & Goal Description",
-      accessor: (row) => (
-        <div>
-          <div className="font-semibold text-gray-800">{row.title}</div>
-          <div className="text-xs text-gray-500 max-w-md truncate">{row.description || "No description provided"}</div>
-        </div>
-      )
-    },
-    {
-      header: "Display Order",
-      accessor: (row) => <span className="font-semibold text-orange-500">#{row.order}</span>
-    },
-    {
-      header: "Status",
-      accessor: (row) => (
-        <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
-          row.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-        }`}>
-          {row.is_active ? "Active" : "Inactive"}
-        </span>
-      )
-    }
-  ];
-
-  const subtopicColumns = [
-    {
-      header: "Subtopic Title",
-      accessor: (row) => (
-        <div>
-          <div className="font-semibold text-gray-800">{row.title}</div>
-          <div className="text-xs text-gray-400 max-w-md truncate">{row.description}</div>
-        </div>
-      )
-    },
-    {
-      header: "Parent Topic ID Ref",
-      accessor: (row) => <span className="text-xs font-mono font-semibold text-orange-600">{row.topic_id}</span>
-    },
-    {
-      header: "Order Index",
-      accessor: (row) => <span className="font-mono text-gray-600">{row.order}</span>
-    }
-  ];
+  const filteredSubtopics = subtopics.filter(
+    (s) => s.topic_id === selectedTopic
+  );
 
   return (
     <TeacherLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] p-6">
+
+        {/* HEADER */}
+        <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Syllabus Curriculum & Media Modules</h2>
-            <p className="text-sm text-gray-500">Curate audio modules, video modules, text passages, exercise modules, and vocabulary terms lists.</p>
+            <h1 className="text-3xl font-bold">
+              Curriculum Studio
+            </h1>
+            <p className="text-[#64748B] text-sm mt-1">
+              Build structured learning content visually
+            </p>
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" variant="secondary" onClick={handleOpenCreateTopic}>
-              + Topic
-            </Button>
-            <Button size="sm" variant="secondary" onClick={handleOpenCreateSubtopic}>
-              + Subtopic
-            </Button>
-            <Button size="sm" onClick={handleOpenCreateModule}>
-              + Interactive Media Module
-            </Button>
+
+          <button
+            onClick={() => open("topic")}
+            className="
+              px-5 py-2 rounded-xl font-semibold text-white
+              bg-[#F97316] hover:bg-[#EA580C]
+              shadow-sm transition
+            "
+          >
+            <FiPlus className="inline mr-2" />
+            Add Topic
+          </button>
+        </div>
+
+        {/* GRID */}
+        <div className="grid grid-cols-12 gap-6">
+
+          {/* LEFT PANEL */}
+          <div className="col-span-4 bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm">
+
+            <h2 className="font-semibold mb-3">
+              Topics
+            </h2>
+
+            {/* SEARCH */}
+            <div className="flex items-center bg-[#F8FAFC] px-3 py-2 rounded-xl border border-[#E5E7EB] mb-4">
+              <FiSearch className="text-[#94A3B8]" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search topics..."
+                className="ml-2 w-full bg-transparent outline-none text-sm"
+              />
+            </div>
+
+            {/* TOPICS */}
+            <div className="space-y-2">
+              {topics.map((t) => (
+                <div
+                  key={t._id}
+                  onClick={() => setSelectedTopic(t._id)}
+                  className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition border
+                    ${
+                      selectedTopic === t._id
+                        ? "bg-[#FFF7ED] border-[#F97316] text-[#F97316]"
+                        : "hover:bg-[#F8FAFC] border-transparent text-[#334155]"
+                    }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <FiFolder />
+                    <span className="text-sm font-medium">
+                      {t.title}
+                    </span>
+                  </div>
+
+                  <span className="text-xs text-[#64748B]">
+                    {subtopics.filter(s => s.topic_id === t._id).length}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => open("subtopic")}
+              className="
+                w-full mt-4 py-2 rounded-xl text-sm font-medium
+                border border-[#E5E7EB]
+                hover:bg-[#F8FAFC] transition
+              "
+            >
+              + Add Subtopic
+            </button>
+          </div>
+
+          {/* RIGHT PANEL */}
+          <div className="col-span-8 bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+
+            {/* HEADER */}
+            <div className="flex justify-between items-center mb-5">
+              <div>
+                <h2 className="text-xl font-semibold">
+                  Subtopics
+                </h2>
+                <p className="text-[#64748B] text-sm">
+                  Manage content under selected topic
+                </p>
+              </div>
+
+              <button
+                onClick={() => open("subtopic")}
+                className="
+                  px-4 py-2 rounded-xl font-semibold text-white
+                  bg-[#F97316] hover:bg-[#EA580C]
+                  transition
+                "
+              >
+                <FiPlus className="inline mr-2" />
+                Add
+              </button>
+            </div>
+
+            {/* EMPTY STATE */}
+            {filteredSubtopics.length === 0 ? (
+              <div className="text-center py-16 text-[#94A3B8]">
+                <div className="text-4xl mb-2">📚</div>
+                No subtopics yet
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredSubtopics.map((s) => (
+                  <div
+                    key={s._id}
+                    className="
+                      flex justify-between items-center p-4 rounded-xl
+                      border border-[#E5E7EB]
+                      hover:bg-[#F8FAFC] transition
+                    "
+                  >
+
+                    {/* LEFT */}
+                    <div>
+                      <p className="font-medium">
+                        {s.title}
+                      </p>
+                      <p className="text-xs text-[#94A3B8]">
+                        Topic ID: {s.topic_id}
+                      </p>
+                    </div>
+
+                    {/* ACTIONS */}
+                    <div className="flex items-center gap-2">
+
+                      {/* EDIT */}
+                      <Button
+                        variant="secondary"
+                        className="
+                          text-xs px-3 py-1 rounded-lg
+                          border border-[#E5E7EB]
+                          hover:bg-[#FFF7ED]
+                          hover:border-[#F97316]
+                          hover:text-[#F97316]
+                          transition
+                        "
+                        onClick={() => {
+                          alert("Edit coming soon for: " + s.title);
+                        }}
+                      >
+                        Edit
+                      </Button>
+
+                      {/* DELETE */}
+                      <Button
+                        className="
+                          text-xs px-3 py-1 rounded-lg
+                          bg-red-500 text-white
+                          hover:bg-red-600 transition
+                        "
+                        onClick={() => deleteSubtopic(s._id)}
+                      >
+                        Delete
+                      </Button>
+
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {isFormOpen && (
-          <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-100">
-            {formType === "topic" && (
-              <ContentForm onSubmit={handleTopicSubmit} onCancel={() => setIsFormOpen(false)} />
-            )}
-            {formType === "subtopic" && (
-              <ContentForm type="subtopic" onSubmit={handleSubtopicSubmit} onCancel={() => setIsFormOpen(false)} />
-            )}
-            {formType === "module" && (
-              <MediaModulesForm onSubmit={handleModuleSubmit} onCancel={() => setIsFormOpen(false)} />
-            )}
+        {/* MODAL */}
+        {modal && (
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+
+            <div className="
+              w-[520px] rounded-2xl p-5 relative
+              bg-white border border-[#E5E7EB]
+              shadow-xl
+            ">
+
+              <button
+                onClick={close}
+                className="absolute right-4 top-4 text-[#64748B]"
+              >
+                <FiX />
+              </button>
+
+              {modal === "topic" && (
+                <>
+                  <h2 className="text-lg font-semibold mb-3">
+                    Create Topic
+                  </h2>
+                  <ContentForm onSubmit={close} onCancel={close} />
+                </>
+              )}
+
+              {modal === "subtopic" && (
+                <>
+                  <h2 className="text-lg font-semibold mb-3">
+                    Create Subtopic
+                  </h2>
+                  <ContentForm
+                    type="subtopic"
+                    onSubmit={addSubtopic}
+                    onCancel={close}
+                  />
+                </>
+              )}
+
+              {modal === "module" && (
+                <>
+                  <h2 className="text-lg font-semibold mb-3">
+                    Create Module
+                  </h2>
+                  <MediaModulesForm onSubmit={close} onCancel={close} />
+                </>
+              )}
+            </div>
           </div>
         )}
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-gray-800">All Topics</h3>
-          <ScrollableTable columns={topicColumns} data={topics} />
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-gray-800">All Subtopics</h3>
-          <ScrollableTable columns={subtopicColumns} data={subtopics} />
-        </div>
       </div>
     </TeacherLayout>
   );
