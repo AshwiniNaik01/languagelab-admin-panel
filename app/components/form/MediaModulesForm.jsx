@@ -129,7 +129,9 @@ export default function MediaModulesForm({ topic_id, sub_topic_id, onSubmit, onC
             <InputField label="Source Attribution" name="content_source" placeholder="BBC Learning English" />
           </div>
           <div>
-            <label className="block mb-2 text-xs font-semibold text-gray-700">Reading Passage Body Text (HTML supported)</label>
+            <label className="block mb-2 text-xs font-semibold text-gray-700">
+              Reading Passage Body Text (HTML supported) <span className="ml-1 text-orange-500">*</span>
+            </label>
             <textarea name="content_body" rows={4} className="w-full px-4 py-3 text-sm rounded-xl border border-orange-300 focus:outline-none" placeholder="Paste full article reading text here..." required />
           </div>
         </div>
@@ -141,7 +143,9 @@ export default function MediaModulesForm({ topic_id, sub_topic_id, onSubmit, onC
           <h4 className="font-semibold text-sm text-orange-600">Exercise Quiz Settings</h4>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block mb-2 text-xs font-semibold text-gray-700">Exercise Type</label>
+              <label className="block mb-2 text-xs font-semibold text-gray-700">
+                Exercise Type <span className="ml-1 text-orange-500">*</span>
+              </label>
               <select name="exercise_type" className="w-full rounded-xl border border-orange-300 px-3 py-2 text-xs" required>
                 <option value="mcq">Multiple Choice Questions (MCQ)</option>
                 <option value="fill_blank">Fill in the Blanks</option>

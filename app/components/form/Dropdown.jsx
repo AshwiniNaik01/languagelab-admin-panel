@@ -11,6 +11,7 @@ export default function Dropdown({
   placeholder = "Select an option",
   required = false,
   disabled = false,
+  ...rest
 }) {
   return (
     <div className="w-full">
@@ -31,6 +32,8 @@ export default function Dropdown({
           value={value}
           onChange={onChange}
           disabled={disabled}
+          required={required}
+          {...rest}
           className="
             peer
             w-full

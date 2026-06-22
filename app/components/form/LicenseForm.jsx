@@ -21,12 +21,14 @@ export default function LicenseForm({ initialData = {}, institutes = [], onSubmi
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block mb-2 text-sm font-semibold text-gray-700">Assign Institute</label>
+          <label className="block mb-2 text-sm font-semibold text-gray-700">
+            Assign Institute <span className="ml-1 text-orange-500">*</span>
+          </label>
           <select 
             name="institute_id" 
             defaultValue={initialData.institute_id} 
             required
-            className="w-full rounded-xl border border-orange-300 bg-white px-4 py-3 text-sm focus:border-orange-500 focus:outline-none"
+            className="w-full rounded-xl border border-orange-300 bg-white text-black px-4 py-3 text-sm focus:border-orange-500 focus:outline-none"
           >
             <option value="" disabled>Select Institute</option>
             {institutes.map(c => (

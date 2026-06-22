@@ -9,6 +9,7 @@ export default function InputField({
   error = "",
   required = false,
   disabled = false,
+  ...rest
 }) {
   return (
     <div className="w-full">
@@ -33,6 +34,8 @@ export default function InputField({
         onChange={onChange}
         onBlur={onBlur}
         disabled={disabled}
+        required={required}
+        {...rest}
         className={`
           w-full
           px-4
