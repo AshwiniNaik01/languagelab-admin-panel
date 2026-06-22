@@ -17,7 +17,8 @@ import {
   ChevronDown,
   ChevronUp,
   PlusCircle,
-  ListCollapse
+  ListCollapse,
+  BookOpen
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -30,6 +31,7 @@ export default function Sidebar() {
     licenses: false,
     editors: false,
     students: false,
+    courses: false,
     curriculum: false
   });
 
@@ -41,6 +43,7 @@ export default function Sidebar() {
     const isLicensesActive = pathname.startsWith("/licenses");
     const isEditorsActive = pathname.startsWith("/editors");
     const isStudentsActive = pathname.startsWith("/students");
+    const isCoursesActive = pathname.startsWith("/courses");
     const isCurriculumActive = pathname.startsWith("/content") || pathname.startsWith("/sessions");
 
     setOpenSections({
@@ -48,6 +51,7 @@ export default function Sidebar() {
       licenses: isLicensesActive,
       editors: isEditorsActive,
       students: isStudentsActive,
+      courses: isCoursesActive,
       curriculum: isCurriculumActive
     });
   }, [pathname, isCollapsed]);
@@ -268,6 +272,50 @@ export default function Sidebar() {
             </div>
           )}
         </div>
+        {/* 5. COURSES Accordion */}
+<div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
+
+  <button
+    onClick={() => toggleSection("courses")}
+    className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-widest bg-orange-950/40 ${
+      isCollapsed ? "justify-center px-0" : ""
+    }`}
+  >
+    <div className="flex items-center gap-2">
+      <FolderOpen size={15} />
+      {!isCollapsed && <span>Courses</span>}
+    </div>
+
+    {!isCollapsed &&
+      (openSections.courses ? (
+        <ChevronUp size={14} />
+      ) : (
+        <ChevronDown size={14} />
+      ))}
+  </button>
+
+  {!isCollapsed && openSections.courses && (
+    <div className="p-1.5 space-y-1 bg-[#2A1204]">
+
+      <Link
+        href="/courses"
+        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs"
+      >
+        <ListCollapse size={13} />
+        Manage Courses
+      </Link>
+
+      <Link
+        href="/courses/new"
+        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs"
+      >
+        <PlusCircle size={13} />
+        Add Course
+      </Link>
+
+    </div>
+  )}
+</div>
 
         {/* 5. CURRICULUM Accordion */}
         <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">

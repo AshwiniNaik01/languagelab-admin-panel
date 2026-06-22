@@ -11,33 +11,44 @@ import {
   Gamepad2,
   LogOut,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  BookOpen,
+  PlusCircle,
+  ListCollapse
 } from "lucide-react";
 
 export default function EditorSidebar() {
   const pathname = usePathname();
   const { isCollapsed } = useSidebar();
-  const [openSection, setOpenSection] = useState("curriculum");
+const [openSection, setOpenSection] = useState("courses");
 
   // Keep accordion open if it contains the active tab link
   useEffect(() => {
-    if (isCollapsed) return;
-    if (pathname.startsWith("/editor/curriculum")) {
-      setOpenSection("curriculum");
-    } else if (pathname.startsWith("/editor/assessments") || pathname.startsWith("/editor/games")) {
-      setOpenSection("evaluation");
-    }
-  }, [pathname, isCollapsed]);
+  if (isCollapsed) return;
 
-  const toggleSection = (section) => {
-    if (isCollapsed) return;
-    setOpenSection(openSection === section ? "" : section);
-  };
+  if (pathname.startsWith("/editor/courses")) {
+    setOpenSection("courses");
+  } else if (pathname.startsWith("/editor/curriculum")) {
+    setOpenSection("curriculum");
+  } else if (
+    pathname.startsWith("/editor/assessments") ||
+    pathname.startsWith("/editor/games")
+  ) {
+    setOpenSection("evaluation");
+  }
+}, [pathname, isCollapsed]);
 
-  const isLinkActive = (href) => {
-    return pathname === href || (href !== "/editor" && pathname.startsWith(href));
-  };
+const toggleSection = (section) => {
+  if (isCollapsed) return;
+  setOpenSection(openSection === section ? "" : section);
+};
 
+const isLinkActive = (href) => {
+  return (
+    pathname === href ||
+    (href !== "/editor" && pathname.startsWith(href))
+  );
+};
   return (
     <aside 
       className={`bg-[#2A1204] border-r border-orange-500/30 flex flex-col h-screen shrink-0 text-[#FFF8F4] font-sans shadow-2xl shadow-orange-500/5 transition-all duration-300 ${
@@ -80,6 +91,58 @@ export default function EditorSidebar() {
           <House size={16} />
           {!isCollapsed && <span>Overview</span>}
         </Link>
+
+        {/* Section: Courses */}
+<div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
+  <button
+    onClick={() => toggleSection("courses")}
+    className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${
+      isCollapsed ? "justify-center px-0" : ""
+    }`}
+  >
+    <div className="flex items-center gap-2">
+      <BookOpen size={15} />
+      {!isCollapsed && <span>Courses</span>}
+    </div>
+
+    {!isCollapsed &&
+      (openSection === "courses" ? (
+        <ChevronUp size={14} />
+      ) : (
+        <ChevronDown size={14} />
+      ))}
+  </button>
+
+  {!isCollapsed && openSection === "courses" && (
+    <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
+
+      <Link
+        href="/editor/courses"
+        className={`flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+          isLinkActive("/editor/courses")
+            ? "bg-orange-500 text-[#3C1E0A] font-black"
+            : "text-orange-200/80 hover:bg-white/5 hover:text-white"
+        }`}
+      >
+        <ListCollapse size={14} />
+        Manage Courses
+      </Link>
+
+      <Link
+        href="/editor/courses/new"
+        className={`flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+          pathname === "/editor/courses/new"
+            ? "bg-orange-500 text-[#3C1E0A] font-black"
+            : "text-orange-200/80 hover:bg-white/5 hover:text-white"
+        }`}
+      >
+        <PlusCircle size={14} />
+        Add Course
+      </Link>
+
+    </div>
+  )}
+</div>
 
         {/* Section: Curriculum Materials */}
         <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
