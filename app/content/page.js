@@ -6,7 +6,7 @@ import ScrollableTable from "../components/Table";
 import Button from "../components/ui/Button";
 import ContentForm from "../components/form/ContentForm";
 import MediaModulesForm from "../components/form/MediaModulesForm";
-import { initialTopics, initialSubTopics, initialTeachers } from "../services/dbService";
+import { initialTopics, initialSubTopics, initialEditors } from "../services/dbService";
 
 export default function ContentPage() {
   const [topics, setTopics] = useState(initialTopics);
@@ -62,8 +62,8 @@ export default function ContentPage() {
     setIsFormOpen(false);
   };
 
-  const getTeacherName = (id) => {
-    const match = initialTeachers.find(t => t._id === id);
+  const getEditorName = (id) => {
+    const match = initialEditors.find(t => t._id === id);
     return match ? match.full_name : "General Instructor";
   };
 
@@ -83,7 +83,7 @@ export default function ContentPage() {
     },
     {
       header: "Author Instructor",
-      accessor: (row) => <span className="text-xs font-semibold text-gray-700">{getTeacherName(row.created_by)}</span>
+      accessor: (row) => <span className="text-xs font-semibold text-gray-700">{getEditorName(row.created_by)}</span>
     },
     {
       header: "Status",

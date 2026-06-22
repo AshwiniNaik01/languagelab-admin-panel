@@ -5,11 +5,12 @@ import AdminLayout from "../layouts/AdminLayout";
 import ScrollableTable from "../components/Table";
 import Button from "../components/ui/Button";
 import LicenseForm from "../components/form/LicenseForm";
-import { initialLicenses, initialColleges } from "../services/dbService";
+import { initialLicenses, initialInstitutes } from "../services/dbService";
 
 export default function LicensesPage() {
   const [activeTab, setActiveTab] = useState("manage"); // 'create' or 'manage'
   const [licenses, setLicenses] = useState([]);
+  
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -28,6 +29,8 @@ export default function LicensesPage() {
     setLicenses(updated);
     localStorage.setItem("lab_licenses", JSON.stringify(updated));
   };
+
+
 
   const handleCreateSubmit = (data) => {
     const newLic = {
@@ -49,9 +52,9 @@ export default function LicensesPage() {
     setActiveTab("manage");
   };
 
-  const getCollegeName = (id) => {
-    const match = initialColleges.find(c => c._id === id);
-    return match ? match.college_name : "Unknown College";
+  const getInstituteName = (id) => {
+    const match = initialInstitutes.find(c => c._id === id);
+    return match ? match.institute_name : "Unknown Institute";
   };
 
   const columns = [
@@ -65,10 +68,10 @@ export default function LicensesPage() {
       )
     },
     {
-      header: "Affiliate College",
-      accessor: (row) => <span className="text-xs text-slate-700 font-semibold">{getCollegeName(row.college_id)}</span>
+      header: "Affiliate Institute",
+      accessor: (row) => <span className="text-xs text-slate-700 font-semibold">{getInstituteName(row.institute_id)}</span>
     },
-    {
+   /* {
       header: "Active Sessions & Seats",
       accessor: (row) => (
         <div className="flex items-center gap-2 text-xs">
@@ -81,7 +84,7 @@ export default function LicensesPage() {
           <span className="font-semibold text-slate-855">{row.active_sessions} / {row.total_seats}</span>
         </div>
       )
-    },
+    },*/
     {
       header: "Expiry & Days Left",
       accessor: (row) => {
@@ -114,58 +117,87 @@ export default function LicensesPage() {
       )
     },
     {
-      header: "Actions",
-      accessor: (row) => (
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant={row.status === "active" ? "danger" : "primary"} onClick={() => handleRevoke(row._id)}>
-            {row.status === "active" ? "Revoke" : "Restore"}
-          </Button>
-        </div>
-      )
-    }
+  header: "License Count",
+  accessor: (row) => (
+    <span className="font-bold text-orange-600">
+      {row.license_count || 0}
+    </span>
+  )
+},
+    {
+  header: "Actions",
+  accessor: (row) => (
+    <div className="flex items-center gap-2">
+      <Button
+        size="sm"
+        variant={row.status === "active" ? "danger" : "primary"}
+        onClick={() => handleRevoke(row._id)}
+      >
+        {row.status === "active" ? "Revoke" : "Restore"}
+      </Button>
+    </div>
+  )
+}
   ];
+return (
+  <AdminLayout>
+    <div className="space-y-6">
 
-  return (
-    <AdminLayout>
-      <div className="space-y-6">
-        
-        {/* Tab Header Selector */}
-        <div className="flex justify-between items-center border-b border-orange-200 pb-4">
-          <div>
-            <h2 className="text-2xl font-black text-slate-950">Software Licenses</h2>
-            <p className="text-xs font-semibold text-slate-500">HMAC-signed keys generated dynamically for colleges. Controls active student seats and license duration.</p>
-          </div>
+      {/* Tab Header Selector */}
+      <div className="flex justify-between items-center border-b border-orange-200 pb-4">
+        <div>
+          <h2 className="text-2xl font-black text-slate-950">
+            Software Licenses
+          </h2>
 
-          <div className="flex bg-orange-100/60 p-1 rounded-xl border border-orange-200/80">
-            <button
-              onClick={() => setActiveTab("manage")}
-              className={`px-4 py-2 text-xs font-extrabold uppercase tracking-wider rounded-lg transition-all ${
-                activeTab === "manage" ? "bg-white text-orange-600 shadow-sm" : "text-slate-600 hover:text-slate-950"
-              }`}
-            >
-              Manage Licenses
-            </button>
-            <button
-              onClick={() => setActiveTab("create")}
-              className={`px-4 py-2 text-xs font-extrabold uppercase tracking-wider rounded-lg transition-all ${
-                activeTab === "create" ? "bg-white text-orange-600 shadow-sm" : "text-slate-600 hover:text-slate-950"
-              }`}
-            >
-              Issue License
-            </button>
-          </div>
+          <p className="text-xs font-semibold text-slate-500">
+            HMAC-signed keys generated dynamically for institutes.
+            Controls active student seats and license duration.
+          </p>
         </div>
 
-        {/* Tab View switching */}
-        {activeTab === "create" ? (
-          <div className="bg-white p-8 rounded-2xl border border-orange-200/70 shadow-lg max-w-xl mx-auto">
-            <LicenseForm colleges={initialColleges} onSubmit={handleCreateSubmit} onCancel={() => setActiveTab("manage")} />
-          </div>
-        ) : (
-          <ScrollableTable columns={columns} data={licenses} />
-        )}
+        <div className="flex bg-orange-100/60 p-1 rounded-xl border border-orange-200/80">
+          <button
+            onClick={() => setActiveTab("manage")}
+            className={`px-4 py-2 text-xs font-extrabold uppercase tracking-wider rounded-lg transition-all ${
+              activeTab === "manage"
+                ? "bg-white text-orange-600 shadow-sm"
+                : "text-slate-600 hover:text-slate-950"
+            }`}
+          >
+            Manage Licenses
+          </button>
 
+          <button
+            onClick={() => setActiveTab("create")}
+            className={`px-4 py-2 text-xs font-extrabold uppercase tracking-wider rounded-lg transition-all ${
+              activeTab === "create"
+                ? "bg-white text-orange-600 shadow-sm"
+                : "text-slate-600 hover:text-slate-950"
+            }`}
+          >
+            Issue License
+          </button>
+        </div>
       </div>
-    </AdminLayout>
-  );
+
+      {/* Tab View switching */}
+      {activeTab === "create" ? (
+        <div className="bg-white p-8 rounded-2xl border border-orange-200/70 shadow-lg max-w-xl mx-auto">
+          <LicenseForm
+            institutes={initialInstitutes}
+            onSubmit={handleCreateSubmit}
+            onCancel={() => setActiveTab("manage")}
+          />
+        </div>
+      ) : (
+        <ScrollableTable
+          columns={columns}
+          data={licenses}
+        />
+      )}
+
+    </div>
+  </AdminLayout>
+);
 }

@@ -11,7 +11,7 @@ export const loginAdmin = async (payload) => {
 
 
 
-export const loginTeacher = async (data) => {
-  const response = await api.post("/api/teacher/login", data);
+export const loginEditor = async (data) => {
+  const response = await api.post("/api/editor/login", data);
   return response.data;
 };

@@ -37,9 +37,9 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
         <StatCard
           icon={<FaUniversity className="text-[#3C1E0A]" />}
-          title="Total Colleges"
+          title="Total Institutes"
           value="25 Registered"
-          sub="+3 colleges this month"
+          sub="+3 institutes this month"
           color="from-orange-400 to-amber-400"
         />
         <StatCard
@@ -89,7 +89,7 @@ export default function Dashboard() {
 
             <div className="space-y-4">
               <LicenseItem
-                name="ABC College of Engineering"
+                name="ABC Institute of Engineering"
                 plan="Premium License Package"
                 days="7 days left"
                 date="Exp: May 08, 2026"
@@ -103,7 +103,7 @@ export default function Dashboard() {
                 urgency="medium"
               />
               <LicenseItem
-                name="PQR Group of Colleges"
+                name="PQR Group of Institutes"
                 plan="Basic Academic Package"
                 days="19 days left"
                 date="Exp: May 20, 2026"
@@ -121,7 +121,7 @@ export default function Dashboard() {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider">
-                College Activity
+                Institute Activity
               </h2>
               <span className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-full font-black uppercase tracking-widest">
                 Live Feed
@@ -145,7 +145,7 @@ export default function Dashboard() {
                 time="01:20 PM"
               />
               <ActivityItem
-                name="DY Patil College"
+                name="DY Patil Institute"
                 sub="45 new students onboarded"
                 time="03:30 PM"
               />
@@ -163,7 +163,7 @@ export default function Dashboard() {
           </h2>
 
           <div className="grid grid-cols-2 gap-4">
-            <ActionCard icon={<FaPlus />} label="Add College" link="/colleges/new" />
+            <ActionCard icon={<FaPlus />} label="Add Institute" link="/institutes/new" />
             <ActionCard icon={<FaKey />} label="Issue License" link="/licenses/new" />
             <ActionCard icon={<FaUserPlus />} label="Register Teacher" link="/teachers/new" />
             <ActionCard icon={<FaUpload />} label="Upload Material" link="/content" />
@@ -186,14 +186,14 @@ export default function Dashboard() {
           <div className="space-y-4">
             <AuditItem
               type="add"
-              title="New College Registered"
+              title="New Institute Registered"
               desc="MMCOE, Pune was registered onto the platform database."
               time="1 hour ago"
             />
             <AuditItem
               type="renew"
               title="License Agreement Extended"
-              desc="ABC College of Engineering license terms were renewed."
+              desc="ABC Institute of Engineering license terms were renewed."
               time="3 hours ago"
             />
             <AuditItem

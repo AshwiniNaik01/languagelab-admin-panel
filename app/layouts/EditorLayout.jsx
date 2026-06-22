@@ -1,10 +1,10 @@
-import TeacherSidebar from "../components/TeacherSidebar";
+import EditorSidebar from "../components/EditorSidebar";
 import Navbar from "../components/Navbar";
 
-export default function TeacherLayout({ children }) {
+export default function EditorLayout({ children }) {
   return (
     <div className="h-screen flex bg-[#FFF8F4]">
-      <TeacherSidebar />
+      <EditorSidebar />
 
       <div className="flex flex-col flex-1">
         <Navbar />

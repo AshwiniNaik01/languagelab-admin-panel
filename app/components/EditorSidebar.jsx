@@ -14,7 +14,7 @@ import {
   ChevronUp
 } from "lucide-react";
 
-export default function TeacherSidebar() {
+export default function EditorSidebar() {
   const pathname = usePathname();
   const { isCollapsed } = useSidebar();
   const [openSection, setOpenSection] = useState("curriculum");
@@ -22,9 +22,9 @@ export default function TeacherSidebar() {
   // Keep accordion open if it contains the active tab link
   useEffect(() => {
     if (isCollapsed) return;
-    if (pathname.startsWith("/teacher/curriculum")) {
+    if (pathname.startsWith("/editor/curriculum")) {
       setOpenSection("curriculum");
-    } else if (pathname.startsWith("/teacher/assessments") || pathname.startsWith("/teacher/games")) {
+    } else if (pathname.startsWith("/editor/assessments") || pathname.startsWith("/editor/games")) {
       setOpenSection("evaluation");
     }
   }, [pathname, isCollapsed]);
@@ -35,7 +35,7 @@ export default function TeacherSidebar() {
   };
 
   const isLinkActive = (href) => {
-    return pathname === href || (href !== "/teacher" && pathname.startsWith(href));
+    return pathname === href || (href !== "/editor" && pathname.startsWith(href));
   };
 
   return (
@@ -53,7 +53,7 @@ export default function TeacherSidebar() {
           {!isCollapsed && (
             <div>
               <h1 className="text-lg font-black tracking-tight text-white leading-none">
-                Lab<span className="text-orange-500">Teacher</span>
+                Lab<span className="text-orange-500">Editor</span>
               </h1>
               <p className="text-[9px] font-black text-orange-450/80 mt-1 uppercase tracking-widest">
                 Instructor Portal
@@ -68,11 +68,11 @@ export default function TeacherSidebar() {
         
         {/* Overview */}
         <Link
-          href="/teacher"
+          href="/editor"
           className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-300 ${
             isCollapsed ? "justify-center px-0" : ""
           } ${
-            pathname === "/teacher" 
+            pathname === "/editor" 
               ? "bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-400 text-[#3C1E0A] shadow-lg shadow-orange-500/20 scale-102" 
               : "text-orange-200/80 hover:text-white hover:bg-white/5"
           }`}
@@ -99,9 +99,9 @@ export default function TeacherSidebar() {
           {!isCollapsed && openSection === "curriculum" && (
             <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
               <Link
-                href="/teacher/curriculum"
+                href="/editor/curriculum"
                 className={`flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  isLinkActive("/teacher/curriculum") ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5 hover:text-white"
+                  isLinkActive("/editor/curriculum") ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 <FolderOpen size={14} />
@@ -129,9 +129,9 @@ export default function TeacherSidebar() {
           {!isCollapsed && openSection === "evaluation" && (
             <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
               <Link
-                href="/teacher/assessments"
+                href="/editor/assessments"
                 className={`flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  isLinkActive("/teacher/assessments") ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5 hover:text-white"
+                  isLinkActive("/editor/assessments") ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 <ClipboardList size={14} />
@@ -139,9 +139,9 @@ export default function TeacherSidebar() {
               </Link>
 
               <Link
-                href="/teacher/games"
+                href="/editor/games"
                 className={`flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  isLinkActive("/teacher/games") ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5 hover:text-white"
+                  isLinkActive("/editor/games") ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 <Gamepad2 size={14} />

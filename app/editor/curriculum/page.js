@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import TeacherLayout from "../../layouts/TeacherLayout";
+import EditorLayout from "../../layouts/EditorLayout";
 import ContentForm from "../../components/form/ContentForm";
 import MediaModulesForm from "../../components/form/MediaModulesForm";
 import Button from "../../components/ui/Button";
 import { initialTopics, initialSubTopics } from "../../services/dbService";
 import { FiPlus, FiFolder, FiX, FiSearch } from "react-icons/fi";
 
-export default function TeacherCurriculumPage() {
+export default function EditorCurriculumPage() {
   const [topics] = useState(initialTopics);
   const [subtopics, setSubtopics] = useState(initialSubTopics);
 
@@ -39,7 +39,7 @@ export default function TeacherCurriculumPage() {
   );
 
   return (
-    <TeacherLayout>
+    <EditorLayout>
       <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] p-6">
 
         {/* HEADER */}
@@ -274,6 +274,6 @@ export default function TeacherCurriculumPage() {
         )}
 
       </div>
-    </TeacherLayout>
+    </EditorLayout>
   );
 }

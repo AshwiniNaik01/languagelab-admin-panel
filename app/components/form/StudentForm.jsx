@@ -3,7 +3,7 @@
 import InputField from "./InputField";
 import Button from "../ui/Button";
 
-export default function StudentForm({ initialData = {}, colleges = [], licenses = [], onSubmit, onCancel }) {
+export default function StudentForm({ initialData = {}, institutes = [], licenses = [], onSubmit, onCancel }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -31,7 +31,7 @@ export default function StudentForm({ initialData = {}, colleges = [], licenses 
           label="Email Address"
           name="email"
           type="email"
-          placeholder="e.g. student@college.edu"
+          placeholder="e.g. student@institute.edu"
           defaultValue={initialData.email}
           required
         />
@@ -55,16 +55,16 @@ export default function StudentForm({ initialData = {}, colleges = [], licenses 
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block mb-2 text-sm font-semibold text-gray-700">College Affiliate</label>
+          <label className="block mb-2 text-sm font-semibold text-gray-700">Institute Affiliate</label>
           <select 
-            name="college_id" 
-            defaultValue={initialData.college_id} 
+            name="institute_id" 
+            defaultValue={initialData.institute_id} 
             required
             className="w-full rounded-xl border border-orange-300 bg-white px-4 py-3 text-sm focus:border-orange-500 focus:outline-none"
           >
-            <option value="" disabled>Select College</option>
-            {colleges.map(c => (
-              <option key={c._id} value={c._id}>{c.college_name}</option>
+            <option value="" disabled>Select Institute</option>
+            {institutes.map(c => (
+              <option key={c._id} value={c._id}>{c.institute_name}</option>
             ))}
           </select>
         </div>

@@ -5,49 +5,49 @@ import Cookies from "js-cookie";
 import AdminLayout from "../layouts/AdminLayout";
 import ScrollableTable from "../components/Table";
 import Button from "../components/ui/Button";
-import TeacherForm from "../components/form/TeacherForm";
+import EditorForm from "../components/form/EditorForm";
 import ToggleSwitch from "../components/form/ToggleSwitch";
 import {
-  getTeachers,
-  updateTeacher,
-} from "../services/teacher";
+  getEditors,
+  updateEditor,
+} from "../services/editor";
 
-export default function TeachersPage() {
-  const [teachers, setTeachers] = useState([]);
+export default function EditorsPage() {
+  const [editors, setEditors] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingTeacher, setEditingTeacher] = useState(null);
+  const [editingEditor, setEditingEditor] = useState(null);
 
   useEffect(() => {
-    fetchTeachers();
+    fetchEditors();
   }, []);
 
-  const fetchTeachers = async () => {
+  const fetchEditors = async () => {
     try {
       const token = Cookies.get("token");
 
-      const response = await getTeachers({
+      const response = await getEditors({
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      console.log("Teachers Response:", response.data);
+      console.log("Editors Response:", response.data);
 
-      setTeachers(response.data.data || []);
+      setEditors(response.data.data || []);
     } catch (error) {
-      console.error("Fetch Teachers Error:", error);
+      console.error("Fetch Editors Error:", error);
     }
   };
 
   const handleSubmit = async (data) => {
-    if (editingTeacher) {
-      setTeachers((prev) =>
+    if (editingEditor) {
+      setEditors((prev) =>
         prev.map((t) =>
-          t._id === editingTeacher._id ? { ...t, ...data } : t
+          t._id === editingEditor._id ? { ...t, ...data } : t
         )
       );
     } else {
-      setTeachers((prev) => [
+      setEditors((prev) => [
         ...prev,
         {
           _id: "teach_" + Date.now(),
@@ -56,21 +56,21 @@ export default function TeachersPage() {
       ]);
     }
 
-    await fetchTeachers();
+    await fetchEditors();
 
     setIsFormOpen(false);
-    setEditingTeacher(null);
+    setEditingEditor(null);
   };
 
-  const handleStatusToggle = async (teacher, newValue) => {
+  const handleStatusToggle = async (editor, newValue) => {
     try {
       const token = Cookies.get("token");
 
-      console.log("Teacher ID:", teacher._id);
+      console.log("Editor ID:", editor._id);
       console.log("New Value:", newValue);
 
-      await updateTeacher(
-        teacher._id,
+      await updateEditor(
+        editor._id,
         {
           is_active: newValue,
           status: newValue ? "active" : "inactive",
@@ -82,9 +82,9 @@ export default function TeachersPage() {
         }
       );
 
-      setTeachers((prev) =>
+      setEditors((prev) =>
         prev.map((t) =>
-          t._id === teacher._id
+          t._id === editor._id
             ? {
                 ...t,
                 is_active: newValue,
@@ -94,7 +94,7 @@ export default function TeachersPage() {
         )
       );
 
-      await fetchTeachers();
+      await fetchEditors();
     } catch (error) {
       console.error(
         "Toggle Update Error:",
@@ -107,23 +107,23 @@ export default function TeachersPage() {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex justify-between">
-          <h2 className="text-2xl font-bold">Teachers</h2>
+          <h2 className="text-2xl font-bold">Editors</h2>
 
           <Button onClick={() => setIsFormOpen(true)}>
-            Add Teacher
+            Add Editor
           </Button>
         </div>
 
         {isFormOpen && (
-          <TeacherForm
-            initialData={editingTeacher || {}}
+          <EditorForm
+            initialData={editingEditor || {}}
             onCancel={() => setIsFormOpen(false)}
             onSuccess={handleSubmit}
           />
         )}
 
         <ScrollableTable
-          data={teachers}
+          data={editors}
           columns={[
             {
               header: "Full Name",

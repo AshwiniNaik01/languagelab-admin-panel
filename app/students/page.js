@@ -5,7 +5,7 @@ import AdminLayout from "../layouts/AdminLayout";
 import ScrollableTable from "../components/Table";
 import Button from "../components/ui/Button";
 import StudentForm from "../components/form/StudentForm";
-import { initialStudents, initialColleges, initialLicenses } from "../services/dbService";
+import { initialStudents, initialInstitutes, initialLicenses } from "../services/dbService";
 
 export default function StudentsPage() {
   const [activeTab, setActiveTab] = useState("manage"); // 'create' or 'manage'
@@ -49,9 +49,9 @@ export default function StudentsPage() {
     setActiveTab("manage");
   };
 
-  const getCollegeName = (id) => {
-    const match = initialColleges.find(c => c._id === id);
-    return match ? match.college_name : "Unknown College";
+  const getInstituteName = (id) => {
+    const match = initialInstitutes.find(c => c._id === id);
+    return match ? match.college_name : "Unknown Institute";
   };
 
   const getLicenseCode = (id) => {
@@ -84,8 +84,8 @@ export default function StudentsPage() {
       )
     },
     {
-      header: "Affiliate College",
-      accessor: (row) => <span className="text-xs text-slate-700 font-semibold">{getCollegeName(row.college_id)}</span>
+      header: "Affiliate Institute",
+      accessor: (row) => <span className="text-xs text-slate-700 font-semibold">{getInstituteName(row.college_id)}</span>
     },
     {
       header: "Stream / Year",
@@ -156,7 +156,7 @@ export default function StudentsPage() {
         {/* Tab View switching */}
         {activeTab === "create" ? (
           <div className="bg-white p-8 rounded-2xl border border-orange-200/70 shadow-lg max-w-xl mx-auto">
-            <StudentForm colleges={initialColleges} licenses={initialLicenses} onSubmit={handleCreateSubmit} onCancel={() => setActiveTab("manage")} />
+            <StudentForm colleges={initialInstitutes} licenses={initialLicenses} onSubmit={handleCreateSubmit} onCancel={() => setActiveTab("manage")} />
           </div>
         ) : (
           <ScrollableTable columns={columns} data={students} />

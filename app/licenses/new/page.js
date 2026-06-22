@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import AdminLayout from "../../layouts/AdminLayout";
 import LicenseForm from "../../components/form/LicenseForm";
-import { initialLicenses, initialColleges } from "../../services/dbService";
+import { initialLicenses, initialInstitutes } from "../../services/dbService";
 
 export default function NewLicensePage() {
   const router = useRouter();
@@ -32,11 +32,11 @@ export default function NewLicensePage() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Generate License</h2>
-          <p className="text-sm text-slate-500">Generate HMAC signatures and seat counts for affiliate college systems.</p>
+          <p className="text-sm text-slate-500">Generate HMAC signatures and seat counts for affiliate institute systems.</p>
         </div>
 
         <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-lg">
-          <LicenseForm colleges={initialColleges} onSubmit={handleSubmit} onCancel={() => router.push("/licenses")} />
+          <LicenseForm institutes={initialInstitutes} onSubmit={handleSubmit} onCancel={() => router.push("/licenses")} />
         </div>
       </div>
     </AdminLayout>

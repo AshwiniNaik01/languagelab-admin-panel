@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import TeacherLayout from "../../layouts/TeacherLayout";
+import EditorLayout from "../../layouts/EditorLayout";
 import ScrollableTable from "../../components/Table";
 import Button from "../../components/ui/Button";
 import InputField from "../../components/form/InputField";
 
-export default function TeacherAssessmentsPage() {
+export default function EditorAssessmentsPage() {
   const [assessments, setAssessments] = useState([
     {
       _id: "ass1",
@@ -80,7 +80,7 @@ export default function TeacherAssessmentsPage() {
   ];
 
   return (
-    <TeacherLayout>
+    <EditorLayout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -132,6 +132,6 @@ export default function TeacherAssessmentsPage() {
 
         <ScrollableTable columns={columns} data={assessments} />
       </div>
-    </TeacherLayout>
+    </EditorLayout>
   );
 }

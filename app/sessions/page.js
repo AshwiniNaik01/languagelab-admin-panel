@@ -24,8 +24,8 @@ export default function SessionsPage() {
       )
     },
     {
-      header: "College affiliate",
-      accessor: (row) => <span className="text-xs text-gray-700 font-semibold">{row.college_id?.college_name}</span>
+      header: "Institute affiliate",
+      accessor: (row) => <span className="text-xs text-gray-700 font-semibold">{row.institute_id?.institute_name}</span>
     },
     {
       header: "JWT Auth Token",

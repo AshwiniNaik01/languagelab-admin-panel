@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import TeacherLayout from "../../layouts/TeacherLayout";
+import EditorLayout from "../../layouts/EditorLayout";
 import ScrollableTable from "../../components/Table";
 import Button from "../../components/ui/Button";
 import InputField from "../../components/form/InputField";
 
-export default function TeacherGamesPage() {
+export default function EditorGamesPage() {
   const [games, setGames] = useState([
     {
       _id: "game1",
@@ -73,7 +73,7 @@ export default function TeacherGamesPage() {
   ];
 
   return (
-    <TeacherLayout>
+    <EditorLayout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -123,6 +123,6 @@ export default function TeacherGamesPage() {
 
         <ScrollableTable columns={columns} data={games} />
       </div>
-    </TeacherLayout>
+    </EditorLayout>
   );
 }

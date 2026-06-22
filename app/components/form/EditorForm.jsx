@@ -5,9 +5,9 @@ import Button from "../ui/Button";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
-import { createTeacher, updateTeacher } from "../../services/teacher";
+import { createEditor, updateEditor } from "../../services/editor";
 
-export default function TeacherForm({ initialData = {}, onCancel, onSuccess }) {
+export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -37,28 +37,31 @@ export default function TeacherForm({ initialData = {}, onCancel, onSuccess }) {
       const config = {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
+
+
         },
       };
+
 
       let response;
 
       if (initialData._id) {
-        response = await updateTeacher(initialData._id, data, config);
+        response = await updateEditor(initialData._id, data, config);
 
         Swal.fire({
           icon: "success",
           title: "Updated!",
-          text: "Teacher updated successfully",
+          text: "Editor updated successfully",
         });
       } else {
-        response = await createTeacher(data, config);
+        response = await createEditor(data, config);
 
         console.log("API Response:", response.data);
 
         Swal.fire({
           icon: "success",
           title: "Created!",
-          text: "Teacher created successfully",
+          text: "Editor created successfully",
         });
       }
 
@@ -80,7 +83,7 @@ export default function TeacherForm({ initialData = {}, onCancel, onSuccess }) {
       className="space-y-4 max-w-xl mx-auto bg-white p-6 rounded-2xl border"
     >
       <h3 className="text-lg font-bold">
-        {initialData._id ? "Edit Teacher" : "Create Teacher"}
+        {initialData._id ? "Edit Editor" : "Create Editor"}
       </h3>
 
       {/* FULL NAME + EMAIL */}
@@ -116,7 +119,7 @@ export default function TeacherForm({ initialData = {}, onCancel, onSuccess }) {
         <InputField
           label="Role"
           name="role"
-          defaultValue={initialData.role || "teacher"}
+          defaultValue={initialData.role || "editor"}
         />
       </div>
 

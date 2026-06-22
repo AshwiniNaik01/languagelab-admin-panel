@@ -5,7 +5,7 @@ import InputField from "./InputField";
 import Button from "../ui/Button";
 import LogoFileUploader from "./LogoFileUploader";
 
-export default function CollegeForm({ initialData = {}, onSubmit, onCancel }) {
+export default function InstituteForm({ initialData = {}, onSubmit, onCancel }) {
   const [logoBase64, setLogoBase64] = useState(initialData.logo || "");
 
   const handleSubmit = (e) => {
@@ -20,22 +20,22 @@ export default function CollegeForm({ initialData = {}, onSubmit, onCancel }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 w-full bg-white p-8 rounded-3xl border border-orange-500/20 shadow-xl">
       <h3 className="text-xl font-black text-[#3C1E0A] border-b border-orange-500/10 pb-4">
-        {initialData._id ? "Edit College Information" : "Create New College Partner"}
+        {initialData._id ? "Edit Institute Information" : "Create New Institute Partner"}
       </h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InputField
-          label="College Name"
-          name="college_name"
-          placeholder="e.g. VP College"
-          defaultValue={initialData.college_name}
+          label="Institute Name"
+          name="institute_name"
+          placeholder="e.g. VP Institute"
+          defaultValue={initialData.institute_name}
           required
         />
         <InputField
-          label="College Code"
-          name="college_code"
+          label="Institute Code"
+          name="institute_code"
           placeholder="e.g. VP2486"
-          defaultValue={initialData.college_code}
+          defaultValue={initialData.institute_code}
           required
         />
       </div>
@@ -108,7 +108,7 @@ export default function CollegeForm({ initialData = {}, onSubmit, onCancel }) {
           className="accent-orange-500 w-4.5 h-4.5 rounded cursor-pointer"
         />
         <label htmlFor="is_active" className="text-sm font-bold text-[#3C1E0A] select-none cursor-pointer">
-          Authorize and activate this college license immediately
+          Authorize and activate this institute license immediately
         </label>
       </div>
 
@@ -117,7 +117,7 @@ export default function CollegeForm({ initialData = {}, onSubmit, onCancel }) {
           Cancel
         </Button>
         <Button type="submit" className="px-8 py-2.5">
-          {initialData._id ? "Update College" : "Register College"}
+          {initialData._id ? "Update Institute" : "Register Institute"}
         </Button>
       </div>
     </form>

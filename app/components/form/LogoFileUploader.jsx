@@ -97,7 +97,7 @@ export default function LogoFileUploader({ onFileUploaded, initialLogoUrl }) {
   return (
     <div className="w-full">
       <label className="block mb-2 text-sm font-semibold text-[#3C1E0A]">
-        College Logo Upload
+        Institute Logo Upload
       </label>
       
       {previewUrl ? (
@@ -105,7 +105,7 @@ export default function LogoFileUploader({ onFileUploaded, initialLogoUrl }) {
           <div className="flex items-center gap-3">
             <img 
               src={previewUrl} 
-              alt="College logo preview" 
+              alt="Institute logo preview" 
               className="w-14 h-14 object-cover rounded-xl border border-orange-500/20 bg-white" 
             />
             <div>

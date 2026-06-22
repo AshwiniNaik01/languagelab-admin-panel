@@ -3,7 +3,7 @@
 import { useState } from "react";
 import AdminLayout from "../layouts/AdminLayout";
 import ScrollableTable from "../components/Table";
-import { initialActivityLogs, initialStudents, initialColleges } from "../services/dbService";
+import { initialActivityLogs, initialStudents, initialInstitutes } from "../services/dbService";
 
 export default function AnalyticsPage() {
   const [logs] = useState(initialActivityLogs);
@@ -13,9 +13,9 @@ export default function AnalyticsPage() {
     return match ? match.full_name : "Student User";
   };
 
-  const getCollegeName = (id) => {
-    const match = initialColleges.find(c => c._id === id);
-    return match ? match.college_name : "Affiliated College";
+  const getInstituteName = (id) => {
+    const match = initialInstitutes.find(c => c._id === id);
+    return match ? match.institute_name : "Affiliated Institute";
   };
 
   const columns = [
@@ -24,11 +24,11 @@ export default function AnalyticsPage() {
       accessor: (row) => <span className="text-xs text-gray-500 font-mono">{new Date(row.logged_at).toLocaleString()}</span>
     },
     {
-      header: "Student & College",
+      header: "Student & Institute",
       accessor: (row) => (
         <div>
           <div className="font-semibold text-gray-800 text-xs">{getStudentName(row.student_id)}</div>
-          <div className="text-[10px] text-gray-400">{getCollegeName(row.college_id)}</div>
+          <div className="text-[10px] text-gray-400">{getInstituteName(row.institute_id)}</div>
         </div>
       )
     },

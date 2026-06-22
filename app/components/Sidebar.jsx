@@ -26,9 +26,9 @@ export default function Sidebar() {
   
   // Track open accordion sections for each model
   const [openSections, setOpenSections] = useState({
-    colleges: false,
+    Institutes: false,
     licenses: false,
-    teachers: false,
+    editors: false,
     students: false,
     curriculum: false
   });
@@ -37,16 +37,16 @@ export default function Sidebar() {
   useEffect(() => {
     if (isCollapsed) return;
     
-    const isCollegesActive = pathname.startsWith("/colleges");
+    const isInstitutesActive = pathname.startsWith("/institutes");
     const isLicensesActive = pathname.startsWith("/licenses");
-    const isTeachersActive = pathname.startsWith("/teachers");
+    const isEditorsActive = pathname.startsWith("/editors");
     const isStudentsActive = pathname.startsWith("/students");
     const isCurriculumActive = pathname.startsWith("/content") || pathname.startsWith("/sessions");
 
     setOpenSections({
-      colleges: isCollegesActive,
+      Institutes: isInstitutesActive,
       licenses: isLicensesActive,
-      teachers: isTeachersActive,
+      editors: isEditorsActive,
       students: isStudentsActive,
       curriculum: isCurriculumActive
     });
@@ -111,38 +111,43 @@ export default function Sidebar() {
         {/* 1. COLLEGES Accordion */}
         <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
           <button
-            onClick={() => toggleSection("colleges")}
+            onClick={() => toggleSection("Institutes")}
             className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${
               isCollapsed ? "justify-center px-0" : ""
             }`}
           >
             <div className="flex items-center gap-2">
               <Building2 size={15} />
-              {!isCollapsed && <span>Colleges</span>}
+              {!isCollapsed && <span>Institutes</span>}
             </div>
-            {!isCollapsed && (openSections.colleges ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+            {!isCollapsed && (openSections.Institutes ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
           </button>
 
-          {!isCollapsed && openSections.colleges && (
+          {!isCollapsed && openSections.Institutes && (
             <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
-              <Link
-                href="/colleges"
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  pathname === "/colleges" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
-                }`}
-              >
-                <ListCollapse size={13} />
-                Manage Colleges
-              </Link>
-              <Link
-                href="/colleges/new"
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  pathname === "/colleges/new" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
-                }`}
-              >
-                <PlusCircle size={13} />
-                Add College
-              </Link>
+             <Link
+  href="/institutes"
+  className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+    pathname === "/institutes"
+      ? "bg-orange-500 text-[#3C1E0A] font-black"
+      : "text-orange-200/80 hover:bg-white/5"
+  }`}
+>
+  <ListCollapse size={13} />
+  Manage Institutes
+</Link>
+
+<Link
+  href="/institutes/new"
+  className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+    pathname === "/institutes/new"
+      ? "bg-orange-500 text-[#3C1E0A] font-black"
+      : "text-orange-200/80 hover:bg-white/5"
+  }`}
+>
+  <PlusCircle size={13} />
+  Add Institute
+</Link>
             </div>
           )}
         </div>
@@ -189,37 +194,37 @@ export default function Sidebar() {
         {/* 3. TEACHERS Accordion */}
         <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
           <button
-            onClick={() => toggleSection("teachers")}
+            onClick={() => toggleSection("editors")}
             className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${
               isCollapsed ? "justify-center px-0" : ""
             }`}
           >
             <div className="flex items-center gap-2">
               <Users size={15} />
-              {!isCollapsed && <span>Teachers</span>}
+              {!isCollapsed && <span>Editors</span>}
             </div>
-            {!isCollapsed && (openSections.teachers ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+            {!isCollapsed && (openSections.editors ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
           </button>
 
-          {!isCollapsed && openSections.teachers && (
+          {!isCollapsed && openSections.editors && (
             <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
               <Link
-                href="/teachers"
+                href="/editors"
                 className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  pathname === "/teachers" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
+                  pathname === "/editors" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
                 }`}
               >
                 <ListCollapse size={13} />
-                Manage Teachers
+                Manage Editors
               </Link>
               <Link
-                href="/teachers/new"
+                href="/editors/new"
                 className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  pathname === "/teachers/new" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
+                  pathname === "/editors/new" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
                 }`}
               >
                 <PlusCircle size={13} />
-                Register Teacher
+                Register Editor
               </Link>
             </div>
           )}

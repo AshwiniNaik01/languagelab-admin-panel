@@ -1,12 +1,12 @@
 "use client";
 
-import TeacherLayout from "../layouts/TeacherLayout";
+import EditorLayout from "../layouts/EditorLayout";
 import { FaBookReader, FaVideo, FaGamepad, FaFileSignature } from "react-icons/fa";
 import Link from "next/link";
 
-export default function TeacherDashboard() {
+export default function EditorDashboard() {
   return (
-    <TeacherLayout>
+    <EditorLayout>
       <div className="space-y-6">
         {/* Header */}
         <div>
@@ -44,19 +44,19 @@ export default function TeacherDashboard() {
             <h3 className="text-lg font-bold text-gray-800 border-b border-orange-50 pb-2">Quick Course Actions</h3>
             
             <div className="grid grid-cols-2 gap-4">
-              <Link href="/teacher/curriculum" className="flex flex-col items-center justify-center p-4 border border-orange-100 rounded-xl hover:bg-orange-50/50 transition">
+              <Link href="/editor/curriculum" className="flex flex-col items-center justify-center p-4 border border-orange-100 rounded-xl hover:bg-orange-50/50 transition">
                 <FaVideo className="text-orange-500 text-lg mb-2" />
                 <span className="text-xs font-semibold">Upload Audio/Video</span>
               </Link>
-              <Link href="/teacher/games" className="flex flex-col items-center justify-center p-4 border border-orange-100 rounded-xl hover:bg-orange-50/50 transition">
+              <Link href="/editor/games" className="flex flex-col items-center justify-center p-4 border border-orange-100 rounded-xl hover:bg-orange-50/50 transition">
                 <FaGamepad className="text-orange-500 text-lg mb-2" />
                 <span className="text-xs font-semibold">Setup Vocab Games</span>
               </Link>
-              <Link href="/teacher/assessments" className="flex flex-col items-center justify-center p-4 border border-orange-100 rounded-xl hover:bg-orange-50/50 transition">
+              <Link href="/editor/assessments" className="flex flex-col items-center justify-center p-4 border border-orange-100 rounded-xl hover:bg-orange-50/50 transition">
                 <FaFileSignature className="text-orange-500 text-lg mb-2" />
                 <span className="text-xs font-semibold">Create Assessments</span>
               </Link>
-              <Link href="/teacher/curriculum" className="flex flex-col items-center justify-center p-4 border border-orange-100 rounded-xl hover:bg-orange-50/50 transition">
+              <Link href="/editor/curriculum" className="flex flex-col items-center justify-center p-4 border border-orange-100 rounded-xl hover:bg-orange-50/50 transition">
                 <FaBookReader className="text-orange-500 text-lg mb-2" />
                 <span className="text-xs font-semibold">Add Text Passage</span>
               </Link>
@@ -69,14 +69,14 @@ export default function TeacherDashboard() {
             <div className="space-y-3 text-xs">
               <div className="flex justify-between py-2 border-b border-gray-50">
                 <div>
-                  <div className="font-semibold text-gray-700">Alice Cooper (ABC College)</div>
+                  <div className="font-semibold text-gray-700">Alice Cooper (ABC Institute)</div>
                   <div className="text-gray-400">Completed Video module (95% watched)</div>
                 </div>
                 <span className="text-gray-400">10 mins ago</span>
               </div>
               <div className="flex justify-between py-2 border-b border-gray-50">
                 <div>
-                  <div className="font-semibold text-gray-700">Bob Dylan (ABC College)</div>
+                  <div className="font-semibold text-gray-700">Bob Dylan (ABC Institute)</div>
                   <div className="text-gray-400">Submitted Vocabulary Quiz Spelling test</div>
                 </div>
                 <span className="text-gray-400">24 mins ago</span>
@@ -92,6 +92,6 @@ export default function TeacherDashboard() {
           </div>
         </div>
       </div>
-    </TeacherLayout>
+    </EditorLayout>
   );
 }

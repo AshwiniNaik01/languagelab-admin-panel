@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import AdminLayout from "../../layouts/AdminLayout";
 import StudentForm from "../../components/form/StudentForm";
-import { initialStudents, initialColleges, initialLicenses } from "../../services/dbService";
+import { initialStudents, initialInstitutes, initialLicenses } from "../../services/dbService";
 
 export default function NewStudentPage() {
   const router = useRouter();
@@ -30,7 +30,7 @@ export default function NewStudentPage() {
         </div>
 
         <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-lg">
-          <StudentForm colleges={initialColleges} licenses={initialLicenses} onSubmit={handleSubmit} onCancel={() => router.push("/students")} />
+          <StudentForm institutes={initialInstitutes} licenses={initialLicenses} onSubmit={handleSubmit} onCancel={() => router.push("/students")} />
         </div>
       </div>
     </AdminLayout>

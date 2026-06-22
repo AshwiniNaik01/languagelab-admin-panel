@@ -6,7 +6,7 @@ import { useSidebar } from "./SidebarContext";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const isTeacherRoute = pathname.startsWith("/teacher");
+  const isEditorRoute = pathname.startsWith("/teacher");
   const { toggleSidebar } = useSidebar();
 
   return (
@@ -32,7 +32,7 @@ export default function Navbar() {
           </div>
           <span className="text-orange-900/40 font-light text-xl">/</span>
           <span className="text-[#3C1E0A] font-black text-sm uppercase tracking-widest">
-            {isTeacherRoute ? "Instructor Console" : "Master Panel"}
+            {isEditorRoute ? "Instructor Console" : "Master Panel"}
           </span>
         </div>
       </div>
@@ -50,10 +50,10 @@ export default function Navbar() {
 
           <div className="text-left">
             <h3 className="font-black text-sm text-[#3C1E0A] tracking-tight">
-              {isTeacherRoute ? "Instructor Account" : "Super Admin"}
+              {isEditorRoute ? "Instructor Account" : "Super Admin"}
             </h3>
             <p className="text-[10px] font-bold text-orange-600/75 uppercase tracking-widest">
-              {isTeacherRoute ? "Curator" : "Root Admin"}
+              {isEditorRoute ? "Curator" : "Root Admin"}
             </p>
           </div>
           <ChevronDown size={14} className="text-orange-900/50" />
