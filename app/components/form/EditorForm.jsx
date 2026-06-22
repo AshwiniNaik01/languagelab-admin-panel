@@ -4,7 +4,6 @@ import InputField from "./InputField";
 import Button from "../ui/Button";
 import { useState } from "react";
 import Swal from "sweetalert2";
-import Cookies from "js-cookie";
 import { createEditor, updateEditor } from "../../services/editor";
 
 export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
