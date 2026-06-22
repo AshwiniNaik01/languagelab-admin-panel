@@ -9,6 +9,36 @@ import Button from "../components/ui/Button";
 
 import { loginAdmin, loginEditor } from "../services/admin-login";
 
+const getErrorMessage = (error) => {
+  if (error?.response?.data) {
+    const errorData = error.response.data;
+
+    // We check message, errors, or error in order
+    const msgVal = errorData.message || errorData.errors || errorData.error;
+
+    if (typeof msgVal === "string") {
+      return msgVal;
+    }
+    if (Array.isArray(msgVal)) {
+      return msgVal
+        .map((err) => {
+          if (err && typeof err === "object") {
+            return err.message || err.msg || err.error || JSON.stringify(err);
+          }
+          return String(err);
+        })
+        .join(", ");
+    }
+    if (msgVal && typeof msgVal === "object") {
+      return msgVal.message || msgVal.msg || msgVal.error || JSON.stringify(msgVal);
+    }
+    if (typeof errorData === "string") {
+      return errorData;
+    }
+  }
+  return error?.message || "Something went wrong";
+};
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -60,7 +90,7 @@ export default function LoginPage() {
       Swal.fire({
         icon: "error",
         title: "Login Failed",
-        text: error?.response?.data?.message || "Something went wrong",
+        text: getErrorMessage(error),
       });
     } finally {
       setLoading(false);
@@ -93,7 +123,7 @@ export default function LoginPage() {
       Swal.fire({
         icon: "error",
         title: "Login Failed",
-        text: error?.response?.data?.message || "Something went wrong",
+        text: getErrorMessage(error),
       });
     } finally {
       setLoading(false);
@@ -115,7 +145,7 @@ export default function LoginPage() {
 
             <form className="w-full max-w-sm space-y-4">
 
-              <h2 className="text-2xl font-bold">Admin Login</h2>
+              <h2 className="text-2xl font-bold text-black">Admin Login</h2>
 
               <InputField
                 label="Email"
@@ -167,7 +197,7 @@ export default function LoginPage() {
 
             <form className="w-full max-w-sm space-y-4">
 
-              <h2 className="text-2xl font-bold">Editor Login</h2>
+              <h2 className="text-2xl font-bold text-black">Editor Login</h2>
 
               <InputField
                 label="Email"

@@ -7,6 +7,34 @@ import Swal from "sweetalert2";
 import Cookies from "js-cookie";
 import { createEditor, updateEditor } from "../../services/editor";
 
+const getErrorMessage = (error) => {
+  if (error?.response?.data) {
+    const errorData = error.response.data;
+    const msgVal = errorData.message || errorData.errors || errorData.error;
+
+    if (typeof msgVal === "string") {
+      return msgVal;
+    }
+    if (Array.isArray(msgVal)) {
+      return msgVal
+        .map((err) => {
+          if (err && typeof err === "object") {
+            return err.message || err.msg || err.error || JSON.stringify(err);
+          }
+          return String(err);
+        })
+        .join(", ");
+    }
+    if (msgVal && typeof msgVal === "object") {
+      return msgVal.message || msgVal.msg || msgVal.error || JSON.stringify(msgVal);
+    }
+    if (typeof errorData === "string") {
+      return errorData;
+    }
+  }
+  return error?.message || "Something went wrong";
+};
+
 export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
   const [loading, setLoading] = useState(false);
 
@@ -70,7 +98,7 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: error.response?.data?.message || "Something went wrong",
+        text: getErrorMessage(error),
       });
     } finally {
       setLoading(false);
@@ -82,7 +110,7 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
       onSubmit={handleSubmit}
       className="space-y-4 max-w-xl mx-auto bg-white p-6 rounded-2xl border"
     >
-      <h3 className="text-lg font-bold">
+      <h3 className="text-lg font-bold text-black ">
         {initialData._id ? "Edit Editor" : "Create Editor"}
       </h3>
 
