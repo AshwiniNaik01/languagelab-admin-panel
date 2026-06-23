@@ -24,7 +24,7 @@ import {
 export default function Sidebar() {
   const pathname = usePathname();
   const { isCollapsed } = useSidebar();
-  
+
   // Track open accordion sections for each model
   const [openSections, setOpenSections] = useState({
     Institutes: false,
@@ -38,7 +38,7 @@ export default function Sidebar() {
   // Automatically keep accordion sections open when corresponding sub-paths are active
   useEffect(() => {
     if (isCollapsed) return;
-    
+
     const isInstitutesActive = pathname.startsWith("/institutes");
     const isLicensesActive = pathname.startsWith("/licenses");
     const isEditorsActive = pathname.startsWith("/editors");
@@ -70,10 +70,9 @@ export default function Sidebar() {
 
 
   return (
-    <aside 
-      className={`bg-[#2A1204] border-r border-orange-500/30 flex flex-col h-screen shrink-0 text-[#FFF8F4] font-sans shadow-2xl shadow-orange-500/5 transition-all duration-300 ${
-        isCollapsed ? "w-20" : "w-64"
-      }`}
+    <aside
+      className={`bg-[#2A1204] border-r border-orange-500/30 flex flex-col h-screen shrink-0 text-[#FFF8F4] font-sans shadow-2xl shadow-orange-500/5 transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"
+        }`}
     >
       {/* Header Profile / Logo */}
       <div className="p-6 border-b border-orange-500/20 bg-gradient-to-b from-orange-950/20 to-transparent">
@@ -96,17 +95,15 @@ export default function Sidebar() {
 
       {/* Accordion Menu */}
       <nav className="flex-1 px-3 py-6 overflow-y-auto scrollbar-none space-y-3 select-none">
-        
+
         {/* Dashboard Link */}
         <Link
           href="/"
-          className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-300 ${
-            isCollapsed ? "justify-center px-0" : ""
-          } ${
-            isLinkActive("/") 
-              ? "bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-400 text-[#3C1E0A] shadow-lg shadow-orange-500/20 scale-102" 
+          className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-300 ${isCollapsed ? "justify-center px-0" : ""
+            } ${isLinkActive("/")
+              ? "bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-400 text-[#3C1E0A] shadow-lg shadow-orange-500/20 scale-102"
               : "text-orange-200/80 hover:text-white hover:bg-white/5"
-          }`}
+            }`}
         >
           <House size={16} />
           {!isCollapsed && <span>Dashboard</span>}
@@ -116,9 +113,8 @@ export default function Sidebar() {
         <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
           <button
             onClick={() => toggleSection("Institutes")}
-            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${
-              isCollapsed ? "justify-center px-0" : ""
-            }`}
+            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${isCollapsed ? "justify-center px-0" : ""
+              }`}
           >
             <div className="flex items-center gap-2">
               <Building2 size={15} />
@@ -129,29 +125,27 @@ export default function Sidebar() {
 
           {!isCollapsed && openSections.Institutes && (
             <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
-             <Link
-  href="/institutes"
-  className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-    pathname === "/institutes"
-      ? "bg-orange-500 text-[#3C1E0A] font-black"
-      : "text-orange-200/80 hover:bg-white/5"
-  }`}
->
-  <ListCollapse size={13} />
-  Manage Institutes
-</Link>
+              <Link
+                href="/institutes"
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${pathname === "/institutes"
+                  ? "bg-orange-500 text-[#3C1E0A] font-black"
+                  : "text-orange-200/80 hover:bg-white/5"
+                  }`}
+              >
+                <ListCollapse size={13} />
+                Manage Institutes
+              </Link>
 
-<Link
-  href="/institutes/new"
-  className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-    pathname === "/institutes/new"
-      ? "bg-orange-500 text-[#3C1E0A] font-black"
-      : "text-orange-200/80 hover:bg-white/5"
-  }`}
->
-  <PlusCircle size={13} />
-  Add Institute
-</Link>
+              <Link
+                href="/institutes/new"
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${pathname === "/institutes/new"
+                  ? "bg-orange-500 text-[#3C1E0A] font-black"
+                  : "text-orange-200/80 hover:bg-white/5"
+                  }`}
+              >
+                <PlusCircle size={13} />
+                Add Institute
+              </Link>
             </div>
           )}
         </div>
@@ -160,9 +154,8 @@ export default function Sidebar() {
         <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
           <button
             onClick={() => toggleSection("licenses")}
-            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${
-              isCollapsed ? "justify-center px-0" : ""
-            }`}
+            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${isCollapsed ? "justify-center px-0" : ""
+              }`}
           >
             <div className="flex items-center gap-2">
               <FileBadge2 size={15} />
@@ -175,18 +168,16 @@ export default function Sidebar() {
             <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
               <Link
                 href="/licenses"
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  pathname === "/licenses" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
-                }`}
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${pathname === "/licenses" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
+                  }`}
               >
                 <ListCollapse size={13} />
                 Manage Licenses
               </Link>
               <Link
                 href="/licenses/new"
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  pathname === "/licenses/new" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
-                }`}
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${pathname === "/licenses/new" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
+                  }`}
               >
                 <PlusCircle size={13} />
                 Issue License
@@ -199,9 +190,8 @@ export default function Sidebar() {
         <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
           <button
             onClick={() => toggleSection("editors")}
-            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${
-              isCollapsed ? "justify-center px-0" : ""
-            }`}
+            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${isCollapsed ? "justify-center px-0" : ""
+              }`}
           >
             <div className="flex items-center gap-2">
               <Users size={15} />
@@ -214,18 +204,16 @@ export default function Sidebar() {
             <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
               <Link
                 href="/editors"
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  pathname === "/editors" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
-                }`}
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${pathname === "/editors" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
+                  }`}
               >
                 <ListCollapse size={13} />
                 Manage Editors
               </Link>
               <Link
                 href="/editors/new"
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  pathname === "/editors/new" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
-                }`}
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${pathname === "/editors/new" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
+                  }`}
               >
                 <PlusCircle size={13} />
                 Register Editor
@@ -238,9 +226,8 @@ export default function Sidebar() {
         <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
           <button
             onClick={() => toggleSection("students")}
-            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${
-              isCollapsed ? "justify-center px-0" : ""
-            }`}
+            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${isCollapsed ? "justify-center px-0" : ""
+              }`}
           >
             <div className="flex items-center gap-2">
               <UserCheck size={15} />
@@ -253,18 +240,16 @@ export default function Sidebar() {
             <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
               <Link
                 href="/students"
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  pathname === "/students" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
-                }`}
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${pathname === "/students" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
+                  }`}
               >
                 <ListCollapse size={13} />
                 Manage Students
               </Link>
               <Link
                 href="/students/new"
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  pathname === "/students/new" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
-                }`}
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${pathname === "/students/new" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
+                  }`}
               >
                 <PlusCircle size={13} />
                 Register Student
@@ -273,57 +258,55 @@ export default function Sidebar() {
           )}
         </div>
         {/* 5. COURSES Accordion */}
-<div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
+        <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
 
-  <button
-    onClick={() => toggleSection("courses")}
-    className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-widest bg-orange-950/40 ${
-      isCollapsed ? "justify-center px-0" : ""
-    }`}
-  >
-    <div className="flex items-center gap-2">
-      <FolderOpen size={15} />
-      {!isCollapsed && <span>Courses</span>}
-    </div>
+          <button
+            onClick={() => toggleSection("courses")}
+            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-widest bg-orange-950/40 ${isCollapsed ? "justify-center px-0" : ""
+              }`}
+          >
+            <div className="flex items-center gap-2">
+              <FolderOpen size={15} />
+              {!isCollapsed && <span>Courses</span>}
+            </div>
 
-    {!isCollapsed &&
-      (openSections.courses ? (
-        <ChevronUp size={14} />
-      ) : (
-        <ChevronDown size={14} />
-      ))}
-  </button>
+            {!isCollapsed &&
+              (openSections.courses ? (
+                <ChevronUp size={14} />
+              ) : (
+                <ChevronDown size={14} />
+              ))}
+          </button>
 
-  {!isCollapsed && openSections.courses && (
-    <div className="p-1.5 space-y-1 bg-[#2A1204]">
+          {!isCollapsed && openSections.courses && (
+            <div className="p-1.5 space-y-1 bg-[#2A1204]">
 
-      <Link
-        href="/courses"
-        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs"
-      >
-        <ListCollapse size={13} />
-        Manage Courses
-      </Link>
+              <Link
+                href="/courses"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs"
+              >
+                <ListCollapse size={13} />
+                Manage Courses
+              </Link>
 
-      <Link
-        href="/courses/new"
-        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs"
-      >
-        <PlusCircle size={13} />
-        Add Course
-      </Link>
+              <Link
+                href="/courses/new"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs"
+              >
+                <PlusCircle size={13} />
+                Add Course
+              </Link>
 
-    </div>
-  )}
-</div>
+            </div>
+          )}
+        </div>
 
         {/* 5. CURRICULUM Accordion */}
         <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
           <button
             onClick={() => toggleSection("curriculum")}
-            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${
-              isCollapsed ? "justify-center px-0" : ""
-            }`}
+            className={`w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-355 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-955/60 transition-all duration-300 ${isCollapsed ? "justify-center px-0" : ""
+              }`}
           >
             <div className="flex items-center gap-2">
               <FolderOpen size={15} />
@@ -336,9 +319,8 @@ export default function Sidebar() {
             <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
               <Link
                 href="/content"
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  pathname === "/content" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
-                }`}
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${pathname === "/content" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
+                  }`}
               >
                 <FolderOpen size={13} />
                 Materials
@@ -346,9 +328,8 @@ export default function Sidebar() {
 
               <Link
                 href="/sessions"
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  pathname === "/sessions" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
-                }`}
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${pathname === "/sessions" ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5"
+                  }`}
               >
                 <Activity size={13} />
                 Sessions
@@ -363,9 +344,8 @@ export default function Sidebar() {
       <div className="p-4 border-t border-orange-500/20 space-y-1 bg-orange-950/10">
         <Link
           href="/settings"
-          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-orange-200 hover:text-white hover:bg-white/5 transition-all duration-200 ${
-            isCollapsed ? "justify-center px-0" : ""
-          }`}
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-orange-200 hover:text-white hover:bg-white/5 transition-all duration-200 ${isCollapsed ? "justify-center px-0" : ""
+            }`}
         >
           <Settings size={16} />
           {!isCollapsed && <span>Settings</span>}
@@ -375,9 +355,8 @@ export default function Sidebar() {
             document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             window.location.href = "/admin-login";
           }}
-          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-orange-400 hover:bg-red-500/10 transition-all duration-200 text-left cursor-pointer ${
-            isCollapsed ? "justify-center px-0" : ""
-          }`}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-orange-400 hover:bg-red-500/10 transition-all duration-200 text-left cursor-pointer ${isCollapsed ? "justify-center px-0" : ""
+            }`}
         >
           <LogOut size={16} />
           {!isCollapsed && <span>Logout</span>}

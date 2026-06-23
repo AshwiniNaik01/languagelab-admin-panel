@@ -1,278 +1,335 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import Swal from "sweetalert2";
-import InputField from "../components/form/InputField";
-import Button from "../components/ui/Button";
-
-import { loginAdmin, loginEditor } from "../services/admin-login";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import Swal from 'sweetalert2';
+import InputField from '../components/form/InputField';
+import Button from '../components/ui/Button';
+import { adminSchema } from '../schemas/admin.schema.js';
+import { editorSchema } from '../schemas/editor.schema.js';
+import { loginAdmin, loginEditor } from '../services/admin-login';
 
 const getErrorMessage = (error) => {
-  if (error?.response?.data) {
-    const errorData = error.response.data;
+    if (error?.response?.data) {
+        const errorData = error.response.data;
 
-    // We check message, errors, or error in order
-    const msgVal = errorData.message || errorData.errors || errorData.error;
+        // We check message, errors, or error in order
+        const msgVal = errorData.message || errorData.errors || errorData.error;
 
-    if (typeof msgVal === "string") {
-      return msgVal;
+        if (typeof msgVal === 'string') {
+            return msgVal;
+        }
+        if (Array.isArray(msgVal)) {
+            return msgVal
+                .map((err) => {
+                    if (err && typeof err === 'object') {
+                        return err.message || err.msg || err.error || JSON.stringify(err);
+                    }
+                    return String(err);
+                })
+                .join(', ');
+        }
+        if (msgVal && typeof msgVal === 'object') {
+            return msgVal.message || msgVal.msg || msgVal.error || JSON.stringify(msgVal);
+        }
+        if (typeof errorData === 'string') {
+            return errorData;
+        }
     }
-    if (Array.isArray(msgVal)) {
-      return msgVal
-        .map((err) => {
-          if (err && typeof err === "object") {
-            return err.message || err.msg || err.error || JSON.stringify(err);
-          }
-          return String(err);
-        })
-        .join(", ");
-    }
-    if (msgVal && typeof msgVal === "object") {
-      return msgVal.message || msgVal.msg || msgVal.error || JSON.stringify(msgVal);
-    }
-    if (typeof errorData === "string") {
-      return errorData;
-    }
-  }
-  return error?.message || "Something went wrong";
+    return error?.message || 'Something went wrong';
 };
 
 export default function LoginPage() {
-  const router = useRouter();
+    const router = useRouter();
 
-  const [isEditor, setIsEditor] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [isEditor, setIsEditor] = useState(false);
 
-  const [adminData, setAdminData] = useState({ email: "", password: "" });
-  const [editorData, setEditorData] = useState({ email: "", password: "" });
+    const [adminData, setAdminData] = useState({ email: '', password: '' });
+    const [editorData, setEditorData] = useState({ email: '', password: '' });
 
-  const [showAdminPassword, setShowAdminPassword] = useState(false);
-  const [showEditorPassword, setShowEditorPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
+    const [showEditorPassword, setShowEditorPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-  const setCookie = (name, value, days = 1) => {
-    const expires = new Date(Date.now() + days * 864e5).toUTCString();
-    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
-  };
+    const setCookie = (name, value, days = 1) => {
+        const expires = new Date(Date.now() + days * 864e5).toUTCString();
+        document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+    };
 
-  const handleAdminChange = (e) => {
-    setAdminData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+    const handleAdminChange = (e) => {
+        setAdminData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    };
 
-  const handleEditorChange = (e) => {
-    setEditorData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+    const handleEditorChange = (e) => {
+        setEditorData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    };
 
-  const handleAdminLogin = async (e) => {
-    e.preventDefault();
+    // const handleAdminLogin = async (e) => {
+    //     e.preventDefault();
 
-    try {
-      setLoading(true);
-      const response = await loginAdmin(adminData);
+    //     try {
+    //         setLoading(true);
+    //         const response = await loginAdmin(adminData);
 
-      if (response.success) {
-        const { token, admin } = response.data;
+    //         if (response.success) {
+    //             const { token, admin } = response.data;
 
-        setCookie("token", token);
-        setCookie("admin", JSON.stringify(admin));
+    //             setCookie('token', token);
+    //             setCookie('admin', JSON.stringify(admin));
 
-        Swal.fire({
-          icon: "success",
-          title: "Admin Login Successful",
-          timer: 1500,
-          showConfirmButton: false,
-        });
+    //             Swal.fire({
+    //                 icon: 'success',
+    //                 title: 'Admin Login Successful',
+    //                 timer: 1500,
+    //                 showConfirmButton: false,
+    //             });
 
-        setTimeout(() => router.push("/"), 1000);
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Login Failed",
-        text: getErrorMessage(error),
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    //             setTimeout(() => router.push('/'), 1000);
+    //         }
+    //     } catch (error) {
+    //         Swal.fire({
+    //             icon: 'error',
+    //             title: 'Login Failed',
+    //             text: getErrorMessage(error),
+    //         });
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
-  const handleEditorLogin = async (e) => {
-    e.preventDefault();
+    const handleAdminLogin = async (e) => {
+        e.preventDefault();
 
-    try {
-      setLoading(true);
-      const response = await loginEditor(editorData);
+        try {
+            setErrors({});
 
-      if (response.success) {
-        const { token, editor } = response.data;
+            await adminSchema.validate(adminData, {
+                abortEarly: false,
+            });
 
-        setCookie("token", token);
-        setCookie("editor", JSON.stringify(editor));
+            setLoading(true);
 
-        Swal.fire({
-          icon: "success",
-          title: "Editor Login Successful",
-          timer: 1500,
-          showConfirmButton: false,
-        });
+            const response = await loginAdmin(adminData);
 
-        setTimeout(() => router.push("/editor"), 1000);
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Login Failed",
-        text: getErrorMessage(error),
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+            if (response.success) {
+                const { token, admin } = response.data;
 
-  return (
-    <div className="min-h-screen bg-orange-50 flex items-center justify-center px-4 py-6">
+                setCookie('token', token);
+                setCookie('admin', JSON.stringify(admin));
 
-      {/* MAIN BOX (FIXED CENTER + SMALL SIZE) */}
-      <div className="relative w-full max-w-4xl h-[520px] mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Admin Login Successful',
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
 
-        {/* ADMIN FORM */}
-        <div
-          className={`absolute top-0 h-full w-1/2 transition-all duration-700 ease-in-out
-          ${isEditor ? "-translate-x-full opacity-0" : "translate-x-0 opacity-100"}`}
-        >
-          <div className="h-full flex items-center justify-center p-8">
+                setTimeout(() => router.push('/'), 1000);
+            }
+        } catch (error) {
+            if (error.inner) {
+                const validationErrors = {};
 
-            <form className="w-full max-w-sm space-y-4">
+                error.inner.forEach((err) => {
+                    validationErrors[err.path] = err.message;
+                });
 
-              <h2 className="text-2xl font-bold text-black">Admin Login</h2>
+                setErrors(validationErrors);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Login Failed',
+                    text: getErrorMessage(error),
+                });
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
-              <InputField
-                label="Email"
-                name="email"
-                type="email"
-                value={adminData.email}
-                onChange={handleAdminChange}
-                required
-              />
+    const handleEditorLogin = async (e) => {
+        e.preventDefault();
 
-              <div className="relative">
-                <InputField
-                  label="Password"
-                  name="password"
-                  type={showAdminPassword ? "text" : "password"}
-                  value={adminData.password}
-                  onChange={handleAdminChange}
-                  required
-                />
+        try {
+            setErrors({});
 
-                <button
-                  type="button"
-                  onClick={() => setShowAdminPassword(!showAdminPassword)}
-                  className="absolute right-4 top-[45px]"
-                >
-                  {showAdminPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
+            await editorSchema.validate(editorData, {
+                abortEarly: false,
+            });
 
-              <Button
-                onClick={handleAdminLogin}
-                type="submit"
-                className="w-full"
-                disabled={loading}
-              >
-                Login as Admin
-              </Button>
+            setLoading(true);
+            const response = await loginEditor(editorData);
 
-            </form>
-          </div>
-        </div>
+            if (response.success) {
+                const { token, editor } = response.data;
 
-        {/* TEACHER FORM */}
-        <div
-          className={`absolute top-0 right-0 h-full w-1/2 transition-all duration-700 ease-in-out
-          ${isEditor ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"}`}
-        >
-          <div className="h-full flex items-center justify-center p-8">
+                setCookie('token', token);
+                setCookie('editor', JSON.stringify(editor));
 
-            <form className="w-full max-w-sm space-y-4">
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Editor Login Successful',
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
 
-              <h2 className="text-2xl font-bold text-black">Editor Login</h2>
+                setTimeout(() => router.push('/editor'), 1000);
+            }
+        } catch (error) {
+            if (error.inner) {
+                const validationErrors = {};
 
-              <InputField
-                label="Email"
-                name="email"
-                type="email"
-                value={editorData.email}
-                onChange={handleEditorChange}
-                required
-              />
+                error.inner.forEach((err) => {
+                    validationErrors[err.path] = err.message;
+                });
 
-              <div className="relative">
-                <InputField
-                  label="Password"
-                  name="password"
-                  type={showEditorPassword ? "text" : "password"}
-                  value={editorData.password}
-                  onChange={handleEditorChange}
-                  required
-                />
+                setErrors(validationErrors);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Login Failed',
+                    text: getErrorMessage(error),
+                });
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
-                <button
-                  type="button"
-                  onClick={() => setShowEditorPassword(!showEditorPassword)}
-                  className="absolute right-4 top-[45px]"
-                >
-                  {showEditorPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
+    return (
+        <div className="min-h-screen bg-orange-50 flex items-center justify-center px-4 py-6">
+            {/* MAIN BOX (FIXED CENTER + SMALL SIZE) */}
+            <div className="relative w-full max-w-4xl h-[520px] mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
+                {/* ADMIN FORM */}
+                <div
+                    className={`absolute top-0 h-full w-1/2 transition-all duration-700 ease-in-out
+          ${isEditor ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'}`}>
+                    <div className="h-full flex items-center justify-center p-8">
+                        <form className="w-full max-w-sm space-y-4">
+                            <h2 className="text-2xl font-bold text-black">Admin Login</h2>
 
-              <Button
-                onClick={handleEditorLogin}
-                type="submit"
-                className="w-full"
-                disabled={loading}
-              >
-                Login as Editor
-              </Button>
+                            <InputField
+                                label="Email"
+                                name="email"
+                                type="email"
+                                value={adminData.email}
+                                onChange={handleAdminChange}
+                                required
+                                error={errors.email}
+                            />
 
-            </form>
-          </div>
-        </div>
+                            <div className="relative">
+                                <InputField
+                                    label="Password"
+                                    name="password"
+                                    type={showAdminPassword ? 'text' : 'password'}
+                                    value={adminData.password}
+                                    onChange={handleAdminChange}
+                                    required
+                                    error={errors.password}
+                                />
 
-        {/* SLIDER PANEL */}
-        <div
-          className={`absolute top-0 h-full w-1/2 overflow-hidden transition-all duration-700 ease-in-out z-20
-          ${isEditor ? "translate-x-0" : "translate-x-full"}`}
-        >
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAdminPassword(!showAdminPassword)}
+                                    className="absolute right-4 top-[45px]">
+                                    {showAdminPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
+                            </div>
 
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-500 via-orange-600 to-amber-600" />
+                            <Button
+                                onClick={handleAdminLogin}
+                                type="submit"
+                                className="w-full"
+                                disabled={loading}>
+                                Login as Admin
+                            </Button>
+                        </form>
+                    </div>
+                </div>
 
-          <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full bg-white/10" />
-          <div className="absolute bottom-10 right-10 w-40 h-40 rounded-full bg-white/10" />
-          <div className="absolute top-1/2 left-10 w-24 h-24 rounded-full bg-white/10" />
+                {/* TEACHER FORM */}
+                <div
+                    className={`absolute top-0 right-0 h-full w-1/2 transition-all duration-700 ease-in-out
+          ${isEditor ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
+                    <div className="h-full flex items-center justify-center p-8">
+                        <form className="w-full max-w-sm space-y-4">
+                            <h2 className="text-2xl font-bold text-black">Editor Login</h2>
 
-          <div className="relative h-full flex items-center justify-center p-10 text-center">
+                            <InputField
+                                label="Email"
+                                name="email"
+                                type="email"
+                                value={editorData.email}
+                                onChange={handleEditorChange}
+                                required
+                                error={errors.email}
+                            />
 
-            <div className="max-w-sm">
+                            <div className="relative">
+                                <InputField
+                                    label="Password"
+                                    name="password"
+                                    type={showEditorPassword ? 'text' : 'password'}
+                                    value={editorData.password}
+                                    onChange={handleEditorChange}
+                                    required
+                                    error={errors.password}
+                                />
 
-              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-white/15 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl">
-                <span className="text-5xl">{isEditor ? "🎓" : "🛡️"}</span>
-              </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEditorPassword(!showEditorPassword)}
+                                    className="absolute right-4 top-[45px]">
+                                    {showEditorPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
+                            </div>
 
-              <h1 className="text-4xl font-extrabold mb-4 text-white">
-                {isEditor ? "Editor Portal" : "Admin Dashboard"}
-              </h1>
+                            <Button
+                                onClick={handleEditorLogin}
+                                type="submit"
+                                className="w-full"
+                                disabled={loading}>
+                                Login as Editor
+                            </Button>
+                        </form>
+                    </div>
+                </div>
 
-              <p className="text-white/90 text-lg leading-relaxed mb-8">
-                {isEditor
-                  ? "Manage courses, learning modules, assessments and student activities."
-                  : "Manage institutes, editors, courses, reports and analytics."}
-              </p>
+                {/* SLIDER PANEL */}
+                <div
+                    className={`absolute top-0 h-full w-1/2 overflow-hidden transition-all duration-700 ease-in-out z-20
+          ${isEditor ? 'translate-x-0' : 'translate-x-full'}`}>
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500 via-orange-600 to-amber-600" />
 
-              <button
-                onClick={() => setIsEditor(!isEditor)}
-                className="
+                    <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full bg-white/10" />
+                    <div className="absolute bottom-10 right-10 w-40 h-40 rounded-full bg-white/10" />
+                    <div className="absolute top-1/2 left-10 w-24 h-24 rounded-full bg-white/10" />
+
+                    <div className="relative h-full flex items-center justify-center p-10 text-center">
+                        <div className="max-w-sm">
+                            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-white/15 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl">
+                                <span className="text-5xl">{isEditor ? '🎓' : '🛡️'}</span>
+                            </div>
+
+                            <h1 className="text-4xl font-extrabold mb-4 text-white">
+                                {isEditor ? 'Editor Portal' : 'Admin Dashboard'}
+                            </h1>
+
+                            <p className="text-white/90 text-lg leading-relaxed mb-8">
+                                {isEditor
+                                    ? 'Manage courses, learning modules, assessments and student activities.'
+                                    : 'Manage institutes, editors, courses, reports and analytics.'}
+                            </p>
+
+                            <button
+                                onClick={() => {
+                                    setIsEditor(!isEditor);
+                                    setErrors({});
+                                }}
+                                className="
                   px-6 py-3
                   bg-white/20
                   backdrop-blur-md
@@ -284,16 +341,13 @@ export default function LoginPage() {
                   hover:scale-105
                   transition-all
                   duration-300
-                "
-              >
-                {isEditor ? "Switch to Admin" : "Switch to Editor"}
-              </button>
-
+                ">
+                                {isEditor ? 'Switch to Admin' : 'Switch to Editor'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-
-      </div>
-    </div>
-  );
+    );
 }

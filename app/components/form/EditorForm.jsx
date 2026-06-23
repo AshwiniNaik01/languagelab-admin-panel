@@ -6,6 +6,7 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
 import { createEditor, updateEditor } from "../../services/editor";
+import { newEditorSchema } from "../../schemas/neweditor.schema.js";
 
 const getErrorMessage = (error) => {
   if (error?.response?.data) {
@@ -35,8 +36,9 @@ const getErrorMessage = (error) => {
   return error?.message || "Something went wrong";
 };
 
-export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
+export default function EditorForm({ initialData = {}, onCancel, onSuccess, onSubmit }) {
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,6 +59,31 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
     data.status = data.status || "active";
     data.is_active = data.is_active !== "false";
 
+    // Run Yup validation
+    try {
+      await newEditorSchema.validate(data, {
+        abortEarly: false,
+        context: { isEdit: !!initialData._id },
+      });
+      setErrors({});
+    } catch (err) {
+      const validationErrors = {};
+      if (err.inner) {
+        err.inner.forEach((error) => {
+          validationErrors[error.path] = error.message;
+        });
+      } else {
+        validationErrors[err.path] = err.message;
+      }
+      setErrors(validationErrors);
+      return;
+    }
+
+    // If profilePhoto is an empty File object, delete it (especially for edits)
+    if (data.profilePhoto && data.profilePhoto instanceof File && data.profilePhoto.size === 0) {
+      delete data.profilePhoto;
+    }
+
     try {
       setLoading(true);
 
@@ -65,11 +92,8 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
       const config = {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
-
-
         },
       };
-
 
       let response;
 
@@ -93,6 +117,7 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
         });
       }
 
+      if (onSubmit) onSubmit(data);
       if (onSuccess) onSuccess(response.data);
     } catch (error) {
       Swal.fire({
@@ -120,7 +145,8 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
           label="Full Name"
           name="full_name"
           defaultValue={initialData.full_name}
-          required
+          error={errors.full_name}
+
         />
 
         <InputField
@@ -128,7 +154,8 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
           name="email"
           type="email"
           defaultValue={initialData.email}
-          required
+          error={errors.email}
+
         />
       </div>
 
@@ -141,13 +168,15 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
           placeholder={
             initialData._id ? "Leave blank to keep old password" : ""
           }
-          required={!initialData._id}
+          error={errors.password}
+
         />
 
         <InputField
           label="Role"
           name="role"
           defaultValue={initialData.role || "editor"}
+          error={errors.role}
         />
       </div>
 
@@ -157,6 +186,7 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
           label="Phone"
           name="phone"
           defaultValue={initialData.phone}
+          error={errors.phone}
         />
       </div>
       <div>
@@ -168,8 +198,12 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess }) {
           type="file"
           accept="image/*"
           name="profilePhoto"
-          className="w-full border rounded px-3 py-2"
+          className={`w-full border rounded px-3 py-2 ${errors.profilePhoto ? "border-red-500" : "border-gray-300"
+            }`}
         />
+        {errors.profilePhoto && (
+          <p className="mt-1 text-sm text-red-500">{errors.profilePhoto}</p>
+        )}
       </div>
 
       {/* ACTIONS */}
