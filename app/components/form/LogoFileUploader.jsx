@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { FaCloudUploadAlt, FaFileImage, FaTrashAlt } from "react-icons/fa";
+import { FaCloudUploadAlt, FaTrashAlt } from "react-icons/fa";
 
-export default function LogoFileUploader({ onFileUploaded, initialLogoUrl }) {
+export default function LogoFileUploader({ onFileUploaded, initialLogoUrl, label = "Institute Logo Upload", uploadedText = "Logo uploaded successfully", previewAlt = "Logo preview" }) {
   const [previewUrl, setPreviewUrl] = useState(initialLogoUrl || "");
   const [compressing, setCompressing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -97,19 +97,19 @@ export default function LogoFileUploader({ onFileUploaded, initialLogoUrl }) {
   return (
     <div className="w-full">
       <label className="block mb-2 text-sm font-semibold text-[#3C1E0A]">
-        Institute Logo Upload
+        {label}
       </label>
       
       {previewUrl ? (
         <div className="relative border border-orange-500/20 bg-orange-500/5 p-4 rounded-2xl flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <img 
-              src={previewUrl} 
-              alt="Institute logo preview" 
-              className="w-14 h-14 object-cover rounded-xl border border-orange-500/20 bg-white" 
+            <img
+              src={previewUrl}
+              alt={previewAlt}
+              className="w-14 h-14 object-cover rounded-xl border border-orange-500/20 bg-white"
             />
             <div>
-              <p className="text-xs font-black text-[#3C1E0A]">Logo uploaded successfully</p>
+              <p className="text-xs font-black text-[#3C1E0A]">{uploadedText}</p>
               <p className="text-[10px] text-orange-950/60 font-semibold">Image compressed & web-optimized</p>
             </div>
           </div>

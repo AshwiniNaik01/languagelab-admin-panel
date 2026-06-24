@@ -2,9 +2,9 @@
 
 import InputField from "./InputField";
 import Button from "../ui/Button";
+import LogoFileUploader from "./LogoFileUploader";
 import { useState } from "react";
 import Swal from "sweetalert2";
-import Cookies from "js-cookie";
 import { createEditor, updateEditor } from "../../services/editor";
 import { newEditorSchema } from "../../schemas/neweditor.schema.js";
 
@@ -39,6 +39,7 @@ const getErrorMessage = (error) => {
 export default function EditorForm({ initialData = {}, onCancel, onSuccess, onSubmit }) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [profilePhotoBase64, setProfilePhotoBase64] = useState(initialData.profilePhoto || "");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,11 +50,7 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess, onSu
     // ❌ remove empty password
     if (!data.password) delete data.password;
 
-    // ✅ FIX: match schema field name
-    if (data.profileImage) {
-      data.profilePhoto = data.profileImage;
-      delete data.profileImage;
-    }
+    data.profilePhoto = profilePhotoBase64;
 
     // ✅ default values for backend schema
     data.status = data.status || "active";
@@ -87,34 +84,14 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess, onSu
     try {
       setLoading(true);
 
-      const token = Cookies.get("token");
-
-      const config = {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-      };
-
       let response;
 
       if (initialData._id) {
-        response = await updateEditor(initialData._id, data, config);
-
-        Swal.fire({
-          icon: "success",
-          title: "Updated!",
-          text: "Editor updated successfully",
-        });
+        response = await updateEditor(initialData._id, data);
+        Swal.fire({ icon: "success", title: "Updated!", text: "Editor updated successfully" });
       } else {
-        response = await createEditor(data, config);
-
-        console.log("API Response:", response.data);
-
-        Swal.fire({
-          icon: "success",
-          title: "Created!",
-          text: "Editor created successfully",
-        });
+        response = await createEditor(data);
+        Swal.fire({ icon: "success", title: "Created!", text: "Editor created successfully" });
       }
 
       if (onSubmit) onSubmit(data);
@@ -133,87 +110,86 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess, onSu
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 max-w-xl mx-auto bg-white p-6 rounded-2xl border"
+      className="space-y-6 w-full bg-white p-8 rounded-3xl border border-orange-500/20 shadow-xl"
     >
-      <h3 className="text-lg font-bold text-black ">
-        {initialData._id ? "Edit Editor" : "Create Editor"}
+      <h3 className="text-xl font-black text-[#3C1E0A] border-b border-orange-500/10 pb-4">
+        {initialData._id ? "Edit Editor Information" : "Register Editor"}
       </h3>
 
-      {/* FULL NAME + EMAIL */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Full Name + Email */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InputField
           label="Full Name"
           name="full_name"
+          placeholder="e.g. John Doe"
           defaultValue={initialData.full_name}
           error={errors.full_name}
-
+          icon="User"
         />
-
         <InputField
-          label="Email"
+          label="Email Address"
           name="email"
           type="email"
+          placeholder="e.g. editor@example.com"
           defaultValue={initialData.email}
           error={errors.email}
-
+          icon="Mail"
         />
       </div>
 
-      {/* PASSWORD + ROLE */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Password + Phone */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InputField
           label="Password"
           name="password"
           type="password"
-          placeholder={
-            initialData._id ? "Leave blank to keep old password" : ""
-          }
+          placeholder={initialData._id ? "Leave blank to keep current" : "Enter account password"}
           error={errors.password}
-
+          icon="Lock"
         />
-
         <InputField
-          label="Role"
-          name="role"
-          defaultValue={initialData.role || "editor"}
-          error={errors.role}
-        />
-      </div>
-
-      {/* PHONE + PROFILE PHOTO */}
-      <div className="grid grid-cols-2 gap-4">
-        <InputField
-          label="Phone"
+          label="Phone Number"
           name="phone"
+          placeholder="e.g. 9876543210"
           defaultValue={initialData.phone}
           error={errors.phone}
+          icon="Phone"
         />
       </div>
-      <div>
-        <label className="block mb-2 text-sm font-semibold text-gray-700">
-          Profile Photo
-        </label>
 
+      {/* Profile Photo */}
+      <LogoFileUploader
+        label="Profile Photo"
+        uploadedText="Photo uploaded successfully"
+        previewAlt="Profile photo preview"
+        onFileUploaded={setProfilePhotoBase64}
+        initialLogoUrl={initialData.profilePhoto}
+      />
+      {errors.profilePhoto && (
+        <p className="-mt-4 text-sm text-red-500">{errors.profilePhoto}</p>
+      )}
+
+      {/* Active status */}
+      <div className="flex items-center gap-3.5 py-3 border-t border-orange-500/10">
         <input
-          type="file"
-          accept="image/*"
-          name="profilePhoto"
-          className={`w-full border rounded px-3 py-2 ${errors.profilePhoto ? "border-red-500" : "border-gray-300"
-            }`}
+          type="checkbox"
+          name="is_active"
+          id="is_active_editor"
+          defaultChecked={initialData.is_active !== false}
+          className="accent-orange-500 w-4 h-4 rounded cursor-pointer"
         />
-        {errors.profilePhoto && (
-          <p className="mt-1 text-sm text-red-500">{errors.profilePhoto}</p>
-        )}
+        <label htmlFor="is_active_editor" className="text-sm font-bold text-[#3C1E0A] select-none cursor-pointer">
+          Activate this editor immediately
+        </label>
       </div>
 
-      {/* ACTIONS */}
-      <div className="flex justify-end gap-3">
-        <Button type="button" variant="secondary" onClick={onCancel}>
+      {/* Actions */}
+      <div className="flex justify-end gap-4 pt-4 border-t border-orange-500/10">
+        <Button variant="secondary" type="button" onClick={onCancel}>
           Cancel
         </Button>
-
         <Button type="submit" disabled={loading}>
-          {loading ? "Saving..." : initialData._id ? "Update" : "Create"}
+          {loading ? "Saving…" : initialData._id ? "Update Editor" : "Register Editor"}
         </Button>
       </div>
     </form>

@@ -5,12 +5,15 @@ export const instituteSchema = Yup.object({
 
     institute_code: Yup.string().trim().required('Institute code is required'),
 
+    course_id: Yup.string().trim().required('Please select a course'),
+
     email: Yup.string()
         .trim()
         .email('Please enter a valid email address')
         .required('Email is required'),
 
     password: Yup.string().required('Password is required'),
+
     phone: Yup.string()
         .trim()
         .matches(/^[0-9]{10}$/, 'Please enter a valid phone number')

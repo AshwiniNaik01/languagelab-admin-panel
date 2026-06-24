@@ -1,33 +1,51 @@
 import api from "./api";
 
-export const initialEditors = [];
-
-export const initialInstitutes = [
-  { _id: "clg_1", institute_name: "Mumbai University" },
-  { _id: "clg_2", institute_name: "Pune Institute of Technology" },
-];
-
-// CREATE
-export const createEditor = (data, config) => {
-  return api.post("/api/editor", data, config);
+const base64ToBlob = (base64) => {
+  const [header, body] = base64.split(",");
+  const mime = header.match(/:(.*?);/)[1];
+  const binary = atob(body);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
 };
 
-// GET ALL TEACHERS
-export const getEditors = (config) => {
-  return api.get("/api/editor", config);
+const buildEditorFormData = (data) => {
+  const fd = new FormData();
+  if (data.full_name) fd.append("full_name", data.full_name);
+  if (data.email) fd.append("email", data.email);
+  if (data.password) fd.append("password", data.password);
+  if (data.phone) fd.append("phone", data.phone);
+  if (data.profilePhoto instanceof File && data.profilePhoto.size > 0) {
+    fd.append("profilePhoto", data.profilePhoto);
+  } else if (typeof data.profilePhoto === "string" && data.profilePhoto.startsWith("data:")) {
+    const blob = base64ToBlob(data.profilePhoto);
+    fd.append("profilePhoto", blob, "profile.webp");
+  }
+  return fd;
 };
 
-// GET SINGLE TEACHER
-export const getEditorById = (id, config) => {
-  return api.get(`/api/editor/${id}`, config);
-};
+export const getEditors = () => api.get("/api/editor");
 
-// UPDATE
-export const updateEditor = (id, data, config) => {
-  return api.put(`/api/editor/${id}`, data, config);
-};
+export const getEditorById = (id) => api.get(`/api/editor/${id}`);
 
-// DELETE
-export const deleteEditor = (id, config) => {
-  return api.delete(`/api/editor/${id}`, config);
-};
+// POST /api/editor — multipart/form-data (profilePhoto file upload)
+export const createEditor = (data) =>
+  api.post("/api/editor", buildEditorFormData(data), {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+// PUT /api/editor/:id — JSON body (no file, just profile fields + status)
+export const updateEditor = (id, data) =>
+  api.put(`/api/editor/${id}`, {
+    full_name: data.full_name,
+    phone: data.phone,
+    status: data.status || "active",
+  });
+
+export const deleteEditor = (id) => api.delete(`/api/editor/${id}`);
+
+export const toggleEditorStatus = (id) =>
+  api.put(`/api/editor/${id}/toggle-status`);
+
+export const assignEditorInstitutes = (id, institute_ids) =>
+  api.put(`/api/editor/${id}/assign-institute`, { institute_ids });

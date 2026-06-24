@@ -1,35 +1,22 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 import CourseForm from "../form/CourseForm";
+import { createCourse } from "../../services/course";
 
 export default function NewCourseContent() {
   const router = useRouter();
 
-  const handleSubmit = (data) => {
-    console.log("Course Data:", data);
-
-    router.back();
+  const handleSubmit = async (data) => {
+    await createCourse(data);
+    Swal.fire({ icon: "success", title: "Course Created", timer: 1500, showConfirmButton: false });
+    router.push("/courses");
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-slate-800">
-          Add Course
-        </h2>
-
-        <p className="text-sm text-slate-500">
-          Create a new course.
-        </p>
-      </div>
-
-      <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-lg">
-        <CourseForm
-          onSuccess={handleSubmit}
-          onCancel={() => router.back()}
-        />
-      </div>
+    <div className="bg-[#FFF8F4] p-0.5 rounded-3xl w-full">
+      <CourseForm onSuccess={handleSubmit} onCancel={() => router.push("/courses")} />
     </div>
   );
 }

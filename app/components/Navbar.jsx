@@ -2,6 +2,7 @@
 
 import { Settings, UserCircle2, ChevronDown, Menu, Sparkles } from "lucide-react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { useSidebar } from "./SidebarContext";
 
 export default function Navbar() {
@@ -43,7 +44,10 @@ export default function Navbar() {
           <Settings size={20} />
         </button>
 
-        <div className="flex items-center gap-3.5 pl-4 border-l border-orange-500/10">
+        <Link
+          href="/profile"
+          className="flex items-center gap-3.5 pl-4 border-l border-orange-500/10 hover:opacity-80 transition-opacity"
+        >
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shadow-md shadow-orange-500/20">
             <UserCircle2 size={24} className="text-white" />
           </div>
@@ -57,7 +61,7 @@ export default function Navbar() {
             </p>
           </div>
           <ChevronDown size={14} className="text-orange-900/50" />
-        </div>
+        </Link>
       </div>
 
     </header>

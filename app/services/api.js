@@ -7,4 +7,15 @@ const api = axios.create({
   },
 });
 
+// Read the token cookie saved after login and attach it to every request
+api.interceptors.request.use((config) => {
+  if (typeof document !== "undefined") {
+    const match = document.cookie.match(/(?:^|; )token=([^;]*)/);
+    if (match) {
+      config.headers.Authorization = `Bearer ${decodeURIComponent(match[1])}`;
+    }
+  }
+  return config;
+});
+
 export default api;
