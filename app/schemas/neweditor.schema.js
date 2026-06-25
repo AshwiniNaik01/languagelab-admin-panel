@@ -1,7 +1,8 @@
 import * as Yup from 'yup';
 
 export const newEditorSchema = Yup.object({
-  full_name: Yup.string().trim().required("Full name is required"),
+  full_name: Yup.string().trim().matches(/^[A-Za-z\s.-]+$/, "Only alphabets are allowed")
+  .required("Full name is required"),
 
   email: Yup.string()
     .trim()
@@ -15,6 +16,7 @@ export const newEditorSchema = Yup.object({
     otherwise: (schema) => schema.required("Password is required"),
   }),
 
-  phone: Yup.string().trim().required("Phone number is required"),
+  phone: Yup.string().trim().matches(/^[6-9]\d{9}$/, "Enter a valid Indian mobile number")
+  .required("Phone number is required"),
   // role is always 'editor' — set by the backend, not editable
 });

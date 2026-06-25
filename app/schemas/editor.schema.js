@@ -7,4 +7,5 @@ export const editorSchema = Yup.object({
         .required('Email is required'),
 
     password: Yup.string().required('Password is required'),
+    
 });

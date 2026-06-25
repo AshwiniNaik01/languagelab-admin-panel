@@ -1,7 +1,7 @@
 import * as Yup from 'yup';
 
 export const instituteSchema = Yup.object({
-    institute_name: Yup.string().trim().required('Institute name is required'),
+    institute_name: Yup.string().trim().matches(/^[A-Za-z\s.-]+$/, "Only alphabets are allowed").required('Institute name is required'),
 
     institute_code: Yup.string().trim().required('Institute code is required'),
 
@@ -16,7 +16,7 @@ export const instituteSchema = Yup.object({
 
     phone: Yup.string()
         .trim()
-        .matches(/^[0-9]{10}$/, 'Please enter a valid phone number')
+        .matches(/^[6-9]\d{9}$/, "Enter a valid Indian mobile number")
         .required('Phone number is required'),
 
     website: Yup.string().trim().url('Please enter a valid website address'),

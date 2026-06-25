@@ -165,7 +165,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 gap-4">
             <ActionCard icon={<FaPlus />} label="Add Institute" link="/institutes/new" />
             <ActionCard icon={<FaKey />} label="Issue License" link="/licenses/new" />
-            <ActionCard icon={<FaUserPlus />} label="Register Teacher" link="/teachers/new" />
+            <ActionCard icon={<FaUserPlus />} label="Register Editor" link="/editors/new" />
             <ActionCard icon={<FaUpload />} label="Upload Material" link="/content" />
             <ActionCard icon={<FaBookOpen />} label="Manage Curriculum" link="/content" />
             <ActionCard icon={<FaClipboardList />} label="Configure Testing" link="/sessions" />
