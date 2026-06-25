@@ -1,5 +1,6 @@
 import EditorSidebar from "../components/EditorSidebar";
-import Navbar from "../components/Navbar";
+import Navbar from "../components/EditorNavbar";
+import EditorNavbar from "../components/EditorNavbar";
 
 export default function EditorLayout({ children }) {
   return (
@@ -7,7 +8,7 @@ export default function EditorLayout({ children }) {
       <EditorSidebar />
 
       <div className="flex flex-col flex-1">
-        <Navbar />
+        <EditorNavbar />
 
         <main className="flex-1 overflow-y-auto p-8">
           {children}
