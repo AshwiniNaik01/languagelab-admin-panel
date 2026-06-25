@@ -4,7 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import InputField from "./InputField";
 import Button from "../ui/Button";
 import LogoFileUploader from "./LogoFileUploader";
-import { instituteSchema } from "../../schemas/institute.schema.js";
+import {
+  instituteSchema,
+  editInstituteSchema,
+} from "../../schemas/institute.schema.js";
 import { ChevronDown, Check, X } from "lucide-react";
 
 function CourseMultiSelect({ courses, selectedIds, onToggle, onClear, error }) {
@@ -12,7 +15,9 @@ function CourseMultiSelect({ courses, selectedIds, onToggle, onClear, error }) {
   const ref = useRef(null);
 
   useEffect(() => {
-    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const close = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, []);
@@ -21,7 +26,9 @@ function CourseMultiSelect({ courses, selectedIds, onToggle, onClear, error }) {
     <div ref={ref} className="relative">
       <label className="block mb-2 text-sm font-semibold text-[#3C1E0A]">
         Assign Courses <span className="text-orange-500 ml-1">*</span>
-        <span className="ml-2 text-xs font-normal text-slate-500">(select one or more)</span>
+        <span className="ml-2 text-xs font-normal text-slate-500">
+          (select one or more)
+        </span>
       </label>
 
       {/* Trigger */}
@@ -29,10 +36,20 @@ function CourseMultiSelect({ courses, selectedIds, onToggle, onClear, error }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border text-sm transition-all bg-white cursor-pointer ${
-          error ? "border-red-400" : open ? "border-orange-500 ring-2 ring-orange-100" : "border-slate-200 hover:border-orange-300"
+          error
+            ? "border-red-400"
+            : open
+              ? "border-orange-500 ring-2 ring-orange-100"
+              : "border-slate-200 hover:border-orange-300"
         }`}
       >
-        <span className={selectedIds.length === 0 ? "text-slate-400" : "text-slate-800 font-semibold"}>
+        <span
+          className={
+            selectedIds.length === 0
+              ? "text-slate-400"
+              : "text-slate-800 font-semibold"
+          }
+        >
           {selectedIds.length === 0
             ? "Select courses…"
             : `${selectedIds.length} course${selectedIds.length !== 1 ? "s" : ""} selected`}
@@ -40,25 +57,40 @@ function CourseMultiSelect({ courses, selectedIds, onToggle, onClear, error }) {
         <div className="flex items-center gap-2">
           {selectedIds.length > 0 && (
             <span
-              onClick={(e) => { e.stopPropagation(); onClear(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClear();
+              }}
               className="text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
             >
               <X size={14} />
             </span>
           )}
-          <ChevronDown size={16} className={`text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+          <ChevronDown
+            size={16}
+            className={`text-slate-400 transition-transform ${open ? "rotate-180" : ""}`}
+          />
         </div>
       </button>
 
       {/* Selected tags */}
       {selectedIds.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2">
-          {courses.filter((c) => selectedIds.includes(c._id)).map((c) => (
-            <span key={c._id} className="inline-flex items-center gap-1 px-2.5 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-lg">
-              {c.course_name}
-              <X size={10} className="cursor-pointer hover:text-red-500" onClick={() => onToggle(c._id)} />
-            </span>
-          ))}
+          {courses
+            .filter((c) => selectedIds.includes(c._id))
+            .map((c) => (
+              <span
+                key={c._id}
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-lg"
+              >
+                {c.course_name}
+                <X
+                  size={10}
+                  className="cursor-pointer hover:text-red-500"
+                  onClick={() => onToggle(c._id)}
+                />
+              </span>
+            ))}
         </div>
       )}
 
@@ -66,7 +98,9 @@ function CourseMultiSelect({ courses, selectedIds, onToggle, onClear, error }) {
       {open && (
         <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
           {courses.length === 0 ? (
-            <p className="px-4 py-3 text-sm text-slate-400 italic">No courses available.</p>
+            <p className="px-4 py-3 text-sm text-slate-400 italic">
+              No courses available.
+            </p>
           ) : (
             courses.map((c) => {
               const checked = selectedIds.includes(c._id);
@@ -78,14 +112,24 @@ function CourseMultiSelect({ courses, selectedIds, onToggle, onClear, error }) {
                     checked ? "bg-orange-50" : "hover:bg-slate-50"
                   }`}
                 >
-                  <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
-                    checked ? "bg-orange-500 border-orange-500" : "border-slate-300"
-                  }`}>
-                    {checked && <Check size={10} strokeWidth={3} className="text-white" />}
+                  <span
+                    className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                      checked
+                        ? "bg-orange-500 border-orange-500"
+                        : "border-slate-300"
+                    }`}
+                  >
+                    {checked && (
+                      <Check size={10} strokeWidth={3} className="text-white" />
+                    )}
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-slate-800 leading-tight">{c.course_name}</p>
-                    <p className="text-[10px] text-orange-600 font-mono font-bold">{c.course_code}</p>
+                    <p className="text-sm font-semibold text-slate-800 leading-tight">
+                      {c.course_name}
+                    </p>
+                    <p className="text-[10px] text-orange-600 font-mono font-bold">
+                      {c.course_code}
+                    </p>
                   </div>
                 </div>
               );
@@ -102,11 +146,17 @@ function CourseMultiSelect({ courses, selectedIds, onToggle, onClear, error }) {
 // Normalise course_id from the backend (can be a string, an array of strings, or an array of objects)
 const normaliseCourseIds = (raw) => {
   if (!raw) return [];
-  if (Array.isArray(raw)) return raw.map((c) => (typeof c === "object" ? c._id : c)).filter(Boolean);
+  if (Array.isArray(raw))
+    return raw.map((c) => (typeof c === "object" ? c._id : c)).filter(Boolean);
   return [raw];
 };
 
-export default function InstituteForm({ initialData = {}, courses = [], onSubmit, onCancel }) {
+export default function InstituteForm({
+  initialData = {},
+  courses = [],
+  onSubmit,
+  onCancel,
+}) {
   const [logoBase64, setLogoBase64] = useState(initialData.logo || "");
   const [errors, setErrors] = useState({});
 
@@ -130,15 +180,21 @@ export default function InstituteForm({ initialData = {}, courses = [], onSubmit
     data.course_id = selectedCourseIds; // pass array
 
     // Validate — course_id treated as array for validation
+    const schema = initialData._id ? editInstituteSchema : instituteSchema;
     try {
-      await instituteSchema.validate(
-        { ...data, course_id: selectedCourseIds.length > 0 ? selectedCourseIds[0] : "" },
+      await schema.validate(
+        {
+          ...data,
+          course_id: selectedCourseIds.length > 0 ? selectedCourseIds[0] : "",
+        },
         { abortEarly: false },
       );
       setErrors({});
     } catch (error) {
       const validationErrors = {};
-      error.inner?.forEach((err) => { validationErrors[err.path] = err.message; });
+      error.inner?.forEach((err) => {
+        validationErrors[err.path] = err.message;
+      });
       setErrors(validationErrors);
       return;
     }
@@ -152,7 +208,9 @@ export default function InstituteForm({ initialData = {}, courses = [], onSubmit
       className="space-y-6 w-full bg-white p-8 rounded-3xl border border-orange-500/20 shadow-xl"
     >
       <h3 className="text-xl font-black text-[#3C1E0A] border-b border-orange-500/10 pb-4">
-        {initialData._id ? "Edit Institute Information" : "Create New Institute Partner"}
+        {initialData._id
+          ? "Edit Institute Information"
+          : "Create New Institute Partner"}
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -197,9 +255,16 @@ export default function InstituteForm({ initialData = {}, courses = [], onSubmit
           label="Password"
           name="password"
           type="password"
-          placeholder={initialData._id ? "Leave blank to keep current" : "Enter account password"}
+          placeholder={
+            initialData._id
+              ? "Leave blank to keep current"
+              : "Enter account password"
+          }
           error={errors.password}
           icon="Lock"
+          showToggle
+          autoComplete="new-password"
+          disabled={!!initialData._id}
         />
       </div>
 
@@ -257,7 +322,10 @@ export default function InstituteForm({ initialData = {}, courses = [], onSubmit
           defaultChecked={initialData.is_active !== false}
           className="accent-orange-500 w-4 h-4 rounded cursor-pointer"
         />
-        <label htmlFor="is_active" className="text-sm font-bold text-[#3C1E0A] select-none cursor-pointer">
+        <label
+          htmlFor="is_active"
+          className="text-sm font-bold text-[#3C1E0A] select-none cursor-pointer"
+        >
           Activate this institute immediately
         </label>
       </div>

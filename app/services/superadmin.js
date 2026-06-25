@@ -1,9 +1,22 @@
 import api from "./api";
+import { base64ToBlob } from "@/app/utils/imageUtils";
 
 // ── Profile ──────────────────────────────────────────────────────────────────
 export const getProfile = () => api.get("/api/super-admin/profile");
 
-export const updateProfile = (data) => api.put("/api/super-admin/profile", data);
+export const updateProfile = (data) => {
+  const fd = new FormData();
+  if (data.full_name) fd.append("full_name", data.full_name);
+  if (data.phone) fd.append("phone", data.phone);
+  if (data.profileImage && data.profileImage.startsWith("data:")) {
+    fd.append("profileImage", base64ToBlob(data.profileImage), "profile.webp");
+  } else if (data.profileImage) {
+    fd.append("existing_profileImage", data.profileImage);
+  }
+  return api.put("/api/super-admin/profile", fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
 
 export const changePassword = (data) =>
   api.put("/api/super-admin/change-password", data);

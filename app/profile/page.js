@@ -4,19 +4,14 @@ import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import AdminLayout from '../layouts/AdminLayout';
 import Button from '../components/ui/Button';
+import LogoFileUploader from '../components/form/LogoFileUploader';
 import { getProfile, updateProfile, changePassword } from '../services/superadmin';
-import { User, Phone, Mail, ShieldCheck, Clock, Lock } from 'lucide-react';
+import { User, Phone, Mail, ShieldCheck, Clock, Lock, Eye, EyeOff } from 'lucide-react';
 
-function ProfileField({ label, value }) {
-    return (
-        <div>
-            <p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">{label}</p>
-            <p className="font-bold text-[#3C1E0A] mt-0.5 text-sm">{value || '—'}</p>
-        </div>
-    );
-}
+function FormInput({ label, icon: Icon, required, type = 'text', showToggle = false, ...props }) {
+    const [show, setShow] = useState(false);
+    const inputType = showToggle && type === 'password' ? (show ? 'text' : 'password') : type;
 
-function FormInput({ label, icon: Icon, required, ...props }) {
     return (
         <div>
             <label className="block mb-2 text-sm font-medium text-gray-700">
@@ -30,8 +25,19 @@ function FormInput({ label, icon: Icon, required, ...props }) {
                 )}
                 <input
                     {...props}
-                    className={`w-full ${Icon ? 'pl-10' : 'px-4'} pr-4 py-3 rounded-xl border border-orange-300 bg-white text-gray-700 placeholder:text-gray-400 outline-none transition-all text-sm hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200`}
+                    type={inputType}
+                    autoComplete="new-password"
+                    className={`w-full ${Icon ? 'pl-10' : 'px-4'} ${showToggle ? 'pr-10' : 'pr-4'} py-3 rounded-xl border border-orange-300 bg-white text-gray-700 placeholder:text-gray-400 outline-none transition-all text-sm hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200`}
                 />
+                {showToggle && type === 'password' && (
+                    <button
+                        type="button"
+                        onClick={() => setShow((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition"
+                    >
+                        {show ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -41,6 +47,7 @@ export default function ProfilePage() {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [profileImage, setProfileImage] = useState('');
     const [form, setForm] = useState({ full_name: '', phone: '' });
     const [pwForm, setPwForm] = useState({ current_password: '', new_password: '', confirm_password: '' });
 
@@ -51,6 +58,7 @@ export default function ProfilePage() {
             const data = res.data?.data || res.data;
             setProfile(data);
             setForm({ full_name: data.full_name || '', phone: data.phone || '' });
+            setProfileImage(data.profileImage || '');
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'Failed to load profile', text: err?.response?.data?.message || err.message });
         } finally {
@@ -65,8 +73,8 @@ export default function ProfilePage() {
         if (!form.full_name.trim()) { Swal.fire({ icon: 'warning', title: 'Full name is required' }); return; }
         setSaving(true);
         try {
-            await updateProfile({ full_name: form.full_name, phone: form.phone });
-            setProfile((prev) => ({ ...prev, ...form }));
+            await updateProfile({ full_name: form.full_name, phone: form.phone, profileImage });
+            setProfile((prev) => ({ ...prev, ...form, profileImage }));
             Swal.fire({ icon: 'success', title: 'Profile Updated', timer: 1500, showConfirmButton: false });
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'Update Failed', text: err?.response?.data?.message || err.message });
@@ -117,10 +125,20 @@ export default function ProfilePage() {
                         <div className="bg-white rounded-3xl border border-orange-500/20 shadow-sm overflow-hidden">
                             <div className="h-24 bg-gradient-to-r from-orange-500 to-amber-500" />
                             <div className="px-6 pb-6 -mt-10">
-                                <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shadow-lg border-4 border-white mb-4">
-                                    <span className="text-white font-black text-2xl">
-                                        {(profile?.full_name || 'SA').substring(0, 2).toUpperCase()}
-                                    </span>
+                                <div className="w-20 h-20 rounded-2xl shadow-lg border-4 border-white mb-4 overflow-hidden">
+                                    {profile?.profileImage ? (
+                                        <img
+                                            src={profile.profileImage}
+                                            alt="Profile"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center">
+                                            <span className="text-white font-black text-2xl">
+                                                {(profile?.full_name || 'SA').substring(0, 2).toUpperCase()}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="space-y-4 mt-2">
                                     <div className="flex items-center gap-2.5">
@@ -194,6 +212,13 @@ export default function ProfilePage() {
                                         onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
                                     />
                                 </div>
+                                <LogoFileUploader
+                                    label="Profile Image"
+                                    uploadedText="Profile image uploaded"
+                                    previewAlt="Profile image preview"
+                                    onFileUploaded={setProfileImage}
+                                    initialLogoUrl={profile?.profileImage}
+                                />
                                 <div className="flex justify-end pt-2 border-t border-orange-500/10">
                                     <Button type="submit" disabled={saving}>
                                         {saving ? 'Saving…' : 'Save Changes'}
@@ -213,6 +238,7 @@ export default function ProfilePage() {
                                     icon={Lock}
                                     required
                                     type="password"
+                                    showToggle
                                     placeholder="••••••••"
                                     value={pwForm.current_password}
                                     onChange={(e) => setPwForm((p) => ({ ...p, current_password: e.target.value }))}
@@ -223,6 +249,7 @@ export default function ProfilePage() {
                                         icon={Lock}
                                         required
                                         type="password"
+                                        showToggle
                                         placeholder="••••••••"
                                         value={pwForm.new_password}
                                         onChange={(e) => setPwForm((p) => ({ ...p, new_password: e.target.value }))}
@@ -232,6 +259,7 @@ export default function ProfilePage() {
                                         icon={Lock}
                                         required
                                         type="password"
+                                        showToggle
                                         placeholder="••••••••"
                                         value={pwForm.confirm_password}
                                         onChange={(e) => setPwForm((p) => ({ ...p, confirm_password: e.target.value }))}

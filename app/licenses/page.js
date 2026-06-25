@@ -282,6 +282,10 @@ export default function LicensesPage() {
         {/* ── LICENSE DETAIL MODAL ─────────────────────────────────────── */}
         {viewingLicense && (() => {
             const lic = viewingLicense;
+            // Derive plain password from user_id: {CODE}-U{INDEX} → {CODE}{INDEX}
+            const derivedPassword = lic.user_id?.match(/^(.+)-U(\d+)$/)
+                ? `${lic.user_id.match(/^(.+)-U(\d+)$/)[1]}${lic.user_id.match(/^(.+)-U(\d+)$/)[2]}`
+                : '—';
             const days = lic.days_remaining ?? daysLeft(lic.expiry_date);
             const sessionPct = Math.min(100, ((lic.active_sessions ?? 0) / (lic.total_seats || 1)) * 100);
             const durationPct = Math.min(100, Math.max(0, ((lic.duration - days) / (lic.duration || 365)) * 100));
@@ -313,6 +317,18 @@ export default function LicensesPage() {
                         </div>
 
                         <div className="px-6 py-5 space-y-4">
+                            {/* Credentials */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+                                    <p className="text-[9px] font-black text-orange-400 uppercase tracking-wider mb-1">User ID</p>
+                                    <p className="font-mono font-black text-orange-700 text-sm break-all">{lic.user_id || '—'}</p>
+                                </div>
+                                <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+                                    <p className="text-[9px] font-black text-orange-400 uppercase tracking-wider mb-1">Seat Password</p>
+                                    <p className="font-mono font-black text-orange-700 text-sm break-all">{derivedPassword}</p>
+                                </div>
+                            </div>
+
                             {/* License Key */}
                             <div>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">License Key</p>

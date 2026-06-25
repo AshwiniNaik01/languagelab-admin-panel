@@ -1,4 +1,6 @@
+import { useState } from "react";
 import * as Icons from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function InputField({
   label,
@@ -12,9 +14,12 @@ export default function InputField({
   required = false,
   disabled = false,
   icon,
+  showToggle = false,
   ...rest
 }) {
+  const [showPassword, setShowPassword] = useState(false);
   const IconComponent = icon ? Icons[icon] : null;
+  const inputType = showToggle && type === "password" ? (showPassword ? "text" : "password") : type;
 
   return (
     <div className="w-full">
@@ -38,7 +43,7 @@ export default function InputField({
         <input
           id={name}
           name={name}
-          type={type}
+          type={inputType}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
@@ -49,7 +54,7 @@ export default function InputField({
           className={`
             w-full
             ${IconComponent ? "pl-10" : "px-4"}
-            pr-4
+            ${showToggle ? "pr-10" : "pr-4"}
             py-3
             rounded-xl
             border
@@ -67,6 +72,16 @@ export default function InputField({
             ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}
           `}
         />
+
+        {showToggle && type === "password" && (
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition"
+          >
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        )}
       </div>
 
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
