@@ -28,3 +28,7 @@ export const instituteSchema = Yup.object({
         .max(5000, 'Max students cannot exceed 5000')
         .required('Max students is required'),
 });
+
+export const editInstituteSchema = instituteSchema.shape({
+    password: Yup.string().optional(),
+});

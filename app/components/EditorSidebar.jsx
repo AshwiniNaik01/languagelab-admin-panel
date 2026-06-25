@@ -1,39 +1,73 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useSidebar } from "./SidebarContext";
 import {
   House, BookOpen, PlusCircle, ListCollapse,
-  FolderOpen, ListTree, LogOut, ChevronDown, ChevronUp, User, Layers
+  FolderOpen, ListTree, LogOut, ChevronDown, ChevronUp,
+  User, Layers, FileText, Video, Music, Dumbbell, BookMarked,
 } from "lucide-react";
 
-export default function EditorSidebar() {
-  const pathname = usePathname();
-  const { isCollapsed } = useSidebar();
-  const [openSection, setOpenSection] = useState("courses");
+const MODULE_TYPES = [
+  { key: "text",       label: "Text",       icon: FileText   },
+  { key: "video",      label: "Video",      icon: Video      },
+  { key: "audio",      label: "Audio",      icon: Music      },
+  { key: "exercise",   label: "Exercise",   icon: Dumbbell   },
+  { key: "vocabulary", label: "Vocabulary", icon: BookMarked },
+];
 
-  useEffect(() => {
-    if (isCollapsed) return;
-    if (pathname.startsWith("/editor/courses")) setOpenSection("courses");
-    else if (pathname.startsWith("/editor/curriculum")) setOpenSection("curriculum");
-    else if (pathname.startsWith("/editor/profile")) setOpenSection("");
+export default function EditorSidebar() {
+  const pathname     = usePathname();
+  const searchParams = useSearchParams();
+  const { isCollapsed } = useSidebar();
+
+  // URL-derived section (no setState in effects — derived directly)
+  const urlSection = useMemo(() => {
+    if (isCollapsed) return "";
+    if (pathname.startsWith("/editor/courses"))    return "courses";
+    if (pathname.startsWith("/editor/curriculum")) return "curriculum";
+    if (pathname.startsWith("/editor/modules"))    return "modules";
+    return "";
   }, [pathname, isCollapsed]);
+
+  // Manual toggle — null means "follow URL"
+  const [manualSection, setManualSection] = useState(null);
+  const openSection = manualSection ?? urlSection;
 
   const toggleSection = (section) => {
     if (isCollapsed) return;
-    setOpenSection(openSection === section ? "" : section);
+    setManualSection(prev => {
+      const current = prev ?? urlSection;
+      return current === section ? "" : section;
+    });
   };
 
-  const isActive = (href) => pathname === href || (href !== "/editor" && pathname.startsWith(href));
+  const isActive = (href) => {
+    const [hPath, hQuery] = href.split("?");
+    if (hQuery) {
+      const params = new URLSearchParams(hQuery);
+      const tab = params.get("tab");
+      const add = params.get("add");
+      if (tab) return pathname === hPath && searchParams.get("tab") === tab;
+      if (add) return pathname === hPath && searchParams.get("add") === add;
+    }
+    if (href === "/editor") return pathname === href;
+    if (pathname.startsWith("/editor/curriculum") || pathname.startsWith("/editor/modules")) {
+      return pathname === hPath;
+    }
+    return pathname === href || pathname.startsWith(href);
+  };
 
   const linkCls = (href) =>
-    `flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-      isActive(href) ? "bg-orange-500 text-[#3C1E0A] font-black" : "text-orange-200/80 hover:bg-white/5 hover:text-white"
+    `flex items-center gap-3 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+      isActive(href)
+        ? "bg-orange-500 text-[#3C1E0A] font-black"
+        : "text-orange-200/80 hover:bg-white/5 hover:text-white"
     }`;
 
-  const sectionBtn = `w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-300 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-950/60 transition-all duration-200`;
+  const sectionBtn = `w-full flex items-center justify-between px-4 py-3 text-xs font-black text-orange-300 uppercase tracking-widest bg-orange-950/40 hover:bg-orange-950/60 transition-all duration-200 cursor-pointer`;
 
   return (
     <aside className={`bg-[#2A1204] border-r border-orange-500/30 flex flex-col h-screen shrink-0 text-[#FFF8F4] shadow-2xl transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"}`}>
@@ -80,17 +114,13 @@ export default function EditorSidebar() {
           </button>
           {!isCollapsed && openSection === "courses" && (
             <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
-              <Link href="/editor/courses" className={linkCls("/editor/courses")}>
-                <ListCollapse size={14} /> Manage Courses
-              </Link>
-              <Link href="/editor/courses/new" className={linkCls("/editor/courses/new")}>
-                <PlusCircle size={14} /> Add Course
-              </Link>
+              <Link href="/editor/courses"     className={linkCls("/editor/courses")}><ListCollapse size={14} /> Manage Courses</Link>
+              <Link href="/editor/courses/new" className={linkCls("/editor/courses/new")}><PlusCircle size={14} /> Add Course</Link>
             </div>
           )}
         </div>
 
-        {/* Topics & SubTopics */}
+        {/* Topics */}
         <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
           <button onClick={() => toggleSection("curriculum")} className={sectionBtn}>
             <div className="flex items-center gap-2">
@@ -101,25 +131,31 @@ export default function EditorSidebar() {
           </button>
           {!isCollapsed && openSection === "curriculum" && (
             <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
-              <Link href="/editor/curriculum" className={linkCls("/editor/curriculum")}>
-                <ListTree size={14} /> Topics & SubTopics
-              </Link>
+              <Link href="/editor/curriculum?tab=topics"    className={linkCls("/editor/curriculum?tab=topics")}><BookOpen size={14} /> Topics</Link>
+              <Link href="/editor/curriculum?tab=subtopics" className={linkCls("/editor/curriculum?tab=subtopics")}><ListTree size={14} /> SubTopics</Link>
             </div>
           )}
         </div>
 
         {/* Modules */}
-        <Link
-          href="/editor/modules"
-          className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all ${isCollapsed ? "justify-center" : ""} ${
-            pathname.startsWith("/editor/modules")
-              ? "bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-400 text-[#3C1E0A] shadow-lg"
-              : "text-orange-200/80 hover:text-white hover:bg-white/5"
-          }`}
-        >
-          <Layers size={16} />
-          {!isCollapsed && <span>Modules</span>}
-        </Link>
+        <div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
+          <button onClick={() => toggleSection("modules")} className={sectionBtn}>
+            <div className="flex items-center gap-2">
+              <Layers size={15} />
+              {!isCollapsed && <span>Modules</span>}
+            </div>
+            {!isCollapsed && (openSection === "modules" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+          </button>
+          {!isCollapsed && openSection === "modules" && (
+            <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
+              {MODULE_TYPES.map(({ key, label, icon: Icon }) => (
+                <Link key={key} href={`/editor/modules/${key}`} className={linkCls(`/editor/modules/${key}`)}>
+                  <Icon size={13} /> {label} Modules
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Profile */}
         <Link

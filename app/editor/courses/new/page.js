@@ -27,14 +27,8 @@ export default function EditorAddCoursePage() {
 
   return (
     <EditorLayout>
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-2xl font-black text-slate-950">Add New Course</h2>
-          <p className="text-xs font-semibold text-slate-500 mt-1">Create a new course template via editor API.</p>
-        </div>
-        <div className="bg-[#FFF8F4] p-0.5 rounded-3xl w-full">
-          <CourseForm onSuccess={handleSubmit} onCancel={() => router.push("/editor/courses")} />
-        </div>
+      <div className="bg-[#FFF8F4] p-0.5 rounded-3xl w-full">
+        <CourseForm onSuccess={handleSubmit} onCancel={() => router.push("/editor/courses")} />
       </div>
     </EditorLayout>
   );

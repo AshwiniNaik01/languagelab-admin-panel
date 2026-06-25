@@ -146,6 +146,9 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess, onSu
           placeholder={initialData._id ? "Leave blank to keep current" : "Enter account password"}
           error={errors.password}
           icon="Lock"
+          showToggle
+          autoComplete="new-password"
+          disabled={!!initialData._id}
         />
         <InputField
           label="Phone Number"

@@ -1,113 +1,151 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import EditorLayout from "../../layouts/EditorLayout";
+import ScrollableTable from "../../components/Table";
+import { ActionButton } from "../../components/ui/ActionIconButton";
+import Button from "../../components/ui/Button";
 import {
   getTopics, createTopic, updateTopic, deleteTopic,
   getSubTopics, createSubTopic, updateSubTopic, deleteSubTopic,
 } from "../../services/editorPanel";
-import { Search, Plus, Pencil, Trash2, X, BookOpen, ListTree } from "lucide-react";
+import { BookOpen, ListTree, Plus, X, Search } from "lucide-react";
 
 const F = "w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-gray-800 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 placeholder:text-slate-400";
 
-/* ── small modal ─────────────────────────────────────────── */
-function Drawer({ title, onClose, children }) {
+/* ── Modal form ──────────────────────────────────────────────────────────── */
+function FormModal({ title, form, setForm, onSave, onClose, saving, fields = "topic" }) {
   return (
-    <div className="fixed inset-0 bg-black/30 z-50 flex justify-end">
-      <div className="w-full max-w-sm bg-white h-full shadow-2xl flex flex-col">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
           <h3 className="font-black text-slate-900 text-base">{title}</h3>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 cursor-pointer transition"><X size={18} /></button>
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 cursor-pointer transition">
+            <X size={18} />
+          </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
+        <div className="px-6 py-5 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Title *</label>
+            <input className={F} placeholder="e.g. Business Communication" value={form.title}
+              onChange={e => setForm(p => ({ ...p, title: e.target.value }))} />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Description</label>
+            <textarea className={`${F} resize-none`} rows={3} placeholder="Brief overview…" value={form.description}
+              onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Order</label>
+            <input type="number" className={F} placeholder="1" value={form.order}
+              onChange={e => setForm(p => ({ ...p, order: e.target.value }))} />
+          </div>
+        </div>
+        <div className="flex justify-end gap-3 px-6 pb-6 border-t border-slate-100 pt-4">
+          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button onClick={onSave} disabled={saving}>
+            {saving ? "Saving…" : title.startsWith("Edit") ? "Update" : "Create"}
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ── form fields ─────────────────────────────────────────── */
-function TopicFields({ form, setForm }) {
+/* ── View Modal ──────────────────────────────────────────────────────────── */
+function ViewModal({ item, onClose, label = "Topic" }) {
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-xs font-semibold text-slate-600 mb-1.5">Title *</label>
-        <input className={F} placeholder="e.g. Business Communication" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} />
-      </div>
-      <div>
-        <label className="block text-xs font-semibold text-slate-600 mb-1.5">Description</label>
-        <textarea className={`${F} resize-none`} rows={3} placeholder="Brief overview…" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
-      </div>
-      <div>
-        <label className="block text-xs font-semibold text-slate-600 mb-1.5">Order</label>
-        <input type="number" className={F} placeholder="1" value={form.order} onChange={e => setForm(p => ({ ...p, order: e.target.value }))} />
-      </div>
-    </div>
-  );
-}
-
-function SubFields({ form, setForm }) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-xs font-semibold text-slate-600 mb-1.5">Title *</label>
-        <input className={F} placeholder="e.g. Writing Formal Emails" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} />
-      </div>
-      <div>
-        <label className="block text-xs font-semibold text-slate-600 mb-1.5">Description</label>
-        <textarea className={`${F} resize-none`} rows={3} placeholder="What this subtopic covers…" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
-      </div>
-      <div>
-        <label className="block text-xs font-semibold text-slate-600 mb-1.5">Order</label>
-        <input type="number" className={F} placeholder="1" value={form.order} onChange={e => setForm(p => ({ ...p, order: e.target.value }))} />
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-5 bg-linear-to-r from-orange-500 to-amber-500">
+          <h3 className="font-black text-white text-base">{label} Details</h3>
+          <button onClick={onClose} className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer">✕</button>
+        </div>
+        <div className="px-6 py-5 space-y-4">
+          <div className="bg-slate-50 rounded-xl px-4 py-3">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Order</p>
+            <p className="font-bold text-slate-800">#{item.order ?? "—"}</p>
+          </div>
+          <div className="bg-slate-50 rounded-xl px-4 py-3">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Title</p>
+            <p className="font-bold text-slate-800">{item.title}</p>
+          </div>
+          <div className="bg-slate-50 rounded-xl px-4 py-3">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Description</p>
+            <p className="font-semibold text-slate-700 text-sm">{item.description || "—"}</p>
+          </div>
+        </div>
+        <div className="px-6 pb-6">
+          <Button variant="secondary" onClick={onClose} className="w-full">Close</Button>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ── main ────────────────────────────────────────────────── */
+/* ── Main ────────────────────────────────────────────────────────────────── */
 export default function CurriculumPage() {
-  const [tab, setTab]     = useState("topics"); // "topics" | "subtopics"
-  const [topics, setTopics]   = useState([]);
-  const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [tab, setTab] = useState(searchParams.get("tab") || "topics");
 
-  // subtopics tab state
-  const [subTopicId, setSubTopicId] = useState("");
-  const [subtopics, setSubtopics]   = useState([]);
-  const [subLoading, setSubLoading] = useState(false);
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t === "topics" || t === "subtopics") setTab(t);
+  }, [searchParams]);
 
-  // search
+  // Topics
+  const [topics, setTopics] = useState([]);
+  const [topicLoading, setTopicLoading] = useState(true);
   const [topicSearch, setTopicSearch] = useState("");
-  const [subSearch,   setSubSearch]   = useState("");
 
-  // drawers
-  const [drawer, setDrawer]       = useState(null); // "addTopic"|"editTopic"|"addSub"|"editSub"
-  const [editTarget, setEditTarget] = useState(null);
-  const [topicForm, setTopicForm]   = useState({ title: "", description: "", order: "" });
-  const [subForm,   setSubForm]     = useState({ title: "", description: "", order: "" });
-  const [saving, setSaving]         = useState(false);
+  // SubTopics
+  const [selectedTopicId, setSelectedTopicId] = useState("");
+  const [subtopics, setSubtopics] = useState([]);
+  const [subLoading, setSubLoading] = useState(false);
+  const [subSearch, setSubSearch] = useState("");
 
-  /* load */
+  // Modals
+  const [modal, setModal] = useState(null); // "addTopic"|"editTopic"|"viewTopic"|"addSub"|"editSub"|"viewSub"
+  const [target, setTarget] = useState(null);
+  const [topicForm, setTopicForm] = useState({ title: "", description: "", order: "" });
+  const [subForm, setSubForm] = useState({ title: "", description: "", order: "" });
+  const [saving, setSaving] = useState(false);
+
+  /* load topics */
   useEffect(() => {
     (async () => {
-      setLoading(true);
-      try { const r = await getTopics(); const l = r.data?.data || r.data || []; setTopics(Array.isArray(l) ? l : []); }
-      catch { /* non-blocking */ } finally { setLoading(false); }
+      setTopicLoading(true);
+      try {
+        const r = await getTopics();
+        const l = r.data?.data || r.data || [];
+        setTopics(Array.isArray(l) ? l : []);
+      } catch { /* non-blocking */ }
+      finally { setTopicLoading(false); }
     })();
   }, []);
 
+  /* load subtopics */
   const loadSubs = async (id) => {
-    setSubTopicId(id); setSubtopics([]);
+    setSelectedTopicId(id);
+    setSubtopics([]);
+    setSubSearch("");
     if (!id) return;
     setSubLoading(true);
-    try { const r = await getSubTopics(id); const l = r.data?.data || r.data || []; setSubtopics(Array.isArray(l) ? l : []); }
-    catch { /* non-blocking */ } finally { setSubLoading(false); }
+    try {
+      const r = await getSubTopics(id);
+      const l = r.data?.data || r.data || [];
+      setSubtopics(Array.isArray(l) ? l : []);
+    } catch { /* non-blocking */ }
+    finally { setSubLoading(false); }
   };
 
   /* filtered */
   const filteredTopics = useMemo(() => {
     const q = topicSearch.toLowerCase();
-    return q ? topics.filter(t => t.title.toLowerCase().includes(q) || (t.description||"").toLowerCase().includes(q)) : topics;
+    return q ? topics.filter(t => t.title.toLowerCase().includes(q) || (t.description || "").toLowerCase().includes(q)) : topics;
   }, [topics, topicSearch]);
 
   const filteredSubs = useMemo(() => {
@@ -115,187 +153,247 @@ export default function CurriculumPage() {
     return q ? subtopics.filter(s => s.title.toLowerCase().includes(q)) : subtopics;
   }, [subtopics, subSearch]);
 
-  /* drawer helpers */
-  const openDrawer = (d, target = null) => { setDrawer(d); setEditTarget(target); if (target) { if (d === "editTopic") setTopicForm({ title: target.title, description: target.description || "", order: target.order ?? "" }); if (d === "editSub") setSubForm({ title: target.title, description: target.description || "", order: target.order ?? "" }); } else { setTopicForm({ title: "", description: "", order: "" }); setSubForm({ title: "", description: "", order: "" }); } };
-  const closeDrawer = () => { setDrawer(null); setEditTarget(null); };
+  /* open/close modal helpers */
+  const openModal = (type, item = null) => {
+    setModal(type);
+    setTarget(item);
+    if (item) {
+      if (type === "editTopic") setTopicForm({ title: item.title, description: item.description || "", order: item.order ?? "" });
+      if (type === "editSub")   setSubForm({ title: item.title, description: item.description || "", order: item.order ?? "" });
+    } else {
+      setTopicForm({ title: "", description: "", order: "" });
+      setSubForm({ title: "", description: "", order: "" });
+    }
+  };
+  const closeModal = () => { setModal(null); setTarget(null); };
 
-  /* CRUD */
+  /* CRUD — topics */
   const saveTopic = async () => {
     if (!topicForm.title.trim()) { Swal.fire({ icon: "warning", title: "Title required" }); return; }
     setSaving(true);
     try {
       const p = { title: topicForm.title, description: topicForm.description, order: +topicForm.order || 1 };
-      if (editTarget) { await updateTopic(editTarget._id, p); setTopics(prev => prev.map(t => t._id === editTarget._id ? { ...t, ...p } : t)); }
-      else { const r = await createTopic(p); setTopics(prev => [...prev, r.data?.data || r.data]); }
-      closeDrawer();
-      Swal.fire({ icon: "success", title: editTarget ? "Updated" : "Topic Created", timer: 1200, showConfirmButton: false });
+      if (target) {
+        await updateTopic(target._id, p);
+        setTopics(prev => prev.map(t => t._id === target._id ? { ...t, ...p } : t));
+      } else {
+        const r = await createTopic(p);
+        setTopics(prev => [...prev, r.data?.data || r.data]);
+      }
+      closeModal();
+      Swal.fire({ icon: "success", title: target ? "Topic Updated" : "Topic Created", timer: 1200, showConfirmButton: false });
     } catch (e) { Swal.fire({ icon: "error", title: "Failed", text: e?.response?.data?.message || e.message }); }
     finally { setSaving(false); }
   };
 
-  const deleteTopic_ = async (t) => {
+  const handleDeleteTopic = async (t) => {
     const r = await Swal.fire({ title: `Delete "${t.title}"?`, icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "Delete" });
     if (!r.isConfirmed) return;
-    try { await deleteTopic(t._id); setTopics(prev => prev.filter(x => x._id !== t._id)); if (subTopicId === t._id) { setSubTopicId(""); setSubtopics([]); } }
-    catch (e) { Swal.fire({ icon: "error", title: "Failed", text: e?.response?.data?.message || e.message }); }
+    try {
+      await deleteTopic(t._id);
+      setTopics(prev => prev.filter(x => x._id !== t._id));
+      if (selectedTopicId === t._id) { setSelectedTopicId(""); setSubtopics([]); }
+    } catch (e) { Swal.fire({ icon: "error", title: "Failed", text: e?.response?.data?.message || e.message }); }
   };
 
+  /* CRUD — subtopics */
   const saveSub = async () => {
     if (!subForm.title.trim()) { Swal.fire({ icon: "warning", title: "Title required" }); return; }
     setSaving(true);
     try {
-      const p = { topic_id: subTopicId, title: subForm.title, description: subForm.description, order: +subForm.order || 1 };
-      if (editTarget) { await updateSubTopic(editTarget._id, p); setSubtopics(prev => prev.map(s => s._id === editTarget._id ? { ...s, ...p } : s)); }
-      else { const r = await createSubTopic(p); setSubtopics(prev => [...prev, r.data?.data || r.data]); }
-      closeDrawer();
-      Swal.fire({ icon: "success", title: editTarget ? "Updated" : "SubTopic Added", timer: 1200, showConfirmButton: false });
+      const p = { topic_id: selectedTopicId, title: subForm.title, description: subForm.description, order: +subForm.order || 1 };
+      if (target) {
+        await updateSubTopic(target._id, p);
+        setSubtopics(prev => prev.map(s => s._id === target._id ? { ...s, ...p } : s));
+      } else {
+        const r = await createSubTopic(p);
+        setSubtopics(prev => [...prev, r.data?.data || r.data]);
+      }
+      closeModal();
+      Swal.fire({ icon: "success", title: target ? "SubTopic Updated" : "SubTopic Created", timer: 1200, showConfirmButton: false });
     } catch (e) { Swal.fire({ icon: "error", title: "Failed", text: e?.response?.data?.message || e.message }); }
     finally { setSaving(false); }
   };
 
-  const deleteSub = async (s) => {
+  const handleDeleteSub = async (s) => {
     const r = await Swal.fire({ title: `Delete "${s.title}"?`, icon: "warning", showCancelButton: true, confirmButtonColor: "#d33", confirmButtonText: "Delete" });
     if (!r.isConfirmed) return;
-    try { await deleteSubTopic(s._id); setSubtopics(prev => prev.filter(x => x._id !== s._id)); }
-    catch (e) { Swal.fire({ icon: "error", title: "Failed", text: e?.response?.data?.message || e.message }); }
+    try {
+      await deleteSubTopic(s._id);
+      setSubtopics(prev => prev.filter(x => x._id !== s._id));
+    } catch (e) { Swal.fire({ icon: "error", title: "Failed", text: e?.response?.data?.message || e.message }); }
   };
 
-  /* ── render ─────────────────────────────────────────────── */
+  /* table columns */
+  const topicColumns = [
+    {
+      header: "Order",
+      accessor: (row) => (
+        <span className="w-8 h-8 rounded-xl bg-orange-100 text-orange-700 font-black text-sm flex items-center justify-center">
+          {row.order ?? "—"}
+        </span>
+      ),
+    },
+    {
+      header: "Title",
+      accessor: (row) => (
+        <div>
+          <p className="font-bold text-slate-900 text-sm">{row.title}</p>
+          {row.description && <p className="text-xs text-slate-400 truncate max-w-xs">{row.description}</p>}
+        </div>
+      ),
+    },
+    {
+      header: "SubTopics",
+      accessor: (row) => (
+        <button
+          onClick={() => { router.push("/editor/curriculum?tab=subtopics"); loadSubs(row._id); }}
+          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-xs font-bold hover:bg-teal-500 hover:text-white hover:border-teal-500 transition-all cursor-pointer"
+        >
+          <ListTree size={12} /> View Subtopics
+        </button>
+      ),
+    },
+    {
+      header: "Actions",
+      accessor: (row) => (
+        <ActionButton
+          onView={() => openModal("viewTopic", row)}
+          onEdit={() => openModal("editTopic", row)}
+          onDelete={() => handleDeleteTopic(row)}
+        />
+      ),
+    },
+  ];
+
+  const subColumns = [
+    {
+      header: "Order",
+      accessor: (row) => (
+        <span className="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 font-black text-sm flex items-center justify-center">
+          {row.order ?? "—"}
+        </span>
+      ),
+    },
+    {
+      header: "Title",
+      accessor: (row) => (
+        <div>
+          <p className="font-bold text-slate-900 text-sm">{row.title}</p>
+          {row.description && <p className="text-xs text-slate-400 truncate max-w-xs">{row.description}</p>}
+        </div>
+      ),
+    },
+    {
+      header: "Actions",
+      accessor: (row) => (
+        <ActionButton
+          onView={() => openModal("viewSub", row)}
+          onEdit={() => openModal("editSub", row)}
+          onDelete={() => handleDeleteSub(row)}
+        />
+      ),
+    },
+  ];
+
   return (
     <EditorLayout>
       <div className="space-y-5">
 
         {/* Header */}
         <div>
-          <h2 className="text-2xl font-black text-slate-900">Curriculum</h2>
-          <p className="text-sm text-slate-500 mt-1">Manage topics and subtopics for your courses.</p>
+          <h2 className="text-2xl font-black text-slate-900">
+            {tab === "topics" ? "Topics" : "SubTopics"}
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">
+            {tab === "topics" ? "Manage topics for your courses." : "Manage subtopics under a selected topic."}
+          </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit">
-          <button
-            onClick={() => setTab("topics")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${tab === "topics" ? "bg-white shadow text-orange-600" : "text-slate-500 hover:text-slate-700"}`}
-          >
-            <BookOpen size={16} /> Topics
-            <span className="text-xs font-black text-slate-400">({topics.length})</span>
-          </button>
-          <button
-            onClick={() => setTab("subtopics")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${tab === "subtopics" ? "bg-white shadow text-teal-600" : "text-slate-500 hover:text-slate-700"}`}
-          >
-            <ListTree size={16} /> SubTopics
-          </button>
-        </div>
-
-        {/* ── TOPICS TAB ─────────────────────────────────── */}
+        {/* ── TOPICS TAB ─────────────────────────────────────────────── */}
         {tab === "topics" && (
           <div className="space-y-4">
-            <div className="flex gap-3">
-              <div className="relative flex-1">
+            <div className="flex items-center justify-between gap-3">
+              <div className="relative flex-1 max-w-sm">
                 <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input className={`${F} pl-10`} placeholder={`Search ${topics.length} topics…`} value={topicSearch} onChange={e => setTopicSearch(e.target.value)} />
-                {topicSearch && <button onClick={() => setTopicSearch("")} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"><X size={14} /></button>}
+                <input
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  placeholder={`Search ${topics.length} topics…`}
+                  value={topicSearch}
+                  onChange={e => setTopicSearch(e.target.value)}
+                />
+                {topicSearch && (
+                  <button onClick={() => setTopicSearch("")} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <X size={14} />
+                  </button>
+                )}
               </div>
-              <button onClick={() => openDrawer("addTopic")} className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition cursor-pointer shrink-0">
-                <Plus size={16} /> Add Topic
-              </button>
+              <Button onClick={() => openModal("addTopic")}>
+                <Plus size={15} className="mr-1" /> Add Topic
+              </Button>
             </div>
 
-            {topicSearch && <p className="text-xs text-slate-400">{filteredTopics.length} of {topics.length} topics</p>}
-
-            {loading ? (
-              <div className="flex justify-center py-16"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-orange-500 border-r-2" /></div>
-            ) : filteredTopics.length === 0 ? (
-              <div className="text-center py-20 text-slate-400">
-                <BookOpen size={40} className="mx-auto mb-3 text-slate-300" />
-                <p className="font-semibold">{topicSearch ? `No topics match "${topicSearch}"` : "No topics yet."}</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {filteredTopics.map((t, i) => (
-                  <div key={t._id} className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-orange-300 hover:shadow-sm transition-all group">
-                    <div className="flex items-start justify-between mb-3">
-                      <span className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 font-black text-sm flex items-center justify-center shrink-0">
-                        {t.order ?? i + 1}
-                      </span>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openDrawer("editTopic", t)} className="p-1.5 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-200 cursor-pointer transition"><Pencil size={13} /></button>
-                        <button onClick={() => deleteTopic_(t)} className="p-1.5 rounded-lg bg-red-100 text-red-500 hover:bg-red-200 cursor-pointer transition"><Trash2 size={13} /></button>
-                      </div>
-                    </div>
-                    <h3 className="font-bold text-slate-900 text-sm mb-1 line-clamp-2">{t.title}</h3>
-                    {t.description && <p className="text-xs text-slate-400 line-clamp-2">{t.description}</p>}
-                    <button
-                      onClick={() => { setTab("subtopics"); loadSubs(t._id); }}
-                      className="mt-3 text-xs font-semibold text-teal-600 hover:text-teal-700 cursor-pointer transition"
-                    >
-                      View subtopics →
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <ScrollableTable
+              columns={topicColumns}
+              data={filteredTopics}
+              loading={topicLoading}
+              emptyMessage="No topics yet. Click 'Add Topic' to create one."
+              maxHeight="calc(100vh - 320px)"
+            />
           </div>
         )}
 
-        {/* ── SUBTOPICS TAB ──────────────────────────────── */}
+        {/* ── SUBTOPICS TAB ──────────────────────────────────────────── */}
         {tab === "subtopics" && (
           <div className="space-y-4">
-            {/* Topic picker */}
+            {/* Topic selector */}
             <div className="bg-white border border-slate-200 rounded-2xl p-4">
               <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">Select Topic</label>
               <select
-                className={`${F} cursor-pointer`}
-                value={subTopicId}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-gray-800 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 cursor-pointer"
+                value={selectedTopicId}
                 onChange={e => loadSubs(e.target.value)}
               >
                 <option value="">— choose a topic —</option>
-                {topics.map(t => <option key={t._id} value={t._id}>{t.order ? `#${t.order} ` : ""}{t.title}</option>)}
+                {topics.map(t => (
+                  <option key={t._id} value={t._id}>{t.order ? `#${t.order} ` : ""}{t.title}</option>
+                ))}
               </select>
             </div>
 
-            {subTopicId && (
+            {selectedTopicId && (
               <>
-                <div className="flex gap-3">
-                  <div className="relative flex-1">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="relative flex-1 max-w-sm">
                     <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input className={`${F} pl-10`} placeholder="Search subtopics…" value={subSearch} onChange={e => setSubSearch(e.target.value)} />
-                    {subSearch && <button onClick={() => setSubSearch("")} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"><X size={14} /></button>}
+                    <input
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                      placeholder="Search subtopics…"
+                      value={subSearch}
+                      onChange={e => setSubSearch(e.target.value)}
+                    />
+                    {subSearch && (
+                      <button onClick={() => setSubSearch("")} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                        <X size={14} />
+                      </button>
+                    )}
                   </div>
-                  <button onClick={() => openDrawer("addSub")} className="flex items-center gap-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-sm font-bold rounded-xl transition cursor-pointer shrink-0">
-                    <Plus size={16} /> Add SubTopic
-                  </button>
+                  <Button onClick={() => openModal("addSub")}>
+                    <Plus size={15} className="mr-1" /> Add SubTopic
+                  </Button>
                 </div>
 
-                {subLoading ? (
-                  <div className="flex justify-center py-16"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-teal-500 border-r-2" /></div>
-                ) : filteredSubs.length === 0 ? (
-                  <div className="text-center py-16 text-slate-400">
-                    <ListTree size={36} className="mx-auto mb-2 text-slate-300" />
-                    <p className="font-semibold">{subSearch ? `No subtopics match "${subSearch}"` : "No subtopics yet. Click 'Add SubTopic'."}</p>
-                  </div>
-                ) : (
-                  <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-                    {filteredSubs.map((s, i) => (
-                      <div key={s._id} className={`flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors group ${i < filteredSubs.length - 1 ? "border-b border-slate-100" : ""}`}>
-                        <span className="w-7 h-7 rounded-lg bg-teal-100 text-teal-700 font-black text-xs flex items-center justify-center shrink-0">{s.order ?? i + 1}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-slate-900 text-sm">{s.title}</p>
-                          {s.description && <p className="text-xs text-slate-400 truncate">{s.description}</p>}
-                        </div>
-                        <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                          <button onClick={() => openDrawer("editSub", s)} className="p-1.5 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-200 cursor-pointer transition"><Pencil size={13} /></button>
-                          <button onClick={() => deleteSub(s)} className="p-1.5 rounded-lg bg-red-100 text-red-500 hover:bg-red-200 cursor-pointer transition"><Trash2 size={13} /></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <ScrollableTable
+                  columns={subColumns}
+                  data={filteredSubs}
+                  loading={subLoading}
+                  emptyMessage="No subtopics yet. Click 'Add SubTopic' to create one."
+                  maxHeight="calc(100vh - 380px)"
+                />
               </>
             )}
 
-            {!subTopicId && (
+            {!selectedTopicId && (
               <div className="text-center py-16 text-slate-400">
                 <ListTree size={40} className="mx-auto mb-3 text-slate-300" />
                 <p className="font-semibold">Select a topic above to manage its subtopics.</p>
@@ -305,45 +403,35 @@ export default function CurriculumPage() {
         )}
       </div>
 
-      {/* ── DRAWERS ───────────────────────────────────────── */}
-      {drawer === "addTopic" && (
-        <Drawer title="Add New Topic" onClose={closeDrawer}>
-          <TopicFields form={topicForm} setForm={setTopicForm} />
-          <div className="mt-6 flex gap-3">
-            <button onClick={saveTopic} disabled={saving} className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition cursor-pointer disabled:opacity-50">{saving ? "Saving…" : "Create Topic"}</button>
-            <button onClick={closeDrawer} className="px-4 border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition cursor-pointer">Cancel</button>
-          </div>
-        </Drawer>
+      {/* ── MODALS ─────────────────────────────────────────────────── */}
+      {(modal === "addTopic" || modal === "editTopic") && (
+        <FormModal
+          title={modal === "editTopic" ? "Edit Topic" : "Add New Topic"}
+          form={topicForm}
+          setForm={setTopicForm}
+          onSave={saveTopic}
+          onClose={closeModal}
+          saving={saving}
+        />
       )}
 
-      {drawer === "editTopic" && (
-        <Drawer title="Edit Topic" onClose={closeDrawer}>
-          <TopicFields form={topicForm} setForm={setTopicForm} />
-          <div className="mt-6 flex gap-3">
-            <button onClick={saveTopic} disabled={saving} className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition cursor-pointer disabled:opacity-50">{saving ? "Saving…" : "Update Topic"}</button>
-            <button onClick={closeDrawer} className="px-4 border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition cursor-pointer">Cancel</button>
-          </div>
-        </Drawer>
+      {(modal === "addSub" || modal === "editSub") && (
+        <FormModal
+          title={modal === "editSub" ? "Edit SubTopic" : "Add New SubTopic"}
+          form={subForm}
+          setForm={setSubForm}
+          onSave={saveSub}
+          onClose={closeModal}
+          saving={saving}
+        />
       )}
 
-      {drawer === "addSub" && (
-        <Drawer title="Add SubTopic" onClose={closeDrawer}>
-          <SubFields form={subForm} setForm={setSubForm} />
-          <div className="mt-6 flex gap-3">
-            <button onClick={saveSub} disabled={saving} className="flex-1 py-2.5 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl transition cursor-pointer disabled:opacity-50">{saving ? "Saving…" : "Add SubTopic"}</button>
-            <button onClick={closeDrawer} className="px-4 border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition cursor-pointer">Cancel</button>
-          </div>
-        </Drawer>
+      {modal === "viewTopic" && target && (
+        <ViewModal item={target} onClose={closeModal} label="Topic" />
       )}
 
-      {drawer === "editSub" && (
-        <Drawer title="Edit SubTopic" onClose={closeDrawer}>
-          <SubFields form={subForm} setForm={setSubForm} />
-          <div className="mt-6 flex gap-3">
-            <button onClick={saveSub} disabled={saving} className="flex-1 py-2.5 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl transition cursor-pointer disabled:opacity-50">{saving ? "Saving…" : "Update SubTopic"}</button>
-            <button onClick={closeDrawer} className="px-4 border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition cursor-pointer">Cancel</button>
-          </div>
-        </Drawer>
+      {modal === "viewSub" && target && (
+        <ViewModal item={target} onClose={closeModal} label="SubTopic" />
       )}
     </EditorLayout>
   );

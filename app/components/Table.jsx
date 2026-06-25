@@ -7,6 +7,7 @@ export default function ScrollableTable({
   columns = [],
   data = [],
   maxHeight = "600px",
+  loading = false,
   emptyMessage = "No data available",
 }) {
   const [sortOrder, setSortOrder] = useState("top");
@@ -15,23 +16,27 @@ export default function ScrollableTable({
     return sortOrder === "top" ? data : [...data].reverse();
   }, [data, sortOrder]);
 
+  const lastIdx = columns.length - 1;
+
   return (
     <div className="w-full max-w-7xl mx-auto bg-white rounded-2xl border border-orange-200 shadow-md overflow-hidden">
-
-      <div className="overflow-y-auto" style={{ maxHeight }}>
+      <div className="overflow-y-auto overflow-x-hidden" style={{ maxHeight }}>
         <table className="min-w-full border-collapse">
 
           {/* HEADER */}
-          <thead className="sticky top-0 bg-gradient-to-r from-orange-500 to-amber-600 z-20 border-b border-orange-700">
-            <tr>
+          <thead className="sticky top-0 z-20">
+            <tr className="bg-gradient-to-r from-orange-500 to-amber-600 border-b border-orange-700">
               {columns.map((col, index) => (
                 <th
                   key={index}
-                  className="px-6 py-4.5 text-left text-xs font-black uppercase tracking-wider text-white"
+                  className={`px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-white whitespace-nowrap
+                    ${index === lastIdx
+                      ? "sticky right-0 z-30 bg-amber-600 shadow-[-4px_0_8px_rgba(0,0,0,0.15)]"
+                      : ""
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <span>{col.header}</span>
-
                     {index === 0 && (
                       <button
                         onClick={() =>
@@ -54,30 +59,41 @@ export default function ScrollableTable({
 
           {/* BODY */}
           <tbody>
-            {sortedData.length > 0 ? (
-              sortedData.map((row, rowIndex) => (
-                <tr
-                  key={rowIndex}
-                  className={`border-b border-orange-100 transition
-                    ${rowIndex % 2 === 0 ? "bg-white" : "bg-[#FFF8F4]/30"}
-                    hover:bg-orange-50`}
-                >
-                  {columns.map((col, colIndex) => (
-                    <td
-                      key={colIndex}
-                      className={`px-6 py-4.5 whitespace-nowrap text-sm transition ${
-                        colIndex === 0
-                          ? "font-semibold text-[#3C1E0A]"
-                          : "text-[#5C4033]"
-                      }`}
-                    >
-                      {typeof col.accessor === "function"
-                        ? col.accessor(row)
-                        : row[col.accessor]}
-                    </td>
-                  ))}
-                </tr>
-              ))
+            {loading ? (
+              <tr>
+                <td colSpan={columns.length} className="py-12 text-center">
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-orange-500 border-r-2" />
+                  </div>
+                </td>
+              </tr>
+            ) : sortedData.length > 0 ? (
+              sortedData.map((row, rowIndex) => {
+                const isEven = rowIndex % 2 === 0;
+                const rowBg = isEven ? "bg-white" : "bg-[#FFF8F4]";
+                return (
+                  <tr
+                    key={rowIndex}
+                    className={`border-b border-orange-100 transition hover:bg-orange-50 ${rowBg}`}
+                  >
+                    {columns.map((col, colIndex) => (
+                      <td
+                        key={colIndex}
+                        className={`px-6 py-4 whitespace-nowrap text-sm transition
+                          ${colIndex === 0 ? "font-semibold text-[#3C1E0A]" : "text-[#5C4033]"}
+                          ${colIndex === lastIdx
+                            ? `sticky right-0 z-10 shadow-[-4px_0_8px_rgba(0,0,0,0.06)] ${rowBg}`
+                            : ""
+                          }`}
+                      >
+                        {typeof col.accessor === "function"
+                          ? col.accessor(row)
+                          : row[col.accessor]}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td

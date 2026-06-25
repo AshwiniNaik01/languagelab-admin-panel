@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import EditorLayout from "../../layouts/EditorLayout";
 import Button from "../../components/ui/Button";
+import LogoFileUploader from "../../components/form/LogoFileUploader";
 import { getEditorProfile, updateEditorProfile, changeEditorPassword } from "../../services/editorPanel";
-import { User, Phone, Mail, Clock, Lock } from "lucide-react";
+import { User, Phone, Mail, Clock, Lock, Eye, EyeOff } from "lucide-react";
 
-function FormInput({ label, icon: Icon, required, ...props }) {
+function FormInput({ label, icon: Icon, required, type = "text", showToggle = false, ...props }) {
+  const [show, setShow] = useState(false);
+  const inputType = showToggle && type === "password" ? (show ? "text" : "password") : type;
   return (
     <div>
       <label className="block mb-2 text-sm font-medium text-gray-700">
@@ -17,8 +20,15 @@ function FormInput({ label, icon: Icon, required, ...props }) {
         {Icon && <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none"><Icon size={16} strokeWidth={2} /></span>}
         <input
           {...props}
-          className={`w-full ${Icon ? "pl-10" : "px-4"} pr-4 py-3 rounded-xl border border-orange-300 bg-white text-gray-700 placeholder:text-gray-400 outline-none transition-all text-sm hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200`}
+          type={inputType}
+          autoComplete="new-password"
+          className={`w-full ${Icon ? "pl-10" : "px-4"} ${showToggle ? "pr-10" : "pr-4"} py-3 rounded-xl border border-orange-300 bg-white text-gray-700 placeholder:text-gray-400 outline-none transition-all text-sm hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200`}
         />
+        {showToggle && type === "password" && (
+          <button type="button" onClick={() => setShow(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition">
+            {show ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -28,6 +38,7 @@ export default function EditorProfilePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState("");
   const [form, setForm] = useState({ full_name: "", phone: "" });
   const [pwForm, setPwForm] = useState({ current_password: "", new_password: "", confirm_password: "" });
 
@@ -39,6 +50,7 @@ export default function EditorProfilePage() {
         const data = res.data?.data || res.data;
         setProfile(data);
         setForm({ full_name: data.full_name || "", phone: data.phone || "" });
+        setProfilePhoto(data.profilePhoto || "");
       } catch (err) {
         Swal.fire({ icon: "error", title: "Failed to load profile", text: err?.response?.data?.message || err.message });
       } finally { setLoading(false); }
@@ -54,8 +66,12 @@ export default function EditorProfilePage() {
       const fd = new FormData();
       fd.append("full_name", form.full_name);
       if (form.phone) fd.append("phone", form.phone);
+      if (profilePhoto && profilePhoto.startsWith("data:")) {
+        const { base64ToBlob } = await import("../../utils/imageUtils");
+        fd.append("profilePhoto", base64ToBlob(profilePhoto), "profile.webp");
+      }
       await updateEditorProfile(fd);
-      setProfile(p => ({ ...p, ...form }));
+      setProfile(p => ({ ...p, ...form, profilePhoto }));
       Swal.fire({ icon: "success", title: "Profile Updated", timer: 1500, showConfirmButton: false });
     } catch (err) {
       Swal.fire({ icon: "error", title: "Update Failed", text: err?.response?.data?.message || err.message });
@@ -140,6 +156,13 @@ export default function EditorProfilePage() {
                   <FormInput label="Phone" icon={Phone} type="text" placeholder="10-digit number"
                     value={form.phone} onChange={(e) => setForm(p => ({ ...p, phone: e.target.value }))} />
                 </div>
+                <LogoFileUploader
+                  label="Profile Photo"
+                  uploadedText="Photo uploaded successfully"
+                  previewAlt="Profile photo"
+                  onFileUploaded={setProfilePhoto}
+                  initialLogoUrl={profile?.profilePhoto}
+                />
                 <div className="flex justify-end pt-2 border-t border-orange-500/10">
                   <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Button>
                 </div>
@@ -150,12 +173,12 @@ export default function EditorProfilePage() {
             <div className="bg-white rounded-3xl border border-orange-500/20 shadow-sm p-8">
               <h3 className="text-xl font-black text-[#3C1E0A] border-b border-orange-500/10 pb-4 mb-6">Change Password</h3>
               <form onSubmit={handleChangePassword} className="space-y-5">
-                <FormInput label="Current Password" icon={Lock} required type="password" placeholder="••••••••"
+                <FormInput label="Current Password" icon={Lock} required type="password" showToggle placeholder="••••••••"
                   value={pwForm.current_password} onChange={(e) => setPwForm(p => ({ ...p, current_password: e.target.value }))} />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <FormInput label="New Password" icon={Lock} required type="password" placeholder="••••••••"
+                  <FormInput label="New Password" icon={Lock} required type="password" showToggle placeholder="••••••••"
                     value={pwForm.new_password} onChange={(e) => setPwForm(p => ({ ...p, new_password: e.target.value }))} />
-                  <FormInput label="Confirm New Password" icon={Lock} required type="password" placeholder="••••••••"
+                  <FormInput label="Confirm New Password" icon={Lock} required type="password" showToggle placeholder="••••••••"
                     value={pwForm.confirm_password} onChange={(e) => setPwForm(p => ({ ...p, confirm_password: e.target.value }))} />
                 </div>
                 <div className="flex justify-end pt-2 border-t border-orange-500/10">
