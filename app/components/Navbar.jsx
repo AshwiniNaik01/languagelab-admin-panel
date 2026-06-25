@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings, UserCircle2, ChevronDown, Menu, Sparkles } from "lucide-react";
+import { UserCircle2, ChevronDown, Menu, Sparkles } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useSidebar } from "./SidebarContext";
@@ -40,9 +40,7 @@ export default function Navbar() {
 
       {/* Right Profile Section */}
       <div className="flex items-center gap-6">
-        <button className="text-orange-900/60 hover:text-orange-600 p-2 rounded-xl hover:bg-orange-500/5 transition duration-300">
-          <Settings size={20} />
-        </button>
+        
 
         <Link
           href="/profile"
