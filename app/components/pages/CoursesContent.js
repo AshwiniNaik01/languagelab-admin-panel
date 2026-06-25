@@ -94,7 +94,12 @@ export default function CoursesContent() {
     const handleStatusToggle = async (course) => {
         try {
             await updateCourse(course._id, { is_active: !course.is_active });
-            setCourses((prev) => prev.map((c) => (c._id === course._id ? { ...c, is_active: !c.is_active } : c)));
+            // Backend getAll only returns is_active:true — keep local state consistent
+            if (course.is_active) {
+                setCourses((prev) => prev.filter((c) => c._id !== course._id));
+            } else {
+                await loadCourses();
+            }
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'Toggle Failed', text: err?.response?.data?.message || err.message });
         }

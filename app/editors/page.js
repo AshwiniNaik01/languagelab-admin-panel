@@ -191,7 +191,7 @@ export default function EditorsPage() {
                         />
                     </div>
                 ) : (
-                    <ScrollableTable columns={columns} data={editors.filter((e) => e.is_active !== false)} loading={loading} maxHeight="calc(100vh - 220px)" />
+                    <ScrollableTable columns={columns} data={editors} loading={loading} maxHeight="calc(100vh - 220px)" />
                 )}
             </div>
 

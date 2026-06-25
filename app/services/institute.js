@@ -1,13 +1,5 @@
 import api from "./api";
-
-const base64ToBlob = (dataUrl) => {
-  const [header, body] = dataUrl.split(",");
-  const mime = header.match(/:(.*?);/)[1];
-  const binary = atob(body);
-  const arr = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
-  return new Blob([arr], { type: mime });
-};
+import { base64ToBlob } from "@/app/utils/imageUtils";
 
 const buildInstituteFormData = (data) => {
   const fd = new FormData();
@@ -19,6 +11,7 @@ const buildInstituteFormData = (data) => {
   if (data.address) fd.append("address", data.address);
   if (data.website) fd.append("website", data.website);
   if (data.max_students) fd.append("max_students", data.max_students);
+  if (data.is_active !== undefined) fd.append("is_active", data.is_active);
 
   // course_id can be a single ID string or an array of IDs
   if (Array.isArray(data.course_id)) {
@@ -30,8 +23,13 @@ const buildInstituteFormData = (data) => {
   }
 
   if (data.logo && data.logo.startsWith("data:")) {
+    // New image selected — send as file so backend uploads to AWS
     fd.append("logo", base64ToBlob(data.logo), "logo.webp");
+  } else if (data.logo) {
+    // Existing CDN URL — pass as text so backend can preserve it
+    fd.append("existing_logo", data.logo);
   }
+
   return fd;
 };
 
@@ -45,12 +43,8 @@ export const createInstitute = (data) =>
   });
 
 export const updateInstitute = (id, data) =>
-  api.put(`/api/institute/${id}`, {
-    institute_name: data.institute_name,
-    address: data.address,
-    phone: data.phone,
-    website: data.website,
-    max_students: data.max_students,
+  api.put(`/api/institute/${id}`, buildInstituteFormData(data), {
+    headers: { "Content-Type": "multipart/form-data" },
   });
 
 export const deleteInstitute = (id) => api.delete(`/api/institute/${id}`);

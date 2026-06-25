@@ -9,9 +9,14 @@ export default function NewCourseContent() {
   const router = useRouter();
 
   const handleSubmit = async (data) => {
-    await createCourse(data);
-    Swal.fire({ icon: "success", title: "Course Created", timer: 1500, showConfirmButton: false });
-    router.push("/courses");
+    try {
+      await createCourse(data);
+      Swal.fire({ icon: "success", title: "Course Created", timer: 1500, showConfirmButton: false });
+      router.push("/courses");
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to create course.";
+      Swal.fire({ icon: "error", title: "Error", text: message });
+    }
   };
 
   return (

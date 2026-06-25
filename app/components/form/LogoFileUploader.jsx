@@ -2,50 +2,12 @@
 
 import { useState } from "react";
 import { FaCloudUploadAlt, FaTrashAlt } from "react-icons/fa";
+import { compressImage } from "@/app/utils/imageUtils";
 
 export default function LogoFileUploader({ onFileUploaded, initialLogoUrl, label = "Institute Logo Upload", uploadedText = "Logo uploaded successfully", previewAlt = "Logo preview" }) {
   const [previewUrl, setPreviewUrl] = useState(initialLogoUrl || "");
   const [compressing, setCompressing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-
-  // Compress image helper using HTML5 canvas
-  const compressImage = (file) => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-
-          // Target dimensions (max 400x400 for a quality responsive logo)
-          let width = img.width;
-          let height = img.height;
-          const maxDim = 400;
-
-          if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-
-          // Compress to WebP / JPEG format with quality 0.8
-          const compressedDataUrl = canvas.toDataURL("image/webp", 0.8);
-          resolve(compressedDataUrl);
-        };
-      };
-    });
-  };
 
   const handleFile = async (file) => {
     if (!file || !file.type.startsWith("image/")) {

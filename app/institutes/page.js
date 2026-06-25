@@ -151,8 +151,11 @@ export default function InstitutesPage() {
                 start_date: startDate,
                 expiry_date: endDate,
             });
+            console.log('[License API] res.data:', JSON.stringify(res.data, null, 2));
             setShowGenerateModal(false);
-            setGeneratedLicenses(res.data);
+            const payload = res.data?.data || res.data;
+            console.log('[License API] payload used:', JSON.stringify(payload, null, 2));
+            setGeneratedLicenses(payload);
             loadInstitutes();
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'License Generation Failed', text: err?.response?.data?.message || err.message });
