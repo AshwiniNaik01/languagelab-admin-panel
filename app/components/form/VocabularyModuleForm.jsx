@@ -34,24 +34,25 @@ function err(show, msg) {
   return show ? <p className={errTxt}>{msg}</p> : null;
 }
 
-export default function VocabularyModuleForm({ onSubmit, onCancel, saving = false }) {
+export default function VocabularyModuleForm({ onSubmit, onCancel, saving = false, initialData = null, isEdit = false }) {
   const [submitted, setSubmitted] = useState(false);
 
   /* ── Topic / SubTopic ──────────────────────────────────────────────────── */
   const [topics,        setTopics]        = useState([]);
   const [subtopics,     setSubtopics]     = useState([]);
-  const [selectedTopic, setSelectedTopic] = useState("");
-  const [selectedSub,   setSelectedSub]   = useState("");
-  const [loadingTopics, setLoadingTopics] = useState(true);
+  const [selectedTopic, setSelectedTopic] = useState(initialData?.topic_id?._id || initialData?.topic_id || "");
+  const [selectedSub,   setSelectedSub]   = useState(initialData?.sub_topic_id?._id || initialData?.sub_topic_id || "");
+  const [loadingTopics, setLoadingTopics] = useState(!isEdit);
 
   useEffect(() => {
+    if (isEdit) return;
     (async () => {
       try {
         const r = await getTopics();
         setTopics(Array.isArray(r.data?.data || r.data) ? (r.data?.data || r.data) : []);
       } catch {} finally { setLoadingTopics(false); }
     })();
-  }, []);
+  }, [isEdit]);
 
   const onTopicChange = async (id) => {
     setSelectedTopic(id); setSelectedSub("");
@@ -63,13 +64,14 @@ export default function VocabularyModuleForm({ onSubmit, onCancel, saving = fals
   };
 
   /* ── Module fields ─────────────────────────────────────────────────────── */
-  const [f, setF] = useState({ title: "", order: 1, max_attempts: 5 });
+  const [f, setF] = useState({ title: initialData?.title ?? "", description: initialData?.description ?? "", order: initialData?.order ?? 1, max_attempts: initialData?.max_attempts ?? 5, total_marks: initialData?.total_marks ?? "", time_limit_sec: initialData?.time_limit_sec ?? "" });
   const set = (k) => (e) => setF(p => ({ ...p, [k]: e.target.value }));
 
   /* ── Words ─────────────────────────────────────────────────────────────── */
-  const [words, setWords] = useState([{
-    word: "", pronunciation: "", part_of_speech: "noun", meaning: "", example: "", difficulty: "easy",
-  }]);
+  const [words, setWords] = useState(
+    initialData?.words?.map(w => ({ word: w.word||"", pronunciation: w.pronunciation||"", part_of_speech: w.part_of_speech||"noun", meaning: w.meaning||"", example: w.example||"", difficulty: w.difficulty||"easy" }))
+    ?? [{ word: "", pronunciation: "", part_of_speech: "noun", meaning: "", example: "", difficulty: "easy" }]
+  );
   const blankW  = ()        => ({ word: "", pronunciation: "", part_of_speech: "noun", meaning: "", example: "", difficulty: "easy" });
   const addW    = ()        => setWords(p => [...p, blankW()]);
   const rmW     = (i)       => setWords(p => p.filter((_, idx) => idx !== i));
@@ -77,7 +79,7 @@ export default function VocabularyModuleForm({ onSubmit, onCancel, saving = fals
 
   /* ── Questions ─────────────────────────────────────────────────────────── */
   const [questions, setQuestions] = useState([]);
-  const blankQ  = ()          => ({ question_text: "", question_type: "mcq", options: ["", ""], correct_answer: "", explanation: "", hint: "", marks: 1 });
+  const blankQ  = ()          => ({ question_text: "", question_type: "mcq", options: ["", ""], correct_answer: "", explanation: "", marks: 1 });
   const addQ    = ()          => setQuestions(p => [...p, blankQ()]);
   const rmQ     = (i)         => setQuestions(p => p.filter((_, idx) => idx !== i));
   const updQ    = (i, k, v)   => setQuestions(p => p.map((q, idx) => idx === i ? { ...q, [k]: v } : q));
@@ -122,6 +124,9 @@ export default function VocabularyModuleForm({ onSubmit, onCancel, saving = fals
       title:        f.title.trim(),
       order:        +f.order || 1,
       max_attempts: +f.max_attempts || 5,
+      ...(f.description.trim()  && { description:    f.description.trim() }),
+      ...(f.total_marks    !== "" && { total_marks:    +f.total_marks }),
+      ...(f.time_limit_sec !== "" && { time_limit_sec: +f.time_limit_sec }),
       words,
       ...(validQs.length > 0 && { questions: validQs }),
     });
@@ -132,34 +137,50 @@ export default function VocabularyModuleForm({ onSubmit, onCancel, saving = fals
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 w-full bg-white p-8 rounded-3xl border border-orange-500/20 shadow-xl">
-      <h3 className="text-xl font-black text-[#3C1E0A] border-b border-orange-500/10 pb-4">Create Vocabulary Module</h3>
+      <h3 className="text-xl font-black text-[#3C1E0A] border-b border-orange-500/10 pb-4">
+        {isEdit ? "Edit Vocabulary Module" : "Create Vocabulary Module"}
+      </h3>
 
       {/* ── Topic & SubTopic ─────────────────────────────────────────────── */}
       <SectionDivider title="Topic & SubTopic" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className={lbl}>Topic <span className="text-orange-500">*</span></label>
-          <div className="relative">
-            <select className={`${fc(s && v.topic)} cursor-pointer pr-9 appearance-none`} value={selectedTopic} onChange={e => onTopicChange(e.target.value)} disabled={loadingTopics}>
-              <option value="">— {loadingTopics ? "Loading…" : "Choose topic"} —</option>
-              {topics.map(t => <option key={t._id} value={t._id}>{t.title}</option>)}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
+      {isEdit && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-orange-50/60 border border-orange-200 rounded-xl px-4 py-3">
+            <p className="text-[10px] font-black text-orange-400 uppercase tracking-wider mb-1">Topic</p>
+            <p className="text-sm font-semibold text-gray-700">{initialData?.topic_id?.title || selectedTopic}</p>
           </div>
-          {err(s && v.topic, "Please select a topic")}
-        </div>
-        <div className={!selectedTopic ? "opacity-40 pointer-events-none" : ""}>
-          <label className={lbl}>SubTopic <span className="text-orange-500">*</span></label>
-          <div className="relative">
-            <select className={`${fc(s && v.sub)} cursor-pointer pr-9 appearance-none`} value={selectedSub} onChange={e => setSelectedSub(e.target.value)} disabled={!selectedTopic}>
-              <option value="">— Choose subtopic —</option>
-              {subtopics.map(st => <option key={st._id} value={st._id}>{st.title}</option>)}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
+          <div className="bg-orange-50/60 border border-orange-200 rounded-xl px-4 py-3">
+            <p className="text-[10px] font-black text-orange-400 uppercase tracking-wider mb-1">SubTopic</p>
+            <p className="text-sm font-semibold text-gray-700">{initialData?.sub_topic_id?.title || selectedSub}</p>
           </div>
-          {err(s && v.sub, "Please select a subtopic")}
         </div>
-      </div>
+      )}
+      {!isEdit && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className={lbl}>Topic <span className="text-orange-500">*</span></label>
+            <div className="relative">
+              <select className={`${fc(s && v.topic)} cursor-pointer pr-9 appearance-none`} value={selectedTopic} onChange={e => onTopicChange(e.target.value)} disabled={loadingTopics}>
+                <option value="">— {loadingTopics ? "Loading…" : "Choose topic"} —</option>
+                {topics.map(t => <option key={t._id} value={t._id}>{t.title}</option>)}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
+            </div>
+            {err(s && v.topic, "Please select a topic")}
+          </div>
+          <div className={!selectedTopic ? "opacity-40 pointer-events-none" : ""}>
+            <label className={lbl}>SubTopic <span className="text-orange-500">*</span></label>
+            <div className="relative">
+              <select className={`${fc(s && v.sub)} cursor-pointer pr-9 appearance-none`} value={selectedSub} onChange={e => setSelectedSub(e.target.value)} disabled={!selectedTopic}>
+                <option value="">— Choose subtopic —</option>
+                {subtopics.map(st => <option key={st._id} value={st._id}>{st.title}</option>)}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
+            </div>
+            {err(s && v.sub, "Please select a subtopic")}
+          </div>
+        </div>
+      )}
 
       {/* ── Basic Info ───────────────────────────────────────────────────── */}
       <SectionDivider title="Basic Info" />
@@ -175,13 +196,27 @@ export default function VocabularyModuleForm({ onSubmit, onCancel, saving = fals
           {err(s && v.order, "Order must be 0 or greater")}
         </div>
       </div>
+      <div>
+        <label className={lbl}>Description</label>
+        <input className={inp} placeholder="Short description (optional)" value={f.description} onChange={set("description")} />
+      </div>
 
       {/* ── Settings ─────────────────────────────────────────────────────── */}
       <SectionDivider title="Settings" />
-      <div>
-        <label className={lbl}>Max Attempts</label>
-        <input type="number" min={1} className={fc(s && v.maxAttempts)} value={f.max_attempts} onChange={set("max_attempts")} />
-        {err(s && v.maxAttempts, "Must be at least 1")}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <label className={lbl}>Max Attempts</label>
+          <input type="number" min={1} className={fc(s && v.maxAttempts)} value={f.max_attempts} onChange={set("max_attempts")} />
+          {err(s && v.maxAttempts, "Must be at least 1")}
+        </div>
+        <div>
+          <label className={lbl}>Total Marks</label>
+          <input type="number" min={0} className={inp} placeholder="Optional" value={f.total_marks} onChange={set("total_marks")} />
+        </div>
+        <div>
+          <label className={lbl}>Time Limit (sec)</label>
+          <input type="number" min={0} className={inp} placeholder="Optional" value={f.time_limit_sec} onChange={set("time_limit_sec")} />
+        </div>
       </div>
 
       {/* ── Words ────────────────────────────────────────────────────────── */}
@@ -311,15 +346,9 @@ export default function VocabularyModuleForm({ onSubmit, onCancel, saving = fals
                 <input className={fc(s && qv[i]?.answer)} placeholder="Enter correct answer" value={q.correct_answer} onChange={e => updQ(i, "correct_answer", e.target.value)} />
                 {err(s && qv[i]?.answer, "Correct answer is required")}
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={lbl}>Hint <span className="text-gray-400 font-normal">(optional)</span></label>
-                  <input className={inp} placeholder="Give a hint" value={q.hint || ""} onChange={e => updQ(i, "hint", e.target.value)} />
-                </div>
-                <div>
-                  <label className={lbl}>Explanation <span className="text-gray-400 font-normal">(optional)</span></label>
-                  <input className={inp} placeholder="Why is this correct?" value={q.explanation || ""} onChange={e => updQ(i, "explanation", e.target.value)} />
-                </div>
+              <div>
+                <label className={lbl}>Explanation <span className="text-gray-400 font-normal">(optional)</span></label>
+                <input className={inp} placeholder="Why is this correct?" value={q.explanation || ""} onChange={e => updQ(i, "explanation", e.target.value)} />
               </div>
             </div>
           ))}
@@ -329,7 +358,7 @@ export default function VocabularyModuleForm({ onSubmit, onCancel, saving = fals
       {/* ── Actions ──────────────────────────────────────────────────────── */}
       <div className="flex justify-end gap-4 pt-4 border-t border-orange-500/10">
         <Button variant="secondary" type="button" onClick={onCancel}>Cancel</Button>
-        <Button type="submit" disabled={saving}>{saving ? "Creating…" : "Create Vocabulary Module"}</Button>
+        <Button type="submit" disabled={saving}>{saving ? (isEdit ? "Saving…" : "Creating…") : (isEdit ? "Update Vocabulary Module" : "Create Vocabulary Module")}</Button>
       </div>
     </form>
   );
