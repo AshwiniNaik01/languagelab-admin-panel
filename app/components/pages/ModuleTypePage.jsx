@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
 import EditorLayout from "../../layouts/EditorLayout";
 import ScrollableTable from "../Table";
@@ -571,8 +571,9 @@ function ViewModal({ mod, meta, onClose }) {
 }
 
 /* ── Shared page used by each module type ────────────────────────────────── */
-export default function ModuleTypePage({ type }) {
+export default function ModuleTypePage({ type, addUrl }) {
   const meta         = TYPE_META[type];
+  const router       = useRouter();
   const searchParams = useSearchParams();
 
   const [topics, setTopics]               = useState([]);
@@ -689,7 +690,11 @@ export default function ModuleTypePage({ type }) {
 
         <div className="flex items-center justify-between">
           <p className="text-sm font-black text-slate-800">{meta.label} Modules <span className="ml-2 text-slate-400 font-normal">({modules.length})</span></p>
-          <Button onClick={() => setShowForm(true)} disabled={!selectedSubtopic} title={!selectedSubtopic ? "Select a subtopic first" : ""}>
+          <Button
+            onClick={() => addUrl ? router.push(addUrl) : setShowForm(true)}
+            disabled={!addUrl && !selectedSubtopic}
+            title={!addUrl && !selectedSubtopic ? "Select a subtopic first" : ""}
+          >
             <Plus size={14} className="mr-1" /> Add {meta.label} Module
           </Button>
         </div>
