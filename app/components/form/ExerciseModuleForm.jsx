@@ -34,24 +34,25 @@ function err(show, msg) {
   return show ? <p className={errTxt}>{msg}</p> : null;
 }
 
-export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false }) {
+export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false, initialData = null, isEdit = false }) {
   const [submitted, setSubmitted] = useState(false);
 
   /* ── Topic / SubTopic ──────────────────────────────────────────────────── */
   const [topics,        setTopics]        = useState([]);
   const [subtopics,     setSubtopics]     = useState([]);
-  const [selectedTopic, setSelectedTopic] = useState("");
-  const [selectedSub,   setSelectedSub]   = useState("");
-  const [loadingTopics, setLoadingTopics] = useState(true);
+  const [selectedTopic, setSelectedTopic] = useState(initialData?.topic_id?._id || initialData?.topic_id || "");
+  const [selectedSub,   setSelectedSub]   = useState(initialData?.sub_topic_id?._id || initialData?.sub_topic_id || "");
+  const [loadingTopics, setLoadingTopics] = useState(!isEdit);
 
   useEffect(() => {
+    if (isEdit) return;
     (async () => {
       try {
         const r = await getTopics();
         setTopics(Array.isArray(r.data?.data || r.data) ? (r.data?.data || r.data) : []);
       } catch {} finally { setLoadingTopics(false); }
     })();
-  }, []);
+  }, [isEdit]);
 
   const onTopicChange = async (id) => {
     setSelectedTopic(id); setSelectedSub("");
@@ -64,18 +65,26 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false 
 
   /* ── Module fields ─────────────────────────────────────────────────────── */
   const [f, setF] = useState({
-    title: "", order: 1, exercise_type: "mcq", difficulty: "medium",
-    max_attempts: 5, total_marks: "", time_limit_sec: "",
-    shuffle_questions: true, shuffle_options: true, show_explanation: true,
+    title:             initialData?.title             ?? "",
+    description:       initialData?.description       ?? "",
+    order:             initialData?.order             ?? 1,
+    exercise_type:     initialData?.exercise_type     ?? "mcq",
+    difficulty:        initialData?.difficulty        ?? "medium",
+    max_attempts:      initialData?.max_attempts      ?? 5,
+    total_marks:       initialData?.total_marks       ?? "",
+    time_limit_sec:    initialData?.time_limit_sec    ?? "",
+    shuffle_questions: initialData?.shuffle_questions ?? true,
+    shuffle_options:   initialData?.shuffle_options   ?? true,
+    show_explanation:  initialData?.show_explanation  ?? true,
   });
   const set    = (k) => (e) => setF(p => ({ ...p, [k]: e.target.value }));
   const toggle = (k) => () => setF(p => ({ ...p, [k]: !p[k] }));
 
   /* ── Questions ─────────────────────────────────────────────────────────── */
-  const [questions, setQuestions] = useState([{
-    question_text: "", question_type: "mcq", options: ["", ""],
-    correct_answer: "", explanation: "", hint: "", marks: 1, negative_marks: 0,
-  }]);
+  const [questions, setQuestions] = useState(
+    initialData?.questions?.map(q => ({ question_text: q.question_text||"", question_type: q.question_type||"mcq", options: q.options?.length ? q.options : ["",""], correct_answer: q.correct_answer||"", explanation: q.explanation||"", hint: q.hint||"", marks: q.marks??1, negative_marks: q.negative_marks??0 }))
+    ?? [{ question_text: "", question_type: "mcq", options: ["", ""], correct_answer: "", explanation: "", hint: "", marks: 1, negative_marks: 0 }]
+  );
   const blankQ  = ()          => ({ question_text: "", question_type: f.exercise_type, options: ["", ""], correct_answer: "", explanation: "", hint: "", marks: 1, negative_marks: 0 });
   const addQ    = ()          => setQuestions(p => [...p, blankQ()]);
   const rmQ     = (i)         => setQuestions(p => p.filter((_, idx) => idx !== i));
@@ -135,34 +144,50 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 w-full bg-white p-8 rounded-3xl border border-orange-500/20 shadow-xl">
-      <h3 className="text-xl font-black text-[#3C1E0A] border-b border-orange-500/10 pb-4">Create Exercise Module</h3>
+      <h3 className="text-xl font-black text-[#3C1E0A] border-b border-orange-500/10 pb-4">
+        {isEdit ? "Edit Exercise Module" : "Create Exercise Module"}
+      </h3>
 
       {/* ── Topic & SubTopic ─────────────────────────────────────────────── */}
       <SectionDivider title="Topic & SubTopic" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className={lbl}>Topic <span className="text-orange-500">*</span></label>
-          <div className="relative">
-            <select className={`${fc(s && v.topic)} cursor-pointer pr-9 appearance-none`} value={selectedTopic} onChange={e => onTopicChange(e.target.value)} disabled={loadingTopics}>
-              <option value="">— {loadingTopics ? "Loading…" : "Choose topic"} —</option>
-              {topics.map(t => <option key={t._id} value={t._id}>{t.title}</option>)}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
+      {isEdit && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-orange-50/60 border border-orange-200 rounded-xl px-4 py-3">
+            <p className="text-[10px] font-black text-orange-400 uppercase tracking-wider mb-1">Topic</p>
+            <p className="text-sm font-semibold text-gray-700">{initialData?.topic_id?.title || selectedTopic}</p>
           </div>
-          {err(s && v.topic, "Please select a topic")}
-        </div>
-        <div className={!selectedTopic ? "opacity-40 pointer-events-none" : ""}>
-          <label className={lbl}>SubTopic <span className="text-orange-500">*</span></label>
-          <div className="relative">
-            <select className={`${fc(s && v.sub)} cursor-pointer pr-9 appearance-none`} value={selectedSub} onChange={e => setSelectedSub(e.target.value)} disabled={!selectedTopic}>
-              <option value="">— Choose subtopic —</option>
-              {subtopics.map(st => <option key={st._id} value={st._id}>{st.title}</option>)}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
+          <div className="bg-orange-50/60 border border-orange-200 rounded-xl px-4 py-3">
+            <p className="text-[10px] font-black text-orange-400 uppercase tracking-wider mb-1">SubTopic</p>
+            <p className="text-sm font-semibold text-gray-700">{initialData?.sub_topic_id?.title || selectedSub}</p>
           </div>
-          {err(s && v.sub, "Please select a subtopic")}
         </div>
-      </div>
+      )}
+      {!isEdit && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className={lbl}>Topic <span className="text-orange-500">*</span></label>
+            <div className="relative">
+              <select className={`${fc(s && v.topic)} cursor-pointer pr-9 appearance-none`} value={selectedTopic} onChange={e => onTopicChange(e.target.value)} disabled={loadingTopics}>
+                <option value="">— {loadingTopics ? "Loading…" : "Choose topic"} —</option>
+                {topics.map(t => <option key={t._id} value={t._id}>{t.title}</option>)}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
+            </div>
+            {err(s && v.topic, "Please select a topic")}
+          </div>
+          <div className={!selectedTopic ? "opacity-40 pointer-events-none" : ""}>
+            <label className={lbl}>SubTopic <span className="text-orange-500">*</span></label>
+            <div className="relative">
+              <select className={`${fc(s && v.sub)} cursor-pointer pr-9 appearance-none`} value={selectedSub} onChange={e => setSelectedSub(e.target.value)} disabled={!selectedTopic}>
+                <option value="">— Choose subtopic —</option>
+                {subtopics.map(st => <option key={st._id} value={st._id}>{st.title}</option>)}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
+            </div>
+            {err(s && v.sub, "Please select a subtopic")}
+          </div>
+        </div>
+      )}
 
       {/* ── Basic Info ───────────────────────────────────────────────────── */}
       <SectionDivider title="Basic Info" />
@@ -174,9 +199,14 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false 
         </div>
         <div>
           <label className={lbl}>Order</label>
+
           <input type="number" min={0} className={fc(s && v.order)} value={f.order} onChange={set("order")} />
           {err(s && v.order, "Order must be 0 or greater")}
         </div>
+      </div>
+      <div>
+        <label className={lbl}>Description</label>
+        <input className={inp} placeholder="Short description (optional)" value={f.description} onChange={set("description")} />
       </div>
 
       {/* ── Exercise Settings ────────────────────────────────────────────── */}
@@ -317,7 +347,7 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false 
       {/* ── Actions ──────────────────────────────────────────────────────── */}
       <div className="flex justify-end gap-4 pt-4 border-t border-orange-500/10">
         <Button variant="secondary" type="button" onClick={onCancel}>Cancel</Button>
-        <Button type="submit" disabled={saving}>{saving ? "Creating…" : "Create Exercise Module"}</Button>
+        <Button type="submit" disabled={saving}>{saving ? (isEdit ? "Saving…" : "Creating…") : (isEdit ? "Update Exercise Module" : "Create Exercise Module")}</Button>
       </div>
     </form>
   );
