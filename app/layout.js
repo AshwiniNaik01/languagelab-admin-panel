@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Language Lab — Admin Panel",
   description: "SuperAdmin dashboard for managing institutes, editors, students and licenses.",
+  robots: { index: false, follow: false },
 };
 
 import ProtectedRoute from "./components/ProtectedRoute";

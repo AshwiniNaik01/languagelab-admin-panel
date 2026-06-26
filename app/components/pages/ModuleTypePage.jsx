@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
 import EditorLayout from "../../layouts/EditorLayout";
 import ScrollableTable from "../Table";
+import TableSkeleton from "../ui/TableSkeleton";
+import EmptyState from "../ui/EmptyState";
+import Breadcrumb from "../ui/Breadcrumb";
 import { ActionButton } from "../ui/ActionIconButton";
 import Button from "../ui/Button";
 import {
@@ -13,7 +16,6 @@ import {
   getModule,
   getModules,
   deleteModule,
-  updateModule,
   createTextModule,
   createExerciseModule,
   createVocabularyModule,
@@ -1534,7 +1536,7 @@ function ViewModal({ mod, meta, loading, onClose }) {
                     <p className="text-xs text-slate-600 mt-0.5">{w.meaning}</p>
                     {w.example && (
                       <p className="text-[11px] text-slate-400 italic mt-0.5">
-                        "{w.example}"
+                        &ldquo;{w.example}&rdquo;
                       </p>
                     )}
                   </div>
@@ -1626,7 +1628,7 @@ export default function ModuleTypePage({ type, addUrl }) {
   const [viewingMod, setViewingMod] = useState(null);
   const [viewLoading, setViewLoading] = useState(false);
 
-  const handleView = async (row) => {
+  const handleView = useCallback(async (row) => {
     setViewLoading(true);
     setViewingMod(row);
     try {
@@ -1637,15 +1639,12 @@ export default function ModuleTypePage({ type, addUrl }) {
     } finally {
       setViewLoading(false);
     }
-  };
+  }, [type]);
 
-  const handleEdit = (row) => {
+  const handleEdit = useCallback((row) => {
     router.push(`/editor/modules/${type}/new?id=${row._id}`);
-  };
+  }, [router, type]);
 
-  useEffect(() => {
-    setShowForm(searchParams.get("add") === "1");
-  }, [searchParams]);
 
   useEffect(() => {
     (async () => {
@@ -1696,7 +1695,7 @@ export default function ModuleTypePage({ type, addUrl }) {
     }
   };
 
-  const handleDelete = async (mod) => {
+  const handleDelete = useCallback(async (mod) => {
     const r = await Swal.fire({
       title: `Delete "${mod.title}"?`,
       icon: "warning",
@@ -1715,9 +1714,9 @@ export default function ModuleTypePage({ type, addUrl }) {
         text: err?.response?.data?.message || err.message,
       });
     }
-  };
+  }, [type]);
 
-  const handleCreated = async () => {
+  const handleCreated = useCallback(async () => {
     setShowForm(false);
     if (selectedSubtopic) {
       const r = await getModules(type, selectedSubtopic);
@@ -1731,9 +1730,9 @@ export default function ModuleTypePage({ type, addUrl }) {
       timer: 1200,
       showConfirmButton: false,
     });
-  };
+  }, [type, selectedSubtopic]);
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       header: "Module",
       accessor: (row) => (
@@ -1871,7 +1870,7 @@ export default function ModuleTypePage({ type, addUrl }) {
         />
       ),
     },
-  ];
+  ], [meta, handleView, handleEdit, handleDelete]);
 
   const Form = {
     text: TextForm,
@@ -1884,6 +1883,11 @@ export default function ModuleTypePage({ type, addUrl }) {
   return (
     <EditorLayout>
       <div className="space-y-5">
+        <Breadcrumb items={[
+          { label: "Editor", href: "/editor" },
+          { label: "Modules", href: "/editor/modules" },
+          { label: `${meta.label} Modules` },
+        ]} />
         <div className="flex items-center gap-3">
           <div
             className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shrink-0 ${meta.color}`}
@@ -1973,17 +1977,34 @@ export default function ModuleTypePage({ type, addUrl }) {
           </Button>
         </div>
 
-        <ScrollableTable
-          columns={columns}
-          data={modules}
-          loading={loadingMods}
-          emptyMessage={
-            !selectedSubtopic
-              ? "Select a topic and subtopic above to view modules."
-              : `No ${meta.label.toLowerCase()} modules yet. Click 'Add ${meta.label} Module' to create one.`
-          }
-          maxHeight="calc(100vh - 380px)"
-        />
+        {loadingMods ? (
+          <TableSkeleton rows={5} cols={4} />
+        ) : modules.length === 0 ? (
+          <EmptyState
+            icon={selectedSubtopic ? "📭" : "🔍"}
+            title={
+              selectedSubtopic
+                ? `No ${meta.label} modules yet`
+                : "Select a topic and subtopic"
+            }
+            description={
+              selectedSubtopic
+                ? `Click 'Add ${meta.label} Module' above to create the first one.`
+                : "Choose a topic and subtopic above to view modules."
+            }
+            action={
+              selectedSubtopic
+                ? { label: `Add ${meta.label} Module`, onClick: () => addUrl ? router.push(addUrl) : setShowForm(true) }
+                : null
+            }
+          />
+        ) : (
+          <ScrollableTable
+            columns={columns}
+            data={modules}
+            maxHeight="calc(100vh - 380px)"
+          />
+        )}
       </div>
 
       {showForm && (

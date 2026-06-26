@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import Swal from "sweetalert2";
 import EditorLayout from "../../../../layouts/EditorLayout";
-import VocabularyModuleForm from "../../../../components/form/VocabularyModuleForm";
 import { createVocabularyModule, updateModule, getModule } from "../../../../services/editorPanel";
+import { swalSuccess, swalError } from "../../../../utils/swal";
+
+const VocabularyModuleForm = dynamic(
+  () => import("../../../../components/form/VocabularyModuleForm"),
+  { ssr: false, loading: () => <div className="animate-pulse h-96 bg-slate-100 rounded-3xl" /> }
+);
 
 export default function VocabularyModulePage() {
   const router       = useRouter();
@@ -24,11 +29,9 @@ export default function VocabularyModulePage() {
         const r = await getModule("vocabulary", editId);
         setInitialData(r.data?.data || r.data);
       } catch (err) {
-        Swal.fire({ icon: "error", title: "Failed to load module", text: err?.response?.data?.message || err.message });
+        await swalError("Failed to load module", err?.response?.data?.message || err.message);
         router.push("/editor/modules/vocabulary");
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     })();
   }, [editId, isEdit, router]);
 
@@ -37,17 +40,15 @@ export default function VocabularyModulePage() {
     try {
       if (isEdit) {
         await updateModule("vocabulary", editId, data);
-        Swal.fire({ icon: "success", title: "Vocabulary Module Updated!", timer: 1500, showConfirmButton: false });
+        await swalSuccess("Vocabulary Module Updated!");
       } else {
         await createVocabularyModule(data);
-        Swal.fire({ icon: "success", title: "Vocabulary Module Created!", timer: 1500, showConfirmButton: false });
+        await swalSuccess("Vocabulary Module Created!");
       }
       router.push("/editor/modules/vocabulary");
     } catch (err) {
-      Swal.fire({ icon: "error", title: isEdit ? "Update Failed" : "Create Failed", text: err?.response?.data?.message || err.message });
-    } finally {
-      setSaving(false);
-    }
+      await swalError(isEdit ? "Update Failed" : "Create Failed", err?.response?.data?.message || err.message);
+    } finally { setSaving(false); }
   };
 
   if (loading) {
@@ -61,13 +62,15 @@ export default function VocabularyModulePage() {
   return (
     <EditorLayout>
       <div className="max-w-4xl mx-auto">
-        <VocabularyModuleForm
-          initialData={initialData}
-          isEdit={isEdit}
-          onSubmit={handleSubmit}
-          onCancel={() => router.push("/editor/modules/vocabulary")}
-          saving={saving}
-        />
+        <Suspense fallback={<div className="animate-pulse h-96 bg-slate-100 rounded-3xl" />}>
+          <VocabularyModuleForm
+            initialData={initialData}
+            isEdit={isEdit}
+            onSubmit={handleSubmit}
+            onCancel={() => router.push("/editor/modules/vocabulary")}
+            saving={saving}
+          />
+        </Suspense>
       </div>
     </EditorLayout>
   );

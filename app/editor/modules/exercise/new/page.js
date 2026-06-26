@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import Swal from "sweetalert2";
 import EditorLayout from "../../../../layouts/EditorLayout";
-import ExerciseModuleForm from "../../../../components/form/ExerciseModuleForm";
 import { createExerciseModule, updateModule, getModule } from "../../../../services/editorPanel";
+import { swalSuccess, swalError } from "../../../../utils/swal";
+
+const ExerciseModuleForm = dynamic(
+  () => import("../../../../components/form/ExerciseModuleForm"),
+  { ssr: false, loading: () => <div className="animate-pulse h-96 bg-slate-100 rounded-3xl" /> }
+);
 
 export default function ExerciseModulePage() {
   const router       = useRouter();
@@ -24,11 +29,9 @@ export default function ExerciseModulePage() {
         const r = await getModule("exercise", editId);
         setInitialData(r.data?.data || r.data);
       } catch (err) {
-        Swal.fire({ icon: "error", title: "Failed to load module", text: err?.response?.data?.message || err.message });
+        await swalError("Failed to load module", err?.response?.data?.message || err.message);
         router.push("/editor/modules/exercise");
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     })();
   }, [editId, isEdit, router]);
 
@@ -37,17 +40,15 @@ export default function ExerciseModulePage() {
     try {
       if (isEdit) {
         await updateModule("exercise", editId, data);
-        Swal.fire({ icon: "success", title: "Exercise Module Updated!", timer: 1500, showConfirmButton: false });
+        await swalSuccess("Exercise Module Updated!");
       } else {
         await createExerciseModule(data);
-        Swal.fire({ icon: "success", title: "Exercise Module Created!", timer: 1500, showConfirmButton: false });
+        await swalSuccess("Exercise Module Created!");
       }
       router.push("/editor/modules/exercise");
     } catch (err) {
-      Swal.fire({ icon: "error", title: isEdit ? "Update Failed" : "Create Failed", text: err?.response?.data?.message || err.message });
-    } finally {
-      setSaving(false);
-    }
+      await swalError(isEdit ? "Update Failed" : "Create Failed", err?.response?.data?.message || err.message);
+    } finally { setSaving(false); }
   };
 
   if (loading) {
@@ -61,13 +62,15 @@ export default function ExerciseModulePage() {
   return (
     <EditorLayout>
       <div className="max-w-4xl mx-auto">
-        <ExerciseModuleForm
-          initialData={initialData}
-          isEdit={isEdit}
-          onSubmit={handleSubmit}
-          onCancel={() => router.push("/editor/modules/exercise")}
-          saving={saving}
-        />
+        <Suspense fallback={<div className="animate-pulse h-96 bg-slate-100 rounded-3xl" />}>
+          <ExerciseModuleForm
+            initialData={initialData}
+            isEdit={isEdit}
+            onSubmit={handleSubmit}
+            onCancel={() => router.push("/editor/modules/exercise")}
+            saving={saving}
+          />
+        </Suspense>
       </div>
     </EditorLayout>
   );
