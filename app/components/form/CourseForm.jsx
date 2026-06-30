@@ -10,6 +10,36 @@ export default function CourseForm({ initialData = {}, onCancel, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  const handleChange = async (e) => {
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+    if (data.duration_days) data.duration_days = Number(data.duration_days);
+
+    try {
+      await courseSchema.validate(data, { abortEarly: false });
+      setErrors({});
+    } catch (err) {
+      const validationErrors = {};
+      if (err.inner) {
+        err.inner.forEach((errItem) => { validationErrors[errItem.path] = errItem.message; });
+      } else {
+        validationErrors[err.path] = err.message;
+      }
+      setErrors((prev) => {
+        if (Object.keys(prev).length === 0) return prev;
+        const next = { ...prev };
+        Object.keys(prev).forEach((key) => {
+          if (!validationErrors[key]) {
+            delete next[key];
+          } else {
+            next[key] = validationErrors[key];
+          }
+        });
+        return next;
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -40,6 +70,7 @@ export default function CourseForm({ initialData = {}, onCancel, onSuccess }) {
 
   return (
     <form
+      onChange={handleChange}
       onSubmit={handleSubmit}
       className="space-y-6 w-full bg-white p-8 rounded-3xl border border-orange-500/20 shadow-xl"
     >

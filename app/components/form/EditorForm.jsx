@@ -3,7 +3,7 @@
 import InputField from "./InputField";
 import Button from "../ui/Button";
 import LogoFileUploader from "./LogoFileUploader";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { createEditor, updateEditor } from "../../services/editor";
 import { newEditorSchema } from "../../schemas/neweditor.schema.js";
@@ -40,6 +40,55 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess, onSu
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [profilePhotoBase64, setProfilePhotoBase64] = useState(initialData.profilePhoto || "");
+
+  useEffect(() => {
+    if (errors.profilePhoto && profilePhotoBase64) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.profilePhoto;
+        return next;
+      });
+    }
+  }, [profilePhotoBase64, errors.profilePhoto]);
+
+  const handleChange = async (e) => {
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+
+    if (!data.password) delete data.password;
+    data.profilePhoto = profilePhotoBase64;
+    data.status = data.status || "active";
+    data.is_active = data.is_active !== "false";
+
+    try {
+      await newEditorSchema.validate(data, {
+        abortEarly: false,
+        context: { isEdit: !!initialData._id },
+      });
+      setErrors({});
+    } catch (err) {
+      const validationErrors = {};
+      if (err.inner) {
+        err.inner.forEach((error) => {
+          validationErrors[error.path] = error.message;
+        });
+      } else {
+        validationErrors[err.path] = err.message;
+      }
+      setErrors((prev) => {
+        if (Object.keys(prev).length === 0) return prev;
+        const next = { ...prev };
+        Object.keys(prev).forEach((key) => {
+          if (!validationErrors[key]) {
+            delete next[key];
+          } else {
+            next[key] = validationErrors[key];
+          }
+        });
+        return next;
+      });
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,6 +158,7 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess, onSu
 
   return (
     <form
+      onChange={handleChange}
       onSubmit={handleSubmit}
       className="space-y-6 w-full bg-white p-8 rounded-3xl border border-orange-500/20 shadow-xl"
     >
