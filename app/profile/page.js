@@ -6,11 +6,12 @@ import AdminLayout from '../layouts/AdminLayout';
 import Button from '../components/ui/Button';
 import LogoFileUploader from '../components/form/LogoFileUploader';
 import { getProfile, updateProfile, changePassword } from '../services/superadmin';
-import { User, Phone, Mail, ShieldCheck, Clock, Lock, Eye, EyeOff } from 'lucide-react';
+import { User, Phone, Mail, ShieldCheck, Clock, Lock, Eye, EyeOff,RefreshCw,} from 'lucide-react';
 
 function FormInput({ label, icon: Icon, required, type = 'text', showToggle = false, ...props }) {
     const [show, setShow] = useState(false);
     const inputType = showToggle && type === 'password' ? (show ? 'text' : 'password') : type;
+
 
     return (
         <div>
@@ -82,6 +83,28 @@ export default function ProfilePage() {
             setSaving(false);
         }
     };
+const generatePassword = () => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let password = "";
+
+    for (let i = 0; i < 6; i++) {
+        password += chars.charAt(
+            Math.floor(Math.random() * chars.length)
+        );
+    }
+
+    return password;
+};
+
+const handleGeneratePassword = () => {
+    const password = generatePassword();
+
+    setPwForm((prev) => ({
+        ...prev,
+        new_password: password,
+        confirm_password: password,
+    }));
+};
 
     const handleChangePassword = async (e) => {
         e.preventDefault();
@@ -243,28 +266,52 @@ export default function ProfilePage() {
                                     value={pwForm.current_password}
                                     onChange={(e) => setPwForm((p) => ({ ...p, current_password: e.target.value }))}
                                 />
+                               
+  <div className="flex justify-end mb-2">
+  <Button
+    type="button"
+    onClick={handleGeneratePassword}
+    className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+  >
+    <RefreshCw size={16} />
+    Generate Password
+  </Button>
+</div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <FormInput
-                                        label="New Password"
-                                        icon={Lock}
-                                        required
-                                        type="password"
-                                        showToggle
-                                        placeholder="••••••••"
-                                        value={pwForm.new_password}
-                                        onChange={(e) => setPwForm((p) => ({ ...p, new_password: e.target.value }))}
-                                    />
-                                    <FormInput
-                                        label="Confirm New Password"
-                                        icon={Lock}
-                                        required
-                                        type="password"
-                                        showToggle
-                                        placeholder="••••••••"
-                                        value={pwForm.confirm_password}
-                                        onChange={(e) => setPwForm((p) => ({ ...p, confirm_password: e.target.value }))}
-                                    />
-                                </div>
+                                  
+  <FormInput
+    label="New Password"
+    icon={Lock}
+    required
+    type="password"
+    showToggle
+    placeholder="••••••••"
+    value={pwForm.new_password}
+    onChange={(e) =>
+      setPwForm((p) => ({
+        ...p,
+        new_password: e.target.value,
+      }))
+    }
+  />
+
+  <FormInput
+    label="Confirm New Password"
+    icon={Lock}
+    required
+    type="password"
+    showToggle
+    placeholder="••••••••"
+    value={pwForm.confirm_password}
+    onChange={(e) =>
+      setPwForm((p) => ({
+        ...p,
+        confirm_password: e.target.value,
+      }))
+    }
+  />
+</div>
+                                
                                 <div className="flex justify-end pt-2 border-t border-orange-500/10">
                                     <Button type="submit" disabled={saving}>
                                         {saving ? 'Changing…' : 'Change Password'}
