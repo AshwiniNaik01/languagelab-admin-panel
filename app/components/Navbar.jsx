@@ -12,12 +12,11 @@ export default function Navbar() {
 
   return (
     <header className="h-20 bg-gradient-to-r from-[#FFF8F4]/95 to-[#FFF2EA]/95 backdrop-blur-md border-b border-orange-500/20 px-8 flex items-center justify-between z-10 shrink-0 shadow-lg shadow-orange-950/5">
-      
       {/* Left section: Hamburger toggle & Premium branding/greeting */}
       <div className="flex items-center gap-6">
         {/* Hamburger menu toggle wrapper */}
         <div className="border-r border-orange-500/20 pr-5 mr-1 flex items-center h-10">
-          <button 
+          <button
             onClick={toggleSidebar}
             className="p-2.5 rounded-xl hover:bg-orange-500/10 text-orange-700 hover:text-orange-600 transition duration-300 active:scale-95 shrink-0 border border-orange-500/20 shadow-sm bg-[#FFF8F4]"
           >
@@ -40,8 +39,6 @@ export default function Navbar() {
 
       {/* Right Profile Section */}
       <div className="flex items-center gap-6">
-        
-
         <Link
           href="/profile"
           className="flex items-center gap-3.5 pl-4 border-l border-orange-500/10 hover:opacity-80 transition-opacity"
@@ -61,7 +58,6 @@ export default function Navbar() {
           <ChevronDown size={14} className="text-orange-900/50" />
         </Link>
       </div>
-
     </header>
   );
 }

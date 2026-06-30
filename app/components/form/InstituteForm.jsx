@@ -160,6 +160,14 @@ export default function InstituteForm({
   const [logoBase64, setLogoBase64] = useState(initialData.logo || "");
   const [errors, setErrors] = useState({});
 
+  const initAddress = (raw) => {
+    if (!raw) return {};
+    if (typeof raw === "object") return raw;
+    return {};
+  };
+  const [addressData, setAddressData] = useState(initAddress(initialData.address));
+  const setAddr = (field, val) => setAddressData((prev) => ({ ...prev, [field]: val }));
+
   // Multi-select state for courses
   const [selectedCourseIds, setSelectedCourseIds] = useState(
     normaliseCourseIds(initialData.course_id),
@@ -177,7 +185,8 @@ export default function InstituteForm({
     const data = Object.fromEntries(formData.entries());
     data.is_active = data.is_active === "on" || data.is_active === true;
     data.logo = logoBase64;
-    data.course_id = selectedCourseIds; // pass array
+    data.course_id = selectedCourseIds;
+    data.address = addressData;
 
     // Validate — course_id treated as array for validation
     const schema = initialData._id ? editInstituteSchema : instituteSchema;
@@ -287,14 +296,82 @@ export default function InstituteForm({
         />
       </div>
 
-      <div>
+      {/* Address */}
+      <div className="space-y-3">
+        <p className="text-sm font-semibold text-[#3C1E0A]">Address</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField
+            label="Line 1"
+            name="_addr_line1"
+            placeholder="Street / Building"
+            value={addressData.line1 || ""}
+            onChange={(e) => setAddr("line1", e.target.value)}
+            icon="MapPin"
+          />
+          <InputField
+            label="Line 2"
+            name="_addr_line2"
+            placeholder="Area / Locality (optional)"
+            value={addressData.line2 || ""}
+            onChange={(e) => setAddr("line2", e.target.value)}
+            icon="MapPin"
+          />
+          <InputField
+            label="Pincode"
+            name="_addr_pincode"
+            placeholder="e.g. 411001"
+            value={addressData.pincode || ""}
+            onChange={(e) => setAddr("pincode", e.target.value)}
+            icon="Hash"
+          />
+          <InputField
+            label="State"
+            name="_addr_state"
+            placeholder="e.g. Maharashtra"
+            value={addressData.state || ""}
+            onChange={(e) => setAddr("state", e.target.value)}
+            icon="MapPin"
+          />
+          <InputField
+            label="District"
+            name="_addr_dist"
+            placeholder="e.g. Pune"
+            value={addressData.dist || ""}
+            onChange={(e) => setAddr("dist", e.target.value)}
+            icon="MapPin"
+          />
+          <InputField
+            label="Taluka"
+            name="_addr_taluka"
+            placeholder="e.g. Haveli"
+            value={addressData.taluka || ""}
+            onChange={(e) => setAddr("taluka", e.target.value)}
+            icon="MapPin"
+          />
+          <InputField
+            label="Authorized Person Name"
+            name="_addr_autorizedName"
+            placeholder="Contact person name"
+            value={addressData.autorizedName || ""}
+            onChange={(e) => setAddr("autorizedName", e.target.value)}
+            icon="User"
+          />
+          <InputField
+            label="Authorized Person Phone"
+            name="_addr_autorizedPhono"
+            placeholder="e.g. 9876543210"
+            value={addressData.autorizedPhono || ""}
+            onChange={(e) => setAddr("autorizedPhono", e.target.value)}
+            icon="Phone"
+          />
+        </div>
         <InputField
-          label="Address"
-          name="address"
-          placeholder="e.g. 123 Main St, City, State, PIN"
-          defaultValue={initialData.address}
-          error={errors.address}
-          icon="MapPin"
+          label="Nearby Landmarks"
+          name="_addr_nearbyLandmarks"
+          placeholder="e.g. Near Railway Station"
+          value={addressData.nearbyLandmarks || ""}
+          onChange={(e) => setAddr("nearbyLandmarks", e.target.value)}
+          icon="Navigation"
         />
       </div>
 

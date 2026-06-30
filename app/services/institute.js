@@ -8,7 +8,9 @@ const buildInstituteFormData = (data) => {
   fd.append("email", data.email);
   if (data.password) fd.append("password", data.password);
   if (data.phone) fd.append("phone", data.phone);
-  if (data.address) fd.append("address", data.address);
+  if (data.address && typeof data.address === "object") {
+    fd.append("address", JSON.stringify(data.address));
+  }
   if (data.website) fd.append("website", data.website);
   if (data.max_students) fd.append("max_students", data.max_students);
   if (data.is_active !== undefined) fd.append("is_active", data.is_active);

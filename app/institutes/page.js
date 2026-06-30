@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
 import AdminLayout from '../layouts/AdminLayout';
 import ScrollableTable from '../components/Table';
@@ -19,13 +20,14 @@ import { KeyRound } from 'lucide-react';
 import { ActionButton } from '../components/ui/ActionIconButton';
 
 export default function InstitutesPage() {
+    const router = useRouter();
+
     const [activeTab, setActiveTab] = useState('manage');
     const [institutes, setInstitutes] = useState([]);
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(false);
 
     const [editingInstitute, setEditingInstitute] = useState(null);
-    const [viewingInstitute, setViewingInstitute] = useState(null);
 
     // Generate license modal
     const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -151,10 +153,8 @@ export default function InstitutesPage() {
                 start_date: startDate,
                 expiry_date: endDate,
             });
-            console.log('[License API] res.data:', JSON.stringify(res.data, null, 2));
             setShowGenerateModal(false);
             const payload = res.data?.data || res.data;
-            console.log('[License API] payload used:', JSON.stringify(payload, null, 2));
             setGeneratedLicenses(payload);
             loadInstitutes();
         } catch (err) {
@@ -169,19 +169,22 @@ export default function InstitutesPage() {
         {
             header: 'Institute Name & Code',
             accessor: (row) => (
-                <div className="flex items-center gap-3">
+                <button
+                    onClick={() => router.push(`/institutes/${row._id}`)}
+                    className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity cursor-pointer"
+                >
                     {row.logo ? (
-                        <img src={row.logo} alt="Logo" className="w-10 h-10 object-cover rounded-xl border border-orange-200 bg-white" />
+                        <img src={row.logo} alt="Logo" className="w-10 h-10 object-cover rounded-xl border border-orange-200 bg-white shrink-0" />
                     ) : (
                         <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center font-black text-orange-700 text-sm shrink-0">
                             {(row.institute_name || '??').substring(0, 2).toUpperCase()}
                         </div>
                     )}
                     <div>
-                        <div className="font-bold text-slate-950">{row.institute_name}</div>
+                        <div className="font-bold text-slate-950 hover:text-orange-600 transition-colors">{row.institute_name}</div>
                         <div className="text-xs text-orange-600 font-mono font-extrabold">{row.institute_code}</div>
                     </div>
-                </div>
+                </button>
             ),
         },
         {
@@ -197,7 +200,7 @@ export default function InstitutesPage() {
             header: 'Website',
             accessor: (row) =>
                 row.website ? (
-                    <a href={row.website} target="_blank" rel="noreferrer" className="text-orange-600 font-bold hover:underline text-xs truncate max-w-[120px] block">
+                    <a href={row.website} target="_blank" rel="noreferrer" className="text-orange-600 font-bold hover:underline text-xs truncate max-w-30 block">
                         {row.website}
                     </a>
                 ) : (
@@ -228,7 +231,6 @@ export default function InstitutesPage() {
             header: 'Actions',
             accessor: (row) => (
                 <div className="flex items-center gap-1.5">
-                    {/* Generate License */}
                     <button
                         onClick={() => openGenerateModal(row)}
                         title="Generate License Keys"
@@ -237,9 +239,7 @@ export default function InstitutesPage() {
                         <KeyRound size={12} strokeWidth={2.5} />
                         <span>License</span>
                     </button>
-
                     <ActionButton
-                        onView={() => setViewingInstitute(row)}
                         onEdit={() => { setEditingInstitute(row); setActiveTab('edit'); }}
                         onDelete={() => handleDelete(row._id, row.institute_name)}
                     />
@@ -252,7 +252,6 @@ export default function InstitutesPage() {
     return (
         <AdminLayout>
             <div className="space-y-6">
-                {/* Page header — no Create button (use sidebar "Add Institute") */}
                 {activeTab === 'manage' && (
                     <div>
                         <h2 className="text-2xl font-black text-slate-950">Affiliated Institutes</h2>
@@ -262,7 +261,6 @@ export default function InstitutesPage() {
                     </div>
                 )}
 
-                {/* Tab content */}
                 {activeTab === 'create' ? (
                     <div className="bg-[#FFF8F4] p-0.5 rounded-3xl w-full">
                         <InstituteForm
@@ -284,71 +282,6 @@ export default function InstitutesPage() {
                     <ScrollableTable columns={columns} data={institutes} loading={loading} />
                 )}
             </div>
-
-            {/* ── VIEW DETAILS MODAL ────────────────────────────────────────── */}
-            {viewingInstitute && (
-                <div className="fixed inset-0 bg-[#3C1E0A]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white border border-orange-500/20 rounded-3xl p-8 max-w-2xl w-full shadow-2xl">
-                        <div className="flex justify-between items-start border-b border-orange-500/10 pb-4 mb-6">
-                            <div className="flex items-center gap-4">
-                                {viewingInstitute.logo ? (
-                                    <img src={viewingInstitute.logo} alt="Logo" className="w-14 h-14 object-cover rounded-2xl border border-orange-500/20" />
-                                ) : (
-                                    <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center font-black text-orange-700 text-lg">
-                                        {viewingInstitute.institute_name.substring(0, 2).toUpperCase()}
-                                    </div>
-                                )}
-                                <div>
-                                    <h3 className="text-xl font-black text-[#3C1E0A]">{viewingInstitute.institute_name}</h3>
-                                    <p className="text-xs text-orange-600 font-mono font-extrabold">{viewingInstitute.institute_code}</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setViewingInstitute(null)}
-                                className="text-slate-400 hover:text-[#3C1E0A] transition text-xl font-bold cursor-pointer w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100"
-                            >
-                                ✕
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-6 text-sm mb-6">
-                            <div>
-                                <p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Email</p>
-                                <p className="font-bold text-[#3C1E0A] mt-1">{viewingInstitute.email}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Phone</p>
-                                <p className="font-bold text-[#3C1E0A] mt-1">{viewingInstitute.phone || '—'}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Website</p>
-                                {viewingInstitute.website ? (
-                                    <a href={viewingInstitute.website} target="_blank" rel="noreferrer" className="font-bold text-orange-600 hover:underline mt-1 block">
-                                        {viewingInstitute.website}
-                                    </a>
-                                ) : <p className="font-bold text-[#3C1E0A] mt-1">—</p>}
-                            </div>
-                            <div>
-                                <p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Max Students</p>
-                                <p className="font-bold text-[#3C1E0A] mt-1">{viewingInstitute.max_students}</p>
-                            </div>
-                            <div className="col-span-2">
-                                <p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Address</p>
-                                <p className="font-bold text-[#3C1E0A] mt-1">{viewingInstitute.address || '—'}</p>
-                            </div>
-                            <div className="col-span-2">
-                                <p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Status</p>
-                                <span className={`inline-flex items-center mt-1 px-3 py-1 text-xs font-bold rounded-full ${viewingInstitute.is_active ? 'bg-green-50 text-green-700 border border-green-300' : 'bg-slate-100 text-slate-500 border border-slate-300'}`}>
-                                    <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${viewingInstitute.is_active ? 'bg-green-500' : 'bg-slate-400'}`} />
-                                    {viewingInstitute.is_active ? 'Active' : 'Inactive'}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="flex justify-end gap-3 border-t border-orange-500/10 pt-4">
-                            <Button variant="secondary" onClick={() => setViewingInstitute(null)}>Close</Button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* ── GENERATE LICENSE MODAL ────────────────────────────────────── */}
             {showGenerateModal && (

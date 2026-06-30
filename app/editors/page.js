@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
 import AdminLayout from '../layouts/AdminLayout';
 import ScrollableTable from '../components/Table';
@@ -11,11 +12,11 @@ import { getEditors, toggleEditorStatus, deleteEditor, assignEditorInstitutes } 
 import { getInstitutes } from '../services/institute';
 
 export default function EditorsPage() {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState('manage');
     const [editors, setEditors] = useState([]);
     const [institutes, setInstitutes] = useState([]);
     const [editingEditor, setEditingEditor] = useState(null);
-    const [viewingEditor, setViewingEditor] = useState(null);
     const [loading, setLoading] = useState(false);
 
     // Assign institute modal state
@@ -120,19 +121,22 @@ export default function EditorsPage() {
         {
             header: 'Editor',
             accessor: (row) => (
-                <div className="flex items-center gap-3">
+                <button
+                    onClick={() => router.push(`/editors/${row._id}`)}
+                    className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity cursor-pointer"
+                >
                     {row.profilePhoto ? (
-                        <img src={row.profilePhoto} alt="Photo" className="w-10 h-10 object-cover rounded-xl border border-orange-200 bg-white" />
+                        <img src={row.profilePhoto} alt="Photo" className="w-10 h-10 object-cover rounded-xl border border-orange-200 bg-white shrink-0" />
                     ) : (
                         <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center font-black text-orange-700 text-sm shrink-0">
                             {(row.full_name || '??').substring(0, 2).toUpperCase()}
                         </div>
                     )}
                     <div>
-                        <div className="font-bold text-slate-950">{row.full_name}</div>
+                        <div className="font-bold text-slate-950 hover:text-orange-600 transition-colors">{row.full_name}</div>
                         <div className="text-xs text-slate-500 font-medium">{row.email}</div>
                     </div>
-                </div>
+                </button>
             ),
         },
         {
@@ -161,7 +165,6 @@ export default function EditorsPage() {
             header: 'Actions',
             accessor: (row) => (
                 <ActionButton
-                    onView={() => setViewingEditor(row)}
                     onEdit={() => { setEditingEditor(row); setActiveTab('edit'); }}
                     onDelete={() => handleDelete(row._id, row.full_name)}
                 />
@@ -194,57 +197,6 @@ export default function EditorsPage() {
                     <ScrollableTable columns={columns} data={editors} loading={loading} maxHeight="calc(100vh - 220px)" />
                 )}
             </div>
-
-            {/* ── VIEW EDITOR MODAL ─────────────────────────────────────── */}
-            {viewingEditor && (
-                <div className="fixed inset-0 bg-[#3C1E0A]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white border border-orange-500/20 rounded-3xl p-8 max-w-md w-full shadow-2xl">
-                        <div className="flex justify-between items-start border-b border-orange-500/10 pb-4 mb-6">
-                            <div className="flex items-center gap-4">
-                                {viewingEditor.profilePhoto ? (
-                                    <img src={viewingEditor.profilePhoto} alt="Photo" className="w-14 h-14 object-cover rounded-2xl border border-orange-500/20" />
-                                ) : (
-                                    <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center font-black text-orange-700 text-lg">
-                                        {(viewingEditor.full_name || '??').substring(0, 2).toUpperCase()}
-                                    </div>
-                                )}
-                                <div>
-                                    <h3 className="text-xl font-black text-[#3C1E0A]">{viewingEditor.full_name}</h3>
-                                    <p className="text-xs text-slate-500 font-medium">{viewingEditor.email}</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setViewingEditor(null)}
-                                className="text-slate-400 hover:text-[#3C1E0A] transition text-xl font-bold cursor-pointer w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100"
-                            >✕</button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-6 text-sm mb-6">
-                            <div>
-                                <p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Phone</p>
-                                <p className="font-bold text-[#3C1E0A] mt-1">{viewingEditor.phone || '—'}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Status</p>
-                                <span className={`inline-flex items-center mt-1 px-3 py-1 text-xs font-bold rounded-full ${viewingEditor.is_active ? 'bg-green-50 text-green-700 border border-green-300' : 'bg-slate-100 text-slate-500 border border-slate-300'}`}>
-                                    <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${viewingEditor.is_active ? 'bg-green-500' : 'bg-slate-400'}`} />
-                                    {viewingEditor.is_active ? 'Active' : 'Inactive'}
-                                </span>
-                            </div>
-                            <div className="col-span-2">
-                                <p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Assigned Institutes</p>
-                                <p className="font-bold text-[#3C1E0A] mt-1">
-                                    {viewingEditor.assigned_institutes?.length
-                                        ? `${viewingEditor.assigned_institutes.length} institute(s)`
-                                        : 'None assigned'}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex justify-end gap-3 border-t border-orange-500/10 pt-4">
-                            <Button variant="secondary" onClick={() => setViewingEditor(null)}>Close</Button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* ── ASSIGN INSTITUTE MODAL ────────────────────────────────── */}
             {assignEditor && (

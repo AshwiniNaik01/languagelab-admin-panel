@@ -1,20 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
 import EditorLayout from '../../layouts/EditorLayout';
 import CourseForm from '../../components/form/CourseForm';
 import { ActionButton } from '../../components/ui/ActionIconButton';
 import Button from '../../components/ui/Button';
-import { getEditorCourses, createEditorCourse, updateEditorCourse, deleteEditorCourse, getTopics } from '../../services/editorPanel';
+import { getEditorCourses, createEditorCourse, updateEditorCourse, getTopics } from '../../services/editorPanel';
 import { Check } from 'lucide-react';
 
 export default function EditorCoursesPage() {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState('manage');
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(false);
     const [editingCourse, setEditingCourse] = useState(null);
-    const [viewingCourse, setViewingCourse] = useState(null);
 
     // Topics modal
     const [allTopics, setAllTopics] = useState([]);
@@ -107,16 +108,20 @@ export default function EditorCoursesPage() {
 
     const handleDelete = async (id, name) => {
         const result = await Swal.fire({
-            title: `Delete "${name}"?`, text: 'This will deactivate the course.',
-            icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Yes, delete',
+            title: `Deactivate "${name}"?`,
+            text: 'The course will be set to inactive and removed from the list.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f97316',
+            confirmButtonText: 'Yes, deactivate',
         });
         if (!result.isConfirmed) return;
         try {
-            await deleteEditorCourse(id);
+            await updateEditorCourse(id, { is_active: false });
             setCourses((prev) => prev.filter((c) => c._id !== id));
-            Swal.fire({ icon: 'success', title: 'Deleted', timer: 1200, showConfirmButton: false });
+            Swal.fire({ icon: 'success', title: 'Course Deactivated', timer: 1200, showConfirmButton: false });
         } catch (err) {
-            Swal.fire({ icon: 'error', title: 'Delete Failed', text: err?.response?.data?.message || err.message });
+            Swal.fire({ icon: 'error', title: 'Failed', text: err?.response?.data?.message || err.message });
         }
     };
 
@@ -159,7 +164,7 @@ export default function EditorCoursesPage() {
                     <div className="text-center py-16 text-slate-400 text-sm font-semibold">No courses found.</div>
                 ) : (
                     <div className="w-full bg-white rounded-2xl border border-orange-200 shadow-md overflow-hidden">
-                        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr] bg-gradient-to-r from-orange-500 to-amber-600 px-6 py-4">
+                        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr] bg-linear-to-r from-orange-500 to-amber-600 px-6 py-4">
                             {['Course', 'Level', 'Language', 'Duration', 'Topics', 'Status', 'Actions'].map((h) => (
                                 <span key={h} className="text-xs font-black uppercase tracking-wider text-white">{h}</span>
                             ))}
@@ -169,10 +174,13 @@ export default function EditorCoursesPage() {
                             const topicCount = course.topic_ids?.length || 0;
                             return (
                                 <div key={course._id} className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr] px-6 py-4 items-center border-b border-orange-100 hover:bg-orange-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#FFF8F4]/30'}`}>
-                                    <div>
-                                        <div className="font-bold text-slate-950 text-sm">{course.course_name}</div>
+                                    <button
+                                        onClick={() => router.push(`/editor/courses/${course._id}`)}
+                                        className="text-left hover:opacity-80 transition-opacity cursor-pointer"
+                                    >
+                                        <div className="font-bold text-slate-950 text-sm hover:text-orange-600 transition-colors">{course.course_name}</div>
                                         <div className="text-xs text-orange-600 font-mono font-extrabold">{course.course_code}</div>
-                                    </div>
+                                    </button>
                                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full border text-[11px] font-bold capitalize w-fit ${levelBadge(course.level)}`}>
                                         {course.level || '—'}
                                     </span>
@@ -194,7 +202,6 @@ export default function EditorCoursesPage() {
                                         {course.is_active ? 'Active' : 'Inactive'}
                                     </span>
                                     <ActionButton
-                                        onView={() => setViewingCourse(course)}
                                         onEdit={() => { setEditingCourse(course); setActiveTab('edit'); }}
                                         onDelete={() => handleDelete(course._id, course.course_name)}
                                     />
@@ -240,31 +247,6 @@ export default function EditorCoursesPage() {
                                         {savingTopics ? 'Saving…' : 'Save Topics'}
                                     </Button>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* ── VIEW MODAL ───────────────────────────────────────────── */}
-                {viewingCourse && (
-                    <div className="fixed inset-0 bg-[#3C1E0A]/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white border border-orange-500/20 rounded-3xl p-8 max-w-lg w-full shadow-2xl">
-                            <div className="flex justify-between items-start border-b border-orange-500/10 pb-4 mb-6">
-                                <div>
-                                    <h3 className="text-xl font-black text-[#3C1E0A]">{viewingCourse.course_name}</h3>
-                                    <p className="text-xs text-orange-600 font-mono font-extrabold">{viewingCourse.course_code}</p>
-                                </div>
-                                <button onClick={() => setViewingCourse(null)} className="text-slate-400 hover:text-[#3C1E0A] transition text-xl font-bold cursor-pointer w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100">✕</button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-6 text-sm mb-6">
-                                <div><p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Level</p><span className={`inline-flex items-center mt-1 px-2.5 py-1 rounded-full border text-[11px] font-bold capitalize ${levelBadge(viewingCourse.level)}`}>{viewingCourse.level || '—'}</span></div>
-                                <div><p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Language</p><p className="font-bold text-[#3C1E0A] mt-1">{viewingCourse.language || '—'}</p></div>
-                                <div><p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Duration</p><p className="font-bold text-[#3C1E0A] mt-1">{viewingCourse.duration_days ? `${viewingCourse.duration_days} days` : '—'}</p></div>
-                                <div><p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Topics</p><p className="font-bold text-[#3C1E0A] mt-1">{viewingCourse.topic_ids?.length || 0} topic(s)</p></div>
-                                <div className="col-span-2"><p className="text-[10px] text-orange-950/50 uppercase tracking-widest font-black">Description</p><p className="font-bold text-[#3C1E0A] mt-1">{viewingCourse.description || '—'}</p></div>
-                            </div>
-                            <div className="flex justify-end gap-3 border-t border-orange-500/10 pt-4">
-                                <Button variant="secondary" onClick={() => setViewingCourse(null)}>Close</Button>
                             </div>
                         </div>
                     </div>

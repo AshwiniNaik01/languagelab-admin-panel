@@ -21,7 +21,17 @@ export const instituteSchema = Yup.object({
 
     website: Yup.string().trim().url('Please enter a valid website address'),
 
-    address: Yup.string().trim().required('Address is required'),
+    address: Yup.object({
+        line1: Yup.string().trim(),
+        line2: Yup.string().trim(),
+        pincode: Yup.string().trim(),
+        state: Yup.string().trim(),
+        dist: Yup.string().trim(),
+        taluka: Yup.string().trim(),
+        autorizedName: Yup.string().trim(),
+        autorizedPhono: Yup.string().trim(),
+        nearbyLandmarks: Yup.string().trim(),
+    }).optional(),
 
     max_students: Yup.string()
         .min(1, 'Max students must be at least 1')

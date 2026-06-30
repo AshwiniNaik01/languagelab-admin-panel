@@ -39,6 +39,9 @@ export const activateLicense = (licenseId) =>
 export const expireLicense = (licenseId) =>
   api.put(`/api/license/${licenseId}/expire`);
 
+export const renewLicense = (licenseId, payload) =>
+  api.put(`/api/license/${licenseId}/renew`, payload);
+
 // ── Session / seat management ─────────────────────────────────────────────────
 export const resetInstituteSeats = (instituteId) =>
   api.post(`/api/super-admin/institute/${instituteId}/reset-seats`);
