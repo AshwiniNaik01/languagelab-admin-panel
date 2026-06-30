@@ -6,7 +6,7 @@ import EditorLayout from "../../layouts/EditorLayout";
 import Button from "../../components/ui/Button";
 import LogoFileUploader from "../../components/form/LogoFileUploader";
 import { getEditorProfile, updateEditorProfile, changeEditorPassword } from "../../services/editorPanel";
-import { User, Phone, Mail, Clock, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Phone, Mail, Clock, Lock, Eye, EyeOff,RefreshCw,} from "lucide-react";
 
 function FormInput({ label, icon: Icon, required, type = "text", showToggle = false, ...props }) {
   const [show, setShow] = useState(false);
@@ -77,6 +77,29 @@ export default function EditorProfilePage() {
       Swal.fire({ icon: "error", title: "Update Failed", text: err?.response?.data?.message || err.message });
     } finally { setSaving(false); }
   };
+
+  const generatePassword = () => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let password = "";
+
+  for (let i = 0; i < 6; i++) {
+    password += chars.charAt(
+      Math.floor(Math.random() * chars.length)
+    );
+  }
+
+  return password;
+};
+
+const handleGeneratePassword = () => {
+  const password = generatePassword();
+
+  setPwForm((prev) => ({
+    ...prev,
+    new_password: password,
+    confirm_password: password,
+  }));
+};
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -175,6 +198,16 @@ export default function EditorProfilePage() {
               <form onSubmit={handleChangePassword} className="space-y-5">
                 <FormInput label="Current Password" icon={Lock} required type="password" showToggle placeholder="••••••••"
                   value={pwForm.current_password} onChange={(e) => setPwForm(p => ({ ...p, current_password: e.target.value }))} />
+                  <div className="flex justify-end">
+  <Button
+    type="button"
+    onClick={handleGeneratePassword}
+    className="flex items-center gap-2"
+  >
+    <RefreshCw size={16} />
+    Generate Password
+  </Button>
+</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormInput label="New Password" icon={Lock} required type="password" showToggle placeholder="••••••••"
                     value={pwForm.new_password} onChange={(e) => setPwForm(p => ({ ...p, new_password: e.target.value }))} />
