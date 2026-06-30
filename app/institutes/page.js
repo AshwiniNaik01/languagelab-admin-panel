@@ -208,7 +208,7 @@ export default function InstitutesPage() {
                 ),
         },
         {
-            header: 'Max Students',
+            header: 'Student Capacity',
             accessor: (row) => <span className="font-extrabold text-slate-950">{row.max_students}</span>,
         },
         {
