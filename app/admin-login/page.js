@@ -58,12 +58,70 @@ export default function LoginPage() {
         document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
     };
 
-    const handleAdminChange = (e) => {
-        setAdminData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const handleAdminChange = async (e) => {
+        const field = e.target.name;
+        const value = e.target.value;
+        const newData = { ...adminData, [field]: value };
+        setAdminData(newData);
+
+        try {
+            await adminSchema.validate(newData, { abortEarly: false });
+            setErrors({});
+        } catch (error) {
+            const validationErrors = {};
+            if (error.inner) {
+                error.inner.forEach((err) => {
+                    validationErrors[err.path] = err.message;
+                });
+            } else {
+                validationErrors[error.path] = error.message;
+            }
+            setErrors((prev) => {
+                if (Object.keys(prev).length === 0) return prev;
+                const next = { ...prev };
+                Object.keys(prev).forEach((key) => {
+                    if (!validationErrors[key]) {
+                        delete next[key];
+                    } else {
+                        next[key] = validationErrors[key];
+                    }
+                });
+                return next;
+            });
+        }
     };
 
-    const handleEditorChange = (e) => {
-        setEditorData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const handleEditorChange = async (e) => {
+        const field = e.target.name;
+        const value = e.target.value;
+        const newData = { ...editorData, [field]: value };
+        setEditorData(newData);
+
+        try {
+            await editorSchema.validate(newData, { abortEarly: false });
+            setErrors({});
+        } catch (error) {
+            const validationErrors = {};
+            if (error.inner) {
+                error.inner.forEach((err) => {
+                    validationErrors[err.path] = err.message;
+                });
+            } else {
+                validationErrors[error.path] = error.message;
+            }
+            setErrors((prev) => {
+                if (Object.keys(prev).length === 0) return prev;
+                const next = { ...prev };
+                Object.keys(prev).forEach((key) => {
+                    if (!validationErrors[key]) {
+                        delete next[key];
+                    } else {
+                        next[key] = validationErrors[key];
+                    }
+                });
+                return next;
+            });
+        }
     };
 
     // const handleAdminLogin = async (e) => {

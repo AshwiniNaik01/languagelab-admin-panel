@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import * as Yup from "yup";
 import EditorLayout from "../../layouts/EditorLayout";
 import ScrollableTable from "../../components/Table";
 import { ActionButton } from "../../components/ui/ActionIconButton";
@@ -15,8 +16,29 @@ import { BookOpen, ListTree, Plus, X, Search } from "lucide-react";
 
 const F = "w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-gray-800 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 placeholder:text-slate-400";
 
+const topicSchema = Yup.object().shape({
+  title: Yup.string().trim().required("Title is required"),
+  description: Yup.string().trim().required("Description is required"),
+});
+
+const subTopicSchema = Yup.object().shape({
+  title: Yup.string().trim().required("Title is required"),
+  description: Yup.string().trim().required("Description is required"),
+});
+
 /* ── Modal form ──────────────────────────────────────────────────────────── */
-function FormModal({ title, form, setForm, onSave, onClose, saving, fields = "topic" }) {
+function FormModal({ title, form, setForm, onSave, onClose, saving, errors = {}, setErrors }) {
+  const handleChange = (field, value) => {
+    setForm(p => ({ ...p, [field]: value }));
+    if (errors[field] && setErrors) {
+      setErrors(p => {
+        const next = { ...p };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
@@ -29,18 +51,20 @@ function FormModal({ title, form, setForm, onSave, onClose, saving, fields = "to
         <div className="px-6 py-5 space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1.5">Title *</label>
-            <input className={F} placeholder="e.g. Business Communication" value={form.title}
-              onChange={e => setForm(p => ({ ...p, title: e.target.value }))} />
+            <input className={`${F} ${errors.title ? "border-red-500 focus:ring-red-200" : ""}`} placeholder="e.g. Business Communication" value={form.title}
+              onChange={e => handleChange("title", e.target.value)} />
+            {errors.title && <p className="mt-1 text-xs text-red-500">{errors.title}</p>}
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Description</label>
-            <textarea className={`${F} resize-none`} rows={3} placeholder="Brief overview…" value={form.description}
-              onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Description {title.includes("SubTopic") ? "*" : ""}</label>
+            <textarea className={`${F} resize-none ${errors.description ? "border-red-500 focus:ring-red-200" : ""}`} rows={3} placeholder="Brief overview…" value={form.description}
+              onChange={e => handleChange("description", e.target.value)} />
+            {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description}</p>}
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1.5">Order</label>
             <input type="number" className={F} placeholder="1" value={form.order}
-              onChange={e => setForm(p => ({ ...p, order: e.target.value }))} />
+              onChange={e => handleChange("order", e.target.value)} />
           </div>
         </div>
         <div className="flex justify-end gap-3 px-6 pb-6 border-t border-slate-100 pt-4">
@@ -113,6 +137,7 @@ export default function CurriculumPage() {
   const [topicForm, setTopicForm] = useState({ title: "", description: "", order: "" });
   const [subForm, setSubForm] = useState({ title: "", description: "", order: "" });
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
 
   /* load topics */
   useEffect(() => {
@@ -165,11 +190,19 @@ export default function CurriculumPage() {
       setSubForm({ title: "", description: "", order: "" });
     }
   };
-  const closeModal = () => { setModal(null); setTarget(null); };
+  const closeModal = () => { setModal(null); setTarget(null); setErrors({}); };
 
   /* CRUD — topics */
   const saveTopic = async () => {
-    if (!topicForm.title.trim()) { Swal.fire({ icon: "warning", title: "Title required" }); return; }
+    try {
+      await topicSchema.validate(topicForm, { abortEarly: false });
+      setErrors({});
+    } catch (err) {
+      const validationErrors = {};
+      if (err.inner) err.inner.forEach(e => { validationErrors[e.path] = e.message; });
+      setErrors(validationErrors);
+      return;
+    }
     setSaving(true);
     try {
       const p = { title: topicForm.title, description: topicForm.description, order: +topicForm.order || 1 };
@@ -198,7 +231,15 @@ export default function CurriculumPage() {
 
   /* CRUD — subtopics */
   const saveSub = async () => {
-    if (!subForm.title.trim()) { Swal.fire({ icon: "warning", title: "Title required" }); return; }
+    try {
+      await subTopicSchema.validate(subForm, { abortEarly: false });
+      setErrors({});
+    } catch (err) {
+      const validationErrors = {};
+      if (err.inner) err.inner.forEach(e => { validationErrors[e.path] = e.message; });
+      setErrors(validationErrors);
+      return;
+    }
     setSaving(true);
     try {
       const p = { topic_id: selectedTopicId, title: subForm.title, description: subForm.description, order: +subForm.order || 1 };
@@ -412,6 +453,8 @@ export default function CurriculumPage() {
           onSave={saveTopic}
           onClose={closeModal}
           saving={saving}
+          errors={errors}
+          setErrors={setErrors}
         />
       )}
 
@@ -423,6 +466,8 @@ export default function CurriculumPage() {
           onSave={saveSub}
           onClose={closeModal}
           saving={saving}
+          errors={errors}
+          setErrors={setErrors}
         />
       )}
 

@@ -8,14 +8,13 @@ export const courseSchema = Yup.object({
     .min(3, "Course name must be at least 3 characters")
     .max(100, "Course name cannot exceed 100 characters"),
 
-  course_code: Yup.string()
-    .trim()
-    .required("Course code is required")
-    .matches(
-      /^[A-Z0-9_-]+$/,
-      "Course code can contain only uppercase letters, numbers, _ and -"
-    ),
-
+course_code: Yup.string()
+  .trim()
+  .required("Course code is required.")
+  .matches(
+    /^[A-Z0-9_-]+$/,
+    "Course code must contain only uppercase letters (A–Z), numbers (0–9), underscores (_), and hyphens (-)."
+  ),
   level: Yup.string()
     .oneOf(
       ["beginner", "intermediate", "advanced"],
