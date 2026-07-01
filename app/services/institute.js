@@ -39,14 +39,17 @@ export const getInstitutes = () => api.get("/api/institute");
 
 export const getInstituteById = (id) => api.get(`/api/institute/${id}`);
 
+// Content-Type is left unset (not "multipart/form-data") so the browser can
+// compute the required boundary param itself — setting it explicitly here
+// would omit the boundary and produce a request body the backend can't parse.
 export const createInstitute = (data) =>
   api.post("/api/institute", buildInstituteFormData(data), {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: { "Content-Type": undefined },
   });
 
 export const updateInstitute = (id, data) =>
   api.put(`/api/institute/${id}`, buildInstituteFormData(data), {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: { "Content-Type": undefined },
   });
 
 export const deleteInstitute = (id) => api.delete(`/api/institute/${id}`);

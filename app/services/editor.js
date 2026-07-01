@@ -29,9 +29,10 @@ export const getEditors = () => api.get("/api/editor");
 export const getEditorById = (id) => api.get(`/api/editor/${id}`);
 
 // POST /api/editor — multipart/form-data (profilePhoto file upload)
+// Content-Type left unset so the browser can compute the multipart boundary itself
 export const createEditor = (data) =>
   api.post("/api/editor", buildEditorFormData(data), {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: { "Content-Type": undefined },
   });
 
 // PUT /api/editor/:id — JSON body (no file, just profile fields + status)

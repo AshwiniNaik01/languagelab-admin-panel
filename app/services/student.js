@@ -17,7 +17,7 @@ export const getStudents = () => api.get("/api/student");
 
 export const createStudent = (data) =>
   api.post("/api/student", buildStudentFormData(data), {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: { "Content-Type": undefined },
   });
 
 export const updateStudent = (id, data) =>
