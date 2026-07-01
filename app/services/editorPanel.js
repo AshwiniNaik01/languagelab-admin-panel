@@ -3,7 +3,7 @@ import { cachedFetch, invalidateCache } from "../utils/apiCache";
 
 // ── Editor Profile ────────────────────────────────────────────────────────────
 export const getEditorProfile    = ()     => api.get("/api/editor/me");
-export const updateEditorProfile = (data) => api.put("/api/editor/me", data, { headers: { "Content-Type": "multipart/form-data" } });
+export const updateEditorProfile = (data) => api.put("/api/editor/me", data, { headers: { "Content-Type": undefined } });
 export const changeEditorPassword = (data) => api.put("/api/editor/me/change-password", data);
 
 // ── Courses ───────────────────────────────────────────────────────────────────
@@ -30,8 +30,8 @@ export const deleteSubTopic  = (id)            => api.delete(`/api/subtopic/${id
 // ── Modules ───────────────────────────────────────────────────────────────────
 export const getModules    = (type, subtopicId) => api.get(`/api/module/${type}?subtopic_id=${subtopicId}`);
 export const getModule     = (type, id)         => api.get(`/api/module/${type}/${id}`);
-export const createVideoModule      = (data)    => api.post("/api/module/video", data, { headers: { "Content-Type": "multipart/form-data" } });
-export const createAudioModule      = (data)    => api.post("/api/module/audio", data, { headers: { "Content-Type": "multipart/form-data" } });
+export const createVideoModule      = (data)    => api.post("/api/module/video", data, { headers: { "Content-Type": undefined } });
+export const createAudioModule      = (data)    => api.post("/api/module/audio", data, { headers: { "Content-Type": undefined } });
 export const createTextModule       = (data)    => api.post("/api/module/text", data);
 export const createExerciseModule   = (data)    => api.post("/api/module/exercise", data);
 export const createVocabularyModule = (data)    => api.post("/api/module/vocabulary", data);

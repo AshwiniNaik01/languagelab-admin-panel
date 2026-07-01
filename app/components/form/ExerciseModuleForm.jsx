@@ -1,34 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getTopics, getSubTopics } from "../../services/editorPanel";
-import { ChevronDown, Trash2, X } from "lucide-react";
+import { useState } from "react";
 import Button from "../ui/Button";
+import {
+  inp, inpErr, lbl, errTxt, Q_TYPES,
+  SectionDivider, useTopicSubtopic, TopicSubtopicSection, QuestionsEditor,
+} from "./shared/ModuleFormShared";
+import RichTextEditor from "./shared/RichTextEditor";
 
 const EXERCISE_TYPES = ["mcq", "fill_blank", "true_false", "match", "reorder"];
-const Q_TYPES        = ["mcq", "fill_blank", "true_false", "match", "reorder"];
 const DIFF_OPTIONS   = ["easy", "medium", "hard"];
-
-const inp = `w-full px-4 py-3 rounded-xl border bg-white text-gray-700 placeholder:text-gray-400
-  outline-none transition-all duration-200 text-sm
-  border-orange-300 hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200`;
-
-const inpErr = `w-full px-4 py-3 rounded-xl border bg-white text-gray-700 placeholder:text-gray-400
-  outline-none transition-all duration-200 text-sm
-  border-red-500 focus:ring-2 focus:ring-red-200`;
-
-const lbl    = "block mb-2 text-sm font-medium text-gray-700";
-const errTxt = "mt-1 text-xs text-red-500";
-
-function SectionDivider({ title }) {
-  return (
-    <div className="flex items-center gap-3 pt-2">
-      <div className="h-px flex-1 bg-orange-500/10" />
-      <p className="text-xs font-black text-[#3C1E0A]/50 uppercase tracking-widest shrink-0">{title}</p>
-      <div className="h-px flex-1 bg-orange-500/10" />
-    </div>
-  );
-}
 
 function err(show, msg) {
   return show ? <p className={errTxt}>{msg}</p> : null;
@@ -38,30 +19,7 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
   const [submitted, setSubmitted] = useState(false);
 
   /* ── Topic / SubTopic ──────────────────────────────────────────────────── */
-  const [topics,        setTopics]        = useState([]);
-  const [subtopics,     setSubtopics]     = useState([]);
-  const [selectedTopic, setSelectedTopic] = useState(initialData?.topic_id?._id || initialData?.topic_id || "");
-  const [selectedSub,   setSelectedSub]   = useState(initialData?.sub_topic_id?._id || initialData?.sub_topic_id || "");
-  const [loadingTopics, setLoadingTopics] = useState(!isEdit);
-
-  useEffect(() => {
-    if (isEdit) return;
-    (async () => {
-      try {
-        const r = await getTopics();
-        setTopics(Array.isArray(r.data?.data || r.data) ? (r.data?.data || r.data) : []);
-      } catch {} finally { setLoadingTopics(false); }
-    })();
-  }, [isEdit]);
-
-  const onTopicChange = async (id) => {
-    setSelectedTopic(id); setSelectedSub("");
-    if (!id) { setSubtopics([]); return; }
-    try {
-      const r = await getSubTopics(id);
-      setSubtopics(Array.isArray(r.data?.data || r.data) ? (r.data?.data || r.data) : []);
-    } catch { setSubtopics([]); }
-  };
+  const ts = useTopicSubtopic(initialData, isEdit);
 
   /* ── Module fields ─────────────────────────────────────────────────────── */
   const [f, setF] = useState({
@@ -79,6 +37,7 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
   });
   const set    = (k) => (e) => setF(p => ({ ...p, [k]: e.target.value }));
   const toggle = (k) => () => setF(p => ({ ...p, [k]: !p[k] }));
+  const setDescription = (html) => setF(p => ({ ...p, description: html }));
 
   /* ── Questions ─────────────────────────────────────────────────────────── */
   const [questions, setQuestions] = useState(
@@ -95,8 +54,8 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
 
   /* ── Validation helpers ────────────────────────────────────────────────── */
   const v = {
-    topic:       !selectedTopic,
-    sub:         !selectedSub,
+    topic:       !ts.selectedTopic,
+    sub:         !ts.selectedSub,
     title:       !f.title.trim(),
     order:       +f.order < 0,
     maxAttempts: +f.max_attempts < 1,
@@ -116,6 +75,19 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
     !Object.values(v).some(Boolean) &&
     qv.every(q => !q.text && !q.answer && !q.options && !q.marks && !q.negMark);
 
+  const questionErrorMessages = {
+    question_text:  "Question text is required",
+    correct_answer: "Correct answer is required",
+    options:        "At least 2 options are required",
+    marks:          "Must be 0 or greater",
+    negative_marks: "Must be 0 or greater",
+  };
+  const questionError = (i, field) => {
+    if (!submitted) return null;
+    const flagMap = { question_text: qv[i]?.text, correct_answer: qv[i]?.answer, options: qv[i]?.options, marks: qv[i]?.marks, negative_marks: qv[i]?.negMark };
+    return flagMap[field] ? questionErrorMessages[field] : null;
+  };
+
   /* ── Submit ────────────────────────────────────────────────────────────── */
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -123,8 +95,8 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
     if (!isValid()) return;
 
     onSubmit({
-      topic_id:          selectedTopic,
-      sub_topic_id:      selectedSub,
+      topic_id:          ts.selectedTopic,
+      sub_topic_id:      ts.selectedSub,
       title:             f.title.trim(),
       order:             +f.order || 1,
       exercise_type:     f.exercise_type,
@@ -150,44 +122,21 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
 
       {/* ── Topic & SubTopic ─────────────────────────────────────────────── */}
       <SectionDivider title="Topic & SubTopic" />
-      {isEdit && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-orange-50/60 border border-orange-200 rounded-xl px-4 py-3">
-            <p className="text-[10px] font-black text-orange-400 uppercase tracking-wider mb-1">Topic</p>
-            <p className="text-sm font-semibold text-gray-700">{initialData?.topic_id?.title || selectedTopic}</p>
-          </div>
-          <div className="bg-orange-50/60 border border-orange-200 rounded-xl px-4 py-3">
-            <p className="text-[10px] font-black text-orange-400 uppercase tracking-wider mb-1">SubTopic</p>
-            <p className="text-sm font-semibold text-gray-700">{initialData?.sub_topic_id?.title || selectedSub}</p>
-          </div>
-        </div>
-      )}
-      {!isEdit && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className={lbl}>Topic <span className="text-orange-500">*</span></label>
-            <div className="relative">
-              <select className={`${fc(s && v.topic)} cursor-pointer pr-9 appearance-none`} value={selectedTopic} onChange={e => onTopicChange(e.target.value)} disabled={loadingTopics}>
-                <option value="">— {loadingTopics ? "Loading…" : "Choose topic"} —</option>
-                {topics.map(t => <option key={t._id} value={t._id}>{t.title}</option>)}
-              </select>
-              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
-            </div>
-            {err(s && v.topic, "Please select a topic")}
-          </div>
-          <div className={!selectedTopic ? "opacity-40 pointer-events-none" : ""}>
-            <label className={lbl}>SubTopic <span className="text-orange-500">*</span></label>
-            <div className="relative">
-              <select className={`${fc(s && v.sub)} cursor-pointer pr-9 appearance-none`} value={selectedSub} onChange={e => setSelectedSub(e.target.value)} disabled={!selectedTopic}>
-                <option value="">— Choose subtopic —</option>
-                {subtopics.map(st => <option key={st._id} value={st._id}>{st.title}</option>)}
-              </select>
-              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
-            </div>
-            {err(s && v.sub, "Please select a subtopic")}
-          </div>
-        </div>
-      )}
+      <TopicSubtopicSection
+        isEdit={isEdit}
+        initialData={initialData}
+        topics={ts.topics}
+        subtopics={ts.subtopics}
+        loadingTopics={ts.loadingTopics}
+        selectedTopic={ts.selectedTopic}
+        selectedSub={ts.selectedSub}
+        onTopicChange={ts.onTopicChange}
+        onSubChange={ts.setSelectedSub}
+        topicClassName={fc(s && v.topic)}
+        subClassName={fc(s && v.sub)}
+        topicErrorNode={err(s && v.topic, "Please select a topic")}
+        subErrorNode={err(s && v.sub, "Please select a subtopic")}
+      />
 
       {/* ── Basic Info ───────────────────────────────────────────────────── */}
       <SectionDivider title="Basic Info" />
@@ -206,7 +155,7 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
       </div>
       <div>
         <label className={lbl}>Description</label>
-        <input className={inp} placeholder="Short description (optional)" value={f.description} onChange={set("description")} />
+        <RichTextEditor value={f.description} onChange={setDescription} placeholder="Short description (optional)" />
       </div>
 
       {/* ── Exercise Settings ────────────────────────────────────────────── */}
@@ -216,9 +165,8 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
           <label className={lbl}>Exercise Type <span className="text-orange-500">*</span></label>
           <div className="relative">
             <select className={`${inp} cursor-pointer pr-9 appearance-none`} value={f.exercise_type} onChange={set("exercise_type")}>
-              {EXERCISE_TYPES.map(t => <option key={t} value={t}>{t.replace(/_/g, " ")}</option>)}
+              {EXERCISE_TYPES.map(t => <option key={t} value={t}>{t.replace(/_/g, " ").toUpperCase()}</option>)}
             </select>
-            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
           </div>
         </div>
         <div>
@@ -227,7 +175,6 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
             <select className={`${inp} cursor-pointer pr-9 appearance-none`} value={f.difficulty} onChange={set("difficulty")}>
               {DIFF_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
-            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
           </div>
         </div>
       </div>
@@ -262,87 +209,18 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
       </div>
 
       {/* ── Questions ────────────────────────────────────────────────────── */}
-      <SectionDivider title="Questions" />
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-gray-700">
-          Exercise questions <span className="text-orange-500 text-xs font-semibold ml-1">(required — at least 1)</span>
-          {questions.length > 0 && <span className="ml-2 text-orange-500 font-bold">— {questions.length}</span>}
-        </p>
-        <Button type="button" variant="secondary" size="sm" onClick={addQ}>+ Add Question</Button>
-      </div>
-      {err(s && v.noQuestions, "At least one question is required")}
-
-      <div className="space-y-4">
-        {questions.map((q, i) => (
-          <div key={i} className={`rounded-2xl p-5 space-y-4 border ${s && (qv[i]?.text || qv[i]?.answer || qv[i]?.options) ? "bg-red-50/40 border-red-200" : "bg-orange-50/40 border-orange-200"}`}>
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-black text-orange-600 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">Question {i + 1}</span>
-              {questions.length > 1 && (
-                <button type="button" onClick={() => rmQ(i)} className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-semibold cursor-pointer"><Trash2 size={12} /> Remove</button>
-              )}
-            </div>
-            <div>
-              <label className={lbl}>Question Text <span className="text-orange-500">*</span></label>
-              <input className={fc(s && qv[i]?.text)} placeholder="Enter question…" value={q.question_text} onChange={e => updQ(i, "question_text", e.target.value)} />
-              {err(s && qv[i]?.text, "Question text is required")}
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className={lbl}>Type</label>
-                <div className="relative">
-                  <select className={`${inp} cursor-pointer pr-9 appearance-none`} value={q.question_type} onChange={e => updQ(i, "question_type", e.target.value)}>
-                    {Q_TYPES.map(t => <option key={t} value={t}>{t.replace(/_/g, " ")}</option>)}
-                  </select>
-                  <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
-                </div>
-              </div>
-              <div>
-                <label className={lbl}>Marks</label>
-                <input type="number" min={0} className={fc(s && qv[i]?.marks)} value={q.marks} onChange={e => updQ(i, "marks", +e.target.value)} />
-                {err(s && qv[i]?.marks, "Must be 0 or greater")}
-              </div>
-              <div>
-                <label className={lbl}>Negative Marks</label>
-                <input type="number" min={0} step={0.5} className={fc(s && qv[i]?.negMark)} value={q.negative_marks} onChange={e => updQ(i, "negative_marks", +e.target.value)} />
-                {err(s && qv[i]?.negMark, "Must be 0 or greater")}
-              </div>
-            </div>
-            {q.question_type === "mcq" && (
-              <div>
-                <label className={lbl}>Options</label>
-                {err(s && qv[i]?.options, "At least 2 options are required")}
-                <div className="space-y-2 mt-1">
-                  {q.options.map((o, oi) => (
-                    <div key={oi} className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 text-[10px] font-black flex items-center justify-center shrink-0">{String.fromCharCode(65 + oi)}</span>
-                      <input className={inp} placeholder={`Option ${oi + 1}`} value={o} onChange={e => updOpt(i, oi, e.target.value)} />
-                      {q.options.length > 2 && (
-                        <button type="button" onClick={() => rmOpt(i, oi)} className="text-red-400 hover:text-red-600 cursor-pointer shrink-0"><X size={14} /></button>
-                      )}
-                    </div>
-                  ))}
-                  <button type="button" onClick={() => addOpt(i)} className="text-xs text-orange-500 font-semibold cursor-pointer hover:text-orange-700 mt-1">+ Add Option</button>
-                </div>
-              </div>
-            )}
-            <div>
-              <label className={lbl}>Correct Answer <span className="text-orange-500">*</span></label>
-              <input className={fc(s && qv[i]?.answer)} placeholder="Enter correct answer" value={q.correct_answer} onChange={e => updQ(i, "correct_answer", e.target.value)} />
-              {err(s && qv[i]?.answer, "Correct answer is required")}
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={lbl}>Hint <span className="text-gray-400 font-normal">(optional)</span></label>
-                <input className={inp} placeholder="Give a hint" value={q.hint || ""} onChange={e => updQ(i, "hint", e.target.value)} />
-              </div>
-              <div>
-                <label className={lbl}>Explanation <span className="text-gray-400 font-normal">(optional)</span></label>
-                <input className={inp} placeholder="Why is this correct?" value={q.explanation || ""} onChange={e => updQ(i, "explanation", e.target.value)} />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <QuestionsEditor
+        questions={questions}
+        addQ={addQ} rmQ={rmQ} updQ={updQ} updOpt={updOpt} addOpt={addOpt} rmOpt={rmOpt}
+        qTypes={Q_TYPES}
+        getError={questionError}
+        title="Questions"
+        helperLabel="Exercise questions"
+        required
+        withNegativeMarks
+        withHint
+        topError={err(s && v.noQuestions, "At least one question is required")}
+      />
 
       {/* ── Actions ──────────────────────────────────────────────────────── */}
       <div className="flex justify-end gap-4 pt-4 border-t border-orange-500/10">

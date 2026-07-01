@@ -1,64 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getTopics, getSubTopics } from "../../services/editorPanel";
-import { ChevronDown, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import Button from "../ui/Button";
 import { videoModuleSchema, parseYupErrors } from "../../validations/moduleSchemas";
-
-const Q_TYPES      = ["mcq", "fill_blank", "true_false", "short_answer"];
-const POS_OPTIONS  = ["noun", "verb", "adjective", "adverb", "phrase"];
-const DIFF_OPTIONS = ["easy", "medium", "hard"];
-
-const inp = `w-full px-4 py-3 rounded-xl border bg-white text-gray-700 placeholder:text-gray-400
-  outline-none transition-all duration-200 text-sm
-  border-orange-300 hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200`;
-
-const inpErr = `w-full px-4 py-3 rounded-xl border bg-white text-gray-700 placeholder:text-gray-400
-  outline-none transition-all duration-200 text-sm
-  border-red-500 focus:ring-2 focus:ring-red-200`;
-
-const lbl    = "block mb-2 text-sm font-medium text-gray-700";
-const errTxt = "mt-1 text-xs text-red-500";
-
-function SectionDivider({ title }) {
-  return (
-    <div className="flex items-center gap-3 pt-2">
-      <div className="h-px flex-1 bg-orange-500/10" />
-      <p className="text-xs font-black text-[#3C1E0A]/50 uppercase tracking-widest shrink-0">{title}</p>
-      <div className="h-px flex-1 bg-orange-500/10" />
-    </div>
-  );
-}
+import {
+  inp, inpErr, lbl, errTxt, Q_TYPES,
+  SectionDivider, useTopicSubtopic, TopicSubtopicSection, WordsEditor, QuestionsEditor,
+} from "./shared/ModuleFormShared";
+import RichTextEditor from "./shared/RichTextEditor";
 
 export default function VideoModuleForm({ onSubmit, onCancel, saving = false, initialData = null, isEdit = false }) {
   const [errors, setErrors] = useState({});
 
   /* ── Topic / SubTopic ──────────────────────────────────────────────────── */
-  const [topics,        setTopics]        = useState([]);
-  const [subtopics,     setSubtopics]     = useState([]);
-  const [selectedTopic, setSelectedTopic] = useState(initialData?.topic_id?._id || initialData?.topic_id || "");
-  const [selectedSub,   setSelectedSub]   = useState(initialData?.sub_topic_id?._id || initialData?.sub_topic_id || "");
-  const [loadingTopics, setLoadingTopics] = useState(!isEdit);
-
-  useEffect(() => {
-    if (isEdit) return;
-    (async () => {
-      try {
-        const r = await getTopics();
-        setTopics(Array.isArray(r.data?.data || r.data) ? (r.data?.data || r.data) : []);
-      } catch {} finally { setLoadingTopics(false); }
-    })();
-  }, [isEdit]);
-
+  const ts = useTopicSubtopic(initialData, isEdit);
   const onTopicChange = async (id) => {
-    setSelectedTopic(id); setSelectedSub("");
+    await ts.onTopicChange(id);
     clr("topic_id"); clr("sub_topic_id");
-    if (!id) { setSubtopics([]); return; }
-    try {
-      const r = await getSubTopics(id);
-      setSubtopics(Array.isArray(r.data?.data || r.data) ? (r.data?.data || r.data) : []);
-    } catch { setSubtopics([]); }
   };
 
   /* ── Module fields ─────────────────────────────────────────────────────── */
@@ -76,6 +35,7 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
   });
   const [videoFile, setVideoFile] = useState(null);
   const set = (k) => (e) => { setF(p => ({ ...p, [k]: e.target.value })); clr(k); };
+  const setDescription = (html) => { setF(p => ({ ...p, description: html })); clr("description"); };
 
   /* ── Words ─────────────────────────────────────────────────────────────── */
   const [words, setWords] = useState(
@@ -85,6 +45,7 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
   const addW    = ()        => setWords(p => [...p, blankW()]);
   const rmW     = (i)       => setWords(p => p.filter((_, idx) => idx !== i));
   const updW    = (i, k, v) => setWords(p => p.map((w, idx) => idx === i ? { ...w, [k]: v } : w));
+  const wordError = (i, field) => e(`words[${i}].${field}`);
 
   /* ── Questions ─────────────────────────────────────────────────────────── */
   const [questions, setQuestions] = useState(
@@ -97,6 +58,7 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
   const updOpt  = (qi, oi, v) => setQuestions(p => p.map((q, idx) => idx === qi ? { ...q, options: q.options.map((o, odx) => odx === oi ? v : o) } : q));
   const addOpt  = (qi)        => setQuestions(p => p.map((q, idx) => idx === qi ? { ...q, options: [...q.options, ""] } : q));
   const rmOpt   = (qi, oi)    => setQuestions(p => p.map((q, idx) => idx === qi ? { ...q, options: q.options.filter((_, odx) => odx !== oi) } : q));
+  const questionError = (i, field) => e(`questions[${i}].${field}`);
 
   /* ── Helpers ───────────────────────────────────────────────────────────── */
   const clr    = (path) => setErrors(p => { const n = { ...p }; delete n[path]; return n; });
@@ -109,8 +71,8 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
     evt.preventDefault();
 
     const data = {
-      topic_id:     selectedTopic,
-      sub_topic_id: selectedSub,
+      topic_id:     ts.selectedTopic,
+      sub_topic_id: ts.selectedSub,
       title:        f.title,
       description:  f.description,
       order:        f.order === "" ? 0 : +f.order,
@@ -138,8 +100,8 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
     }
 
     const fd = new FormData();
-    fd.append("topic_id",     selectedTopic);
-    fd.append("sub_topic_id", selectedSub);
+    fd.append("topic_id",     ts.selectedTopic);
+    fd.append("sub_topic_id", ts.selectedSub);
     fd.append("title",        f.title.trim());
     fd.append("order",        +f.order || 0);
     if (f.description.trim()) fd.append("description", f.description.trim());
@@ -168,44 +130,21 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
 
       {/* ── Topic & SubTopic ─────────────────────────────────────────────── */}
       <SectionDivider title="Topic & SubTopic" />
-      {isEdit && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-orange-50/60 border border-orange-200 rounded-xl px-4 py-3">
-            <p className="text-[10px] font-black text-orange-400 uppercase tracking-wider mb-1">Topic</p>
-            <p className="text-sm font-semibold text-gray-700">{initialData?.topic_id?.title || selectedTopic}</p>
-          </div>
-          <div className="bg-orange-50/60 border border-orange-200 rounded-xl px-4 py-3">
-            <p className="text-[10px] font-black text-orange-400 uppercase tracking-wider mb-1">SubTopic</p>
-            <p className="text-sm font-semibold text-gray-700">{initialData?.sub_topic_id?.title || selectedSub}</p>
-          </div>
-        </div>
-      )}
-      {!isEdit && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className={lbl}>Topic <span className="text-orange-500">*</span></label>
-            <div className="relative">
-              <select className={`${fc("topic_id")} cursor-pointer pr-9 appearance-none`} value={selectedTopic} onChange={e => onTopicChange(e.target.value)} disabled={loadingTopics}>
-                <option value="">— {loadingTopics ? "Loading…" : "Choose topic"} —</option>
-                {topics.map(t => <option key={t._id} value={t._id}>{t.title}</option>)}
-              </select>
-              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
-            </div>
-            {errMsg("topic_id")}
-          </div>
-          <div className={!selectedTopic ? "opacity-40 pointer-events-none" : ""}>
-            <label className={lbl}>SubTopic <span className="text-orange-500">*</span></label>
-            <div className="relative">
-              <select className={`${fc("sub_topic_id")} cursor-pointer pr-9 appearance-none`} value={selectedSub} onChange={e => { setSelectedSub(e.target.value); clr("sub_topic_id"); }} disabled={!selectedTopic}>
-                <option value="">— Choose subtopic —</option>
-                {subtopics.map(s => <option key={s._id} value={s._id}>{s.title}</option>)}
-              </select>
-              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
-            </div>
-            {errMsg("sub_topic_id")}
-          </div>
-        </div>
-      )}
+      <TopicSubtopicSection
+        isEdit={isEdit}
+        initialData={initialData}
+        topics={ts.topics}
+        subtopics={ts.subtopics}
+        loadingTopics={ts.loadingTopics}
+        selectedTopic={ts.selectedTopic}
+        selectedSub={ts.selectedSub}
+        onTopicChange={onTopicChange}
+        onSubChange={(id) => { ts.setSelectedSub(id); clr("sub_topic_id"); }}
+        topicClassName={fc("topic_id")}
+        subClassName={fc("sub_topic_id")}
+        topicErrorNode={errMsg("topic_id")}
+        subErrorNode={errMsg("sub_topic_id")}
+      />
 
       {/* ── Basic Info ───────────────────────────────────────────────────── */}
       <SectionDivider title="Basic Info" />
@@ -216,7 +155,7 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
       </div>
       <div>
         <label className={lbl}>Description</label>
-        <input className={inp} placeholder="Short description (optional)" value={f.description} onChange={set("description")} />
+        <RichTextEditor value={f.description} onChange={setDescription} placeholder="Short description (optional)" error={!!e("description")} />
         {errMsg("description")}
       </div>
       <div>
@@ -256,7 +195,12 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
       </div>
       <div>
         <label className={lbl}>Transcript <span className="text-gray-400 font-normal">(optional)</span></label>
-        <textarea className={`${inp} resize-none`} rows={4} placeholder="Full transcript of the video…" value={f.transcript} onChange={set("transcript")} />
+        <RichTextEditor
+          value={f.transcript}
+          onChange={(html) => { setF(p => ({ ...p, transcript: html })); clr("transcript"); }}
+          placeholder="Full transcript of the video…"
+          minHeight={160}
+        />
       </div>
       <div>
         <label className={lbl}>Video File <span className="text-orange-500">*</span> <span className="text-gray-400 font-normal text-xs">(.mp4, .webm)</span></label>
@@ -289,134 +233,20 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
       </div>
 
       {/* ── Words ────────────────────────────────────────────────────────── */}
-      <SectionDivider title="Vocabulary Words" />
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-gray-700">Key vocabulary words <span className="text-gray-400 font-normal">(optional)</span>{words.length > 0 && <span className="ml-2 text-orange-500 font-bold">— {words.length}</span>}</p>
-        <Button type="button" variant="secondary" size="sm" onClick={addW}>+ Add Word</Button>
-      </div>
-      {words.length === 0 ? (
-        <div className="text-center py-6 border-2 border-dashed border-orange-200 rounded-2xl text-slate-400 text-sm">No words yet — click <span className="font-semibold text-orange-400">Add Word</span>.</div>
-      ) : (
-        <div className="space-y-4">
-          {words.map((w, i) => (
-            <div key={i} className={`rounded-2xl p-5 space-y-4 border ${(e(`words[${i}].word`) || e(`words[${i}].meaning`)) ? "bg-red-50/40 border-red-200" : "bg-orange-50/40 border-orange-200"}`}>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-black text-orange-600 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">Word {i + 1}</span>
-                <button type="button" onClick={() => rmW(i)} className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-semibold cursor-pointer"><Trash2 size={12} /> Remove</button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className={lbl}>Word <span className="text-orange-500">*</span></label>
-                  <input className={e(`words[${i}].word`) ? inpErr : inp} placeholder="e.g. Eloquent" value={w.word} onChange={ev => updW(i, "word", ev.target.value)} />
-                  {e(`words[${i}].word`) && <p className={errTxt}>{e(`words[${i}].word`)}</p>}
-                </div>
-                <div>
-                  <label className={lbl}>Meaning <span className="text-orange-500">*</span></label>
-                  <input className={e(`words[${i}].meaning`) ? inpErr : inp} placeholder="Definition" value={w.meaning} onChange={ev => updW(i, "meaning", ev.target.value)} />
-                  {e(`words[${i}].meaning`) && <p className={errTxt}>{e(`words[${i}].meaning`)}</p>}
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className={lbl}>Pronunciation</label>
-                  <input className={inp} placeholder="e.g. EL-oh-kwent" value={w.pronunciation || ""} onChange={ev => updW(i, "pronunciation", ev.target.value)} />
-                </div>
-                <div>
-                  <label className={lbl}>Part of Speech</label>
-                  <div className="relative">
-                    <select className={`${inp} cursor-pointer pr-9 appearance-none`} value={w.part_of_speech} onChange={ev => updW(i, "part_of_speech", ev.target.value)}>
-                      {POS_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
-                    </select>
-                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
-                  </div>
-                </div>
-                <div>
-                  <label className={lbl}>Difficulty</label>
-                  <div className="relative">
-                    <select className={`${inp} cursor-pointer pr-9 appearance-none`} value={w.difficulty} onChange={ev => updW(i, "difficulty", ev.target.value)}>
-                      {DIFF_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label className={lbl}>Example Sentence</label>
-                <input className={inp} placeholder="Optional example" value={w.example || ""} onChange={ev => updW(i, "example", ev.target.value)} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <WordsEditor words={words} addW={addW} rmW={rmW} updW={updW} getError={wordError} />
 
       {/* ── Questions ────────────────────────────────────────────────────── */}
-      <SectionDivider title="Questions" />
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-gray-700">Comprehension questions <span className="text-gray-400 font-normal">(optional)</span>{questions.length > 0 && <span className="ml-2 text-orange-500 font-bold">— {questions.length}</span>}</p>
-        <Button type="button" variant="secondary" size="sm" onClick={addQ}>+ Add Question</Button>
-      </div>
-      {questions.length === 0 ? (
-        <div className="text-center py-6 border-2 border-dashed border-orange-200 rounded-2xl text-slate-400 text-sm">No questions yet — click <span className="font-semibold text-orange-400">Add Question</span>.</div>
-      ) : (
-        <div className="space-y-4">
-          {questions.map((q, i) => {
-            const qe = (k) => e(`questions[${i}].${k}`);
-            return (
-              <div key={i} className={`rounded-2xl p-5 space-y-4 border ${qe("question_text") || qe("correct_answer") ? "bg-red-50/40 border-red-200" : "bg-orange-50/40 border-orange-200"}`}>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-black text-orange-600 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">Question {i + 1}</span>
-                  <button type="button" onClick={() => rmQ(i)} className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-semibold cursor-pointer"><Trash2 size={12} /> Remove</button>
-                </div>
-                <div>
-                  <label className={lbl}>Question Text <span className="text-orange-500">*</span></label>
-                  <input className={qe("question_text") ? inpErr : inp} placeholder="Enter question…" value={q.question_text} onChange={ev => updQ(i, "question_text", ev.target.value)} />
-                  {qe("question_text") && <p className={errTxt}>{qe("question_text")}</p>}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className={lbl}>Type</label>
-                    <div className="relative">
-                      <select className={`${inp} cursor-pointer pr-9 appearance-none`} value={q.question_type} onChange={ev => updQ(i, "question_type", ev.target.value)}>
-                        {Q_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className={lbl}>Marks</label>
-                    <input type="number" min={0} className={inp} value={q.marks} onChange={ev => updQ(i, "marks", +ev.target.value)} />
-                  </div>
-                </div>
-                {q.question_type === "mcq" && (
-                  <div>
-                    <label className={lbl}>Options</label>
-                    {qe("options") && <p className={errTxt}>{qe("options")}</p>}
-                    <div className="space-y-2 mt-1">
-                      {q.options.map((o, oi) => (
-                        <div key={oi} className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 text-[10px] font-black flex items-center justify-center shrink-0">{String.fromCharCode(65 + oi)}</span>
-                          <input className={inp} placeholder={`Option ${oi + 1}`} value={o} onChange={ev => updOpt(i, oi, ev.target.value)} />
-                          {q.options.length > 2 && <button type="button" onClick={() => rmOpt(i, oi)} className="text-red-400 hover:text-red-600 cursor-pointer shrink-0"><X size={14} /></button>}
-                        </div>
-                      ))}
-                      <button type="button" onClick={() => addOpt(i)} className="text-xs text-orange-500 font-semibold cursor-pointer hover:text-orange-700 mt-1">+ Add Option</button>
-                    </div>
-                  </div>
-                )}
-                <div>
-                  <label className={lbl}>Correct Answer <span className="text-orange-500">*</span></label>
-                  <input className={qe("correct_answer") ? inpErr : inp} placeholder="Enter correct answer" value={q.correct_answer} onChange={ev => updQ(i, "correct_answer", ev.target.value)} />
-                  {qe("correct_answer") && <p className={errTxt}>{qe("correct_answer")}</p>}
-                </div>
-                <div>
-                  <label className={lbl}>Explanation <span className="text-gray-400 font-normal">(optional)</span></label>
-                  <input className={inp} placeholder="Why is this correct?" value={q.explanation || ""} onChange={ev => updQ(i, "explanation", ev.target.value)} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <QuestionsEditor
+        questions={questions}
+        addQ={addQ} rmQ={rmQ} updQ={updQ} updOpt={updOpt} addOpt={addOpt} rmOpt={rmOpt}
+        qTypes={Q_TYPES}
+        getError={questionError}
+        title="Questions"
+        helperLabel="Comprehension questions"
+        emptyMessage={
+          <div className="text-center py-6 border-2 border-dashed border-orange-200 rounded-2xl text-slate-400 text-sm">No questions yet — click <span className="font-semibold text-orange-400">Add Question</span>.</div>
+        }
+      />
 
       {/* ── Actions ──────────────────────────────────────────────────────── */}
       <div className="flex justify-end gap-4 pt-4 border-t border-orange-500/10">

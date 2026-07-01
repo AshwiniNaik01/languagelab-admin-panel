@@ -14,7 +14,7 @@ export const updateProfile = (data) => {
     fd.append("existing_profileImage", data.profileImage);
   }
   return api.put("/api/super-admin/profile", fd, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: { "Content-Type": undefined },
   });
 };
 

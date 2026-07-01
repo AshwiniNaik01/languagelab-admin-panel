@@ -169,8 +169,10 @@ export default function InstituteForm({
   const setAddr = (field, val) => setAddressData((prev) => ({ ...prev, [field]: val }));
 
   // Multi-select state for courses
+  // (the API returns assigned courses as `courses` — full objects — on fetch,
+  // but `course_id` — plain IDs — on the create/edit payload; accept either)
   const [selectedCourseIds, setSelectedCourseIds] = useState(
-    normaliseCourseIds(initialData.course_id),
+    normaliseCourseIds(initialData.course_id ?? initialData.courses),
   );
 
   const toggleCourse = (id) => {

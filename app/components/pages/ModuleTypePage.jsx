@@ -10,17 +10,21 @@ import EmptyState from "../ui/EmptyState";
 import Breadcrumb from "../ui/Breadcrumb";
 import { ActionButton } from "../ui/ActionIconButton";
 import Button from "../ui/Button";
+import { Q_TYPES as QUESTION_TYPES_ALL } from "../form/shared/ModuleFormShared";
 import {
   getTopics,
   getSubTopics,
   getModule,
   getModules,
   deleteModule,
+  updateModule,
   createTextModule,
   createExerciseModule,
   createVocabularyModule,
   createVideoModule,
   createAudioModule,
+  createTopic,
+  createSubTopic,
 } from "../../services/editorPanel";
 import {
   Video,
@@ -185,7 +189,7 @@ function QuestionsSection({
               >
                 {qtypes.map((t) => (
                   <option key={t} value={t}>
-                    {t}
+                    {t.replace(/_/g, " ").toUpperCase()}
                   </option>
                 ))}
               </select>
@@ -492,8 +496,9 @@ function TextForm({ topicId, subtopicId, onDone, onCancel }) {
         <label className="block text-xs font-semibold text-slate-600 mb-1">
           Description
         </label>
-        <input
-          className={inp}
+        <textarea
+          className={`${inp} resize-none`}
+          rows={3}
           placeholder="Short description (optional)"
           value={f.description}
           onChange={set("description")}
@@ -1255,7 +1260,7 @@ function VocabForm({ topicId, subtopicId, onDone, onCancel }) {
   );
 }
 
-function FormBtns({ saving, onCancel }) {
+function FormBtns({ saving, onCancel, label = "Create Module" }) {
   return (
     <div className="flex gap-3 pt-3 border-t border-slate-200">
       <button
@@ -1263,7 +1268,7 @@ function FormBtns({ saving, onCancel }) {
         disabled={saving}
         className="flex items-center gap-2 px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition cursor-pointer disabled:opacity-50"
       >
-        <Check size={15} /> {saving ? "Creating…" : "Create Module"}
+        <Check size={15} /> {saving ? "Creating…" : label}
       </button>
       <button
         type="button"
@@ -1289,13 +1294,33 @@ function InfoRow({ label, value }) {
   );
 }
 
+/* Strips HTML tags down to plain text, for places that can't render markup (e.g. the header banner) */
+function stripHtml(html) {
+  if (!html) return "";
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/* Renders CKEditor-produced HTML content safely within a styled card */
+function RichHtml({ html, className = "" }) {
+  if (!html) return null;
+  return (
+    <div
+      className={`text-sm text-slate-700 leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 ${className}`}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
 function ViewModal({ mod, meta, loading, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div
-          className={`flex items-center justify-between px-6 py-4 ${meta.color}`}
+          className={`flex items-center justify-between px-6 py-4 shrink-0 ${meta.color}`}
         >
           <div className="flex items-center gap-3">
             <meta.icon size={18} className="text-white" />
@@ -1303,7 +1328,7 @@ function ViewModal({ mod, meta, loading, onClose }) {
               <p className="font-black text-white text-base">{mod.title}</p>
               {mod.description && (
                 <p className="text-white/70 text-xs mt-0.5">
-                  {mod.description}
+                  {stripHtml(mod.description)}
                 </p>
               )}
             </div>
@@ -1317,7 +1342,7 @@ function ViewModal({ mod, meta, loading, onClose }) {
         </div>
 
         {loading && (
-          <div className="flex items-center justify-center py-10 gap-3 text-slate-400 text-sm">
+          <div className="flex items-center justify-center py-10 gap-3 text-slate-400 text-sm shrink-0">
             <svg
               className="animate-spin w-5 h-5 text-orange-500"
               fill="none"
@@ -1342,7 +1367,7 @@ function ViewModal({ mod, meta, loading, onClose }) {
         )}
 
         <div
-          className={`px-6 py-5 space-y-4 max-h-[75vh] overflow-y-auto ${loading ? "opacity-40 pointer-events-none" : ""}`}
+          className={`px-6 py-5 space-y-4 flex-1 min-h-0 overflow-y-auto ${loading ? "opacity-40 pointer-events-none" : ""}`}
         >
           {/* ── Basic Info ─────────────────────────────────────────────── */}
           <div className="grid grid-cols-3 gap-3">
@@ -1375,9 +1400,7 @@ function ViewModal({ mod, meta, loading, onClose }) {
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-2">
                     Content Body
                   </p>
-                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap line-clamp-6">
-                    {mod.content.body}
-                  </p>
+                  <RichHtml html={mod.content.body} className="line-clamp-6" />
                 </div>
               )}
             </>
@@ -1413,9 +1436,10 @@ function ViewModal({ mod, meta, loading, onClose }) {
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-2">
                     Transcript
                   </p>
-                  <p className="text-sm text-slate-700 leading-relaxed line-clamp-6">
-                    {mod.video.transcript}
-                  </p>
+                  <RichHtml
+                    html={mod.video.transcript}
+                    className="line-clamp-6"
+                  />
                 </div>
               )}
             </>
@@ -1464,9 +1488,10 @@ function ViewModal({ mod, meta, loading, onClose }) {
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-2">
                     Transcript
                   </p>
-                  <p className="text-sm text-slate-700 leading-relaxed line-clamp-6">
-                    {mod.audio.transcript}
-                  </p>
+                  <RichHtml
+                    html={mod.audio.transcript}
+                    className="line-clamp-6"
+                  />
                 </div>
               )}
             </>
@@ -1573,24 +1598,26 @@ function ViewModal({ mod, meta, loading, onClose }) {
                     <p className="text-sm font-semibold text-slate-800">
                       {q.question_text}
                     </p>
-                    {q.options?.length > 0 && (
-                      <div className="mt-1.5 space-y-0.5">
-                        {q.options.map((o, oi) => (
-                          <p
-                            key={oi}
-                            className={`text-xs px-2 py-0.5 rounded ${o === q.correct_answer ? "bg-green-100 text-green-700 font-bold" : "text-slate-500"}`}
-                          >
-                            {String.fromCharCode(65 + oi)}. {o}
-                          </p>
-                        ))}
-                      </div>
-                    )}
+                    {q.question_type === "mcq" &&
+                      q.options?.some((o) => o.trim()) && (
+                        <div className="mt-1.5 space-y-0.5">
+                          {q.options.map((o, oi) => (
+                            <p
+                              key={oi}
+                              className={`text-xs px-2 py-0.5 rounded ${o === q.correct_answer ? "bg-green-100 text-green-700 font-bold" : "text-slate-500"}`}
+                            >
+                              {String.fromCharCode(65 + oi)}. {o}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     <p className="text-[11px] text-green-600 font-semibold mt-1">
                       ✓ {q.correct_answer}
                     </p>
                     {q.explanation && (
                       <p className="text-[11px] text-slate-400 mt-0.5">
-                        Explanation: {q.explanation}
+                        <span className="font-semibold">Explanation:</span>{" "}
+                        {stripHtml(q.explanation)}
                       </p>
                     )}
                   </div>
@@ -1600,7 +1627,7 @@ function ViewModal({ mod, meta, loading, onClose }) {
           )}
         </div>
 
-        <div className="px-6 pb-5">
+        <div className="px-6 pb-5 pt-3 shrink-0">
           <Button variant="secondary" onClick={onClose} className="w-full">
             Close
           </Button>
@@ -1610,6 +1637,333 @@ function ViewModal({ mod, meta, loading, onClose }) {
   );
 }
 
+/* ── Quick-add form: Topic / SubTopic ────────────────────────────────────── */
+function QuickAddForm({ label, onSave, onCancel }) {
+  const [f, setF] = useState({ title: "", description: "", order: 1 });
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!f.title.trim()) {
+      Swal.fire({ icon: "warning", title: "Title is required" });
+      return;
+    }
+    setSaving(true);
+    try {
+      await onSave({
+        title: f.title.trim(),
+        description: f.description.trim(),
+        order: +f.order || 1,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="space-y-3">
+      <div>
+        <label className="block text-xs font-semibold text-slate-600 mb-1">
+          Title <span className="text-red-500">*</span>
+        </label>
+        <input
+          className={inp}
+          placeholder={`${label} title`}
+          value={f.title}
+          onChange={(e) => setF((p) => ({ ...p, title: e.target.value }))}
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-semibold text-slate-600 mb-1">
+          Description
+        </label>
+        <textarea
+          className={`${inp} resize-none`}
+          rows={3}
+          placeholder="Optional"
+          value={f.description}
+          onChange={(e) => setF((p) => ({ ...p, description: e.target.value }))}
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-semibold text-slate-600 mb-1">
+          Order
+        </label>
+        <input
+          type="number"
+          min={1}
+          className={inp}
+          value={f.order}
+          onChange={(e) => setF((p) => ({ ...p, order: e.target.value }))}
+        />
+      </div>
+      <FormBtns saving={saving} onCancel={onCancel} label={`Create ${label}`} />
+    </form>
+  );
+}
+
+/* ── Quick-add Question: builds a full update payload from the fetched module
+   so existing fields (topic, content, settings, etc.) aren't lost on save ──── */
+
+function buildQuestionsUpdatePayload(type, mod, newQuestions) {
+  const topic_id = mod.topic_id?._id || mod.topic_id;
+  const sub_topic_id = mod.sub_topic_id?._id || mod.sub_topic_id;
+  const questions = [...(mod.questions || []), ...newQuestions];
+
+  if (type === "text") {
+    return {
+      topic_id,
+      sub_topic_id,
+      title: mod.title,
+      order: mod.order ?? 0,
+      ...(mod.description && { description: mod.description }),
+      content: {
+        body: mod.content?.body,
+        level: mod.content?.level,
+        ...(mod.content?.word_count != null && {
+          word_count: mod.content.word_count,
+        }),
+        ...(mod.content?.read_time_min != null && {
+          read_time_min: mod.content.read_time_min,
+        }),
+        ...(mod.content?.source && { source: mod.content.source }),
+      },
+      ...(mod.total_marks != null && { total_marks: mod.total_marks }),
+      ...(mod.time_limit_sec != null && { time_limit_sec: mod.time_limit_sec }),
+      max_attempts: mod.max_attempts ?? 3,
+      questions,
+    };
+  }
+  if (type === "exercise") {
+    return {
+      topic_id,
+      sub_topic_id,
+      title: mod.title,
+      order: mod.order ?? 1,
+      exercise_type: mod.exercise_type,
+      difficulty: mod.difficulty,
+      max_attempts: mod.max_attempts ?? 5,
+      shuffle_questions: mod.shuffle_questions ?? true,
+      shuffle_options: mod.shuffle_options ?? true,
+      show_explanation: mod.show_explanation ?? true,
+      ...(mod.total_marks && { total_marks: mod.total_marks }),
+      ...(mod.time_limit_sec && { time_limit_sec: mod.time_limit_sec }),
+      questions,
+    };
+  }
+  if (type === "vocabulary") {
+    return {
+      topic_id,
+      sub_topic_id,
+      title: mod.title,
+      order: mod.order ?? 1,
+      max_attempts: mod.max_attempts ?? 5,
+      ...(mod.description && { description: mod.description }),
+      ...(mod.total_marks != null && { total_marks: mod.total_marks }),
+      ...(mod.time_limit_sec != null && { time_limit_sec: mod.time_limit_sec }),
+      words: mod.words || [],
+      questions,
+    };
+  }
+  return null;
+}
+
+function QuickAddQuestionModal({ type, row, onClose, onSaved }) {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [mod, setMod] = useState(null);
+  const [questions, setQuestions] = useState([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await getModule(type, row._id);
+        setMod(r.data?.data || r.data);
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Failed to load module",
+          text: err?.response?.data?.message || err.message,
+        });
+        onClose();
+      } finally {
+        setLoading(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    const validQs = questions.filter(
+      (q) => q.question_text.trim() && q.correct_answer.trim(),
+    );
+    if (validQs.length === 0) {
+      Swal.fire({ icon: "warning", title: "Add at least one question" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = buildQuestionsUpdatePayload(type, mod, validQs);
+      await updateModule(type, row._id, payload);
+      onSaved();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: err?.response?.data?.message || err.message,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const qtypes = QUESTION_TYPES_ALL;
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 bg-orange-500">
+          <p className="font-black text-white truncate">
+            Add Question — {row.title}
+          </p>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer font-black shrink-0"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">
+          {loading ? (
+            <p className="text-sm text-slate-400 text-center py-8">
+              Loading module…
+            </p>
+          ) : (
+            <form onSubmit={submit} className="space-y-3">
+              <QuestionsSection
+                questions={questions}
+                setQuestions={setQuestions}
+                qtypes={qtypes}
+                withNegativeMarks={type === "exercise"}
+              />
+              <FormBtns
+                saving={saving}
+                onCancel={onClose}
+                label="Add Question(s)"
+              />
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Quick-add Word: same full-payload-merge approach as Questions, only
+   safe for module types whose update doesn't require re-uploading a file ──── */
+function buildWordsUpdatePayload(type, mod, newWords) {
+  if (type !== "vocabulary") return null;
+  const topic_id = mod.topic_id?._id || mod.topic_id;
+  const sub_topic_id = mod.sub_topic_id?._id || mod.sub_topic_id;
+  const words = [...(mod.words || []), ...newWords];
+
+  return {
+    topic_id,
+    sub_topic_id,
+    title: mod.title,
+    order: mod.order ?? 1,
+    max_attempts: mod.max_attempts ?? 5,
+    ...(mod.description && { description: mod.description }),
+    ...(mod.total_marks != null && { total_marks: mod.total_marks }),
+    ...(mod.time_limit_sec != null && { time_limit_sec: mod.time_limit_sec }),
+    words,
+    ...(mod.questions?.length > 0 && { questions: mod.questions }),
+  };
+}
+
+function QuickAddWordModal({ type, row, onClose, onSaved }) {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [mod, setMod] = useState(null);
+  const [words, setWords] = useState([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await getModule(type, row._id);
+        setMod(r.data?.data || r.data);
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Failed to load module",
+          text: err?.response?.data?.message || err.message,
+        });
+        onClose();
+      } finally {
+        setLoading(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    const validWords = words.filter((w) => w.word.trim() && w.meaning.trim());
+    if (validWords.length === 0) {
+      Swal.fire({ icon: "warning", title: "Add at least one word" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = buildWordsUpdatePayload(type, mod, validWords);
+      await updateModule(type, row._id, payload);
+      onSaved();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: err?.response?.data?.message || err.message,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 bg-orange-500">
+          <p className="font-black text-white truncate">
+            Add Word — {row.title}
+          </p>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer font-black shrink-0"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">
+          {loading ? (
+            <p className="text-sm text-slate-400 text-center py-8">
+              Loading module…
+            </p>
+          ) : (
+            <form onSubmit={submit} className="space-y-3">
+              <WordsSection words={words} setWords={setWords} withDetails />
+              <FormBtns
+                saving={saving}
+                onCancel={onClose}
+                label="Add Word(s)"
+              />
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ── Shared page used by each module type ────────────────────────────────── */
 export default function ModuleTypePage({ type, addUrl }) {
@@ -1627,24 +1981,37 @@ export default function ModuleTypePage({ type, addUrl }) {
   const [showForm, setShowForm] = useState(searchParams.get("add") === "1");
   const [viewingMod, setViewingMod] = useState(null);
   const [viewLoading, setViewLoading] = useState(false);
+  const [showAddTopic, setShowAddTopic] = useState(false);
+  const [showAddSub, setShowAddSub] = useState(false);
+  const [quickAddRow, setQuickAddRow] = useState(null);
+  const [quickAddWordRow, setQuickAddWordRow] = useState(null);
 
-  const handleView = useCallback(async (row) => {
-    setViewLoading(true);
-    setViewingMod(row);
-    try {
-      const r = await getModule(type, row._id);
-      const full = r.data?.data || r.data;
-      if (full) setViewingMod(full);
-    } catch {
-    } finally {
-      setViewLoading(false);
-    }
-  }, [type]);
+  const canQuickAddQuestion = ["text", "exercise", "vocabulary"].includes(type);
+  const showWordsColumn = ["audio", "video", "vocabulary"].includes(type);
+  const canQuickAddWord = type === "vocabulary";
 
-  const handleEdit = useCallback((row) => {
-    router.push(`/editor/modules/${type}/new?id=${row._id}`);
-  }, [router, type]);
+  const handleView = useCallback(
+    async (row) => {
+      setViewLoading(true);
+      setViewingMod(row);
+      try {
+        const r = await getModule(type, row._id);
+        const full = r.data?.data || r.data;
+        if (full) setViewingMod(full);
+      } catch {
+      } finally {
+        setViewLoading(false);
+      }
+    },
+    [type],
+  );
 
+  const handleEdit = useCallback(
+    (row) => {
+      router.push(`/editor/modules/${type}/new?id=${row._id}`);
+    },
+    [router, type],
+  );
 
   useEffect(() => {
     (async () => {
@@ -1695,18 +2062,22 @@ export default function ModuleTypePage({ type, addUrl }) {
     }
   };
 
-  const handleDelete = useCallback(async (mod) => {
-    const r = await Swal.fire({
-      title: `Delete "${mod.title}"?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      confirmButtonText: "Delete",
-    });
-    if (!r.isConfirmed) return;
+  const handleAddTopic = useCallback(async (data) => {
     try {
-      await deleteModule(type, mod._id);
-      setModules((p) => p.filter((m) => m._id !== mod._id));
+      const r = await createTopic(data);
+      const created = r.data?.data || r.data;
+      setTopics((p) => [...p, created]);
+      setShowAddTopic(false);
+      setSelectedSubtopic("");
+      setSubtopics([]);
+      setModules([]);
+      setSelectedTopic(created._id);
+      Swal.fire({
+        icon: "success",
+        title: "Topic Created",
+        timer: 1200,
+        showConfirmButton: false,
+      });
     } catch (err) {
       Swal.fire({
         icon: "error",
@@ -1714,7 +2085,57 @@ export default function ModuleTypePage({ type, addUrl }) {
         text: err?.response?.data?.message || err.message,
       });
     }
-  }, [type]);
+  }, []);
+
+  const handleAddSubtopic = useCallback(
+    async (data) => {
+      try {
+        const r = await createSubTopic({ ...data, topic_id: selectedTopic });
+        const created = r.data?.data || r.data;
+        setSubtopics((p) => [...p, created]);
+        setShowAddSub(false);
+        setModules([]);
+        setSelectedSubtopic(created._id);
+        Swal.fire({
+          icon: "success",
+          title: "SubTopic Created",
+          timer: 1200,
+          showConfirmButton: false,
+        });
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Failed",
+          text: err?.response?.data?.message || err.message,
+        });
+      }
+    },
+    [selectedTopic],
+  );
+
+  const handleDelete = useCallback(
+    async (mod) => {
+      const r = await Swal.fire({
+        title: `Delete "${mod.title}"?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        confirmButtonText: "Delete",
+      });
+      if (!r.isConfirmed) return;
+      try {
+        await deleteModule(type, mod._id);
+        setModules((p) => p.filter((m) => m._id !== mod._id));
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Failed",
+          text: err?.response?.data?.message || err.message,
+        });
+      }
+    },
+    [type],
+  );
 
   const handleCreated = useCallback(async () => {
     setShowForm(false);
@@ -1732,145 +2153,214 @@ export default function ModuleTypePage({ type, addUrl }) {
     });
   }, [type, selectedSubtopic]);
 
-  const columns = useMemo(() => [
-    {
-      header: "Module",
-      accessor: (row) => (
-        <div className="flex items-center gap-3">
-          <span
-            className={`w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0 ${meta.color}`}
-          >
-            <meta.icon size={15} />
-          </span>
-          <div>
-            <p className="font-bold text-slate-900 text-sm">{row.title}</p>
-            <p className="text-[11px] text-slate-400">
-              Order #{row.order ?? "—"}
-            </p>
-            {row.description && (
-              <p className="text-[11px] text-slate-400 truncate max-w-50">
-                {row.description}
+  const columns = useMemo(
+    () => [
+      {
+        header: "Module",
+        accessor: (row) => (
+          <div className="flex items-center gap-3">
+            <span
+              className={`w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0 ${meta.color}`}
+            >
+              <meta.icon size={15} />
+            </span>
+            <div>
+              <p className="font-bold text-slate-900 text-sm">{row.title}</p>
+              <p className="text-[11px] text-slate-400">
+                Order #{row.order ?? "—"}
+              </p>
+              {row.description && (
+                <p className="text-[11px] text-slate-400 truncate max-w-50">
+                  {row.description}
+                </p>
+              )}
+            </div>
+          </div>
+        ),
+      },
+      {
+        header: "Info",
+        accessor: (row) => (
+          <div className="space-y-1 text-[11px] text-slate-500">
+            {row.total_marks != null && row.total_marks > 0 && (
+              <p>
+                Marks:{" "}
+                <span className="font-semibold text-slate-700">
+                  {row.total_marks}
+                </span>
+              </p>
+            )}
+            {row.max_attempts != null && (
+              <p>
+                Attempts:{" "}
+                <span className="font-semibold text-slate-700">
+                  {row.max_attempts}
+                </span>
+              </p>
+            )}
+            {row.time_limit_sec && (
+              <p>
+                Time:{" "}
+                <span className="font-semibold text-slate-700">
+                  {row.time_limit_sec}s
+                </span>
               </p>
             )}
           </div>
-        </div>
-      ),
-    },
-    {
-      header: "Type",
-      accessor: () => (
-        <span
-          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${meta.light} ${meta.text}`}
-        >
-          {meta.label}
-        </span>
-      ),
-    },
-    {
-      header: "Info",
-      accessor: (row) => (
-        <div className="space-y-1 text-[11px] text-slate-500">
-          {row.total_marks != null && row.total_marks > 0 && (
-            <p>
-              Marks:{" "}
-              <span className="font-semibold text-slate-700">
-                {row.total_marks}
-              </span>
-            </p>
-          )}
-          {row.max_attempts != null && (
-            <p>
-              Attempts:{" "}
-              <span className="font-semibold text-slate-700">
-                {row.max_attempts}
-              </span>
-            </p>
-          )}
-          {row.time_limit_sec && (
-            <p>
-              Time:{" "}
-              <span className="font-semibold text-slate-700">
-                {row.time_limit_sec}s
-              </span>
-            </p>
-          )}
-        </div>
-      ),
-    },
-    {
-      header: "Content",
-      accessor: (row) => (
-        <div className="space-y-1 text-[11px] text-slate-500">
-          {row.questions?.length > 0 && (
-            <p>
-              Questions:{" "}
-              <span className="font-semibold text-slate-700">
-                {row.questions.length}
-              </span>
-            </p>
-          )}
-          {row.words?.length > 0 && (
-            <p>
-              Words:{" "}
-              <span className="font-semibold text-slate-700">
-                {row.words.length}
-              </span>
-            </p>
-          )}
-          {row.exercise_type && (
-            <p>
-              Type:{" "}
-              <span className="font-semibold text-slate-700 capitalize">
-                {row.exercise_type}
-              </span>
-            </p>
-          )}
-          {row.difficulty && (
-            <p>
-              Difficulty:{" "}
-              <span className="font-semibold text-slate-700 capitalize">
-                {row.difficulty}
-              </span>
-            </p>
-          )}
-          {row.content?.level && (
-            <p>
-              Level:{" "}
-              <span className="font-semibold text-slate-700">
-                {row.content.level}
-              </span>
-            </p>
-          )}
-          {row.audio?.type && (
-            <p>
-              Format:{" "}
-              <span className="font-semibold text-slate-700">
-                {row.audio.type.toUpperCase()}
-              </span>
-            </p>
-          )}
-          {row.video?.format && (
-            <p>
-              Format:{" "}
-              <span className="font-semibold text-slate-700">
-                {row.video.format.toUpperCase()}
-              </span>
-            </p>
-          )}
-        </div>
-      ),
-    },
-    {
-      header: "Actions",
-      accessor: (row) => (
-        <ActionButton
-          onView={() => handleView(row)}
-          onEdit={() => handleEdit(row)}
-          onDelete={() => handleDelete(row)}
-        />
-      ),
-    },
-  ], [meta, handleView, handleEdit, handleDelete]);
+        ),
+      },
+      {
+        header: "Content",
+        accessor: (row) => (
+          <div className="space-y-1 text-[11px] text-slate-500">
+            {row.exercise_type && (
+              <p>
+                Type:{" "}
+                <span className="font-semibold text-slate-700 capitalize">
+                  {row.exercise_type}
+                </span>
+              </p>
+            )}
+            {row.difficulty && (
+              <p>
+                Difficulty:{" "}
+                <span className="font-semibold text-slate-700 capitalize">
+                  {row.difficulty}
+                </span>
+              </p>
+            )}
+            {row.content?.level && (
+              <p>
+                Level:{" "}
+                <span className="font-semibold text-slate-700">
+                  {row.content.level}
+                </span>
+              </p>
+            )}
+            {row.audio?.type && (
+              <p>
+                Format:{" "}
+                <span className="font-semibold text-slate-700">
+                  {row.audio.type.toUpperCase()}
+                </span>
+              </p>
+            )}
+            {row.video?.format && (
+              <p>
+                Format:{" "}
+                <span className="font-semibold text-slate-700">
+                  {row.video.format.toUpperCase()}
+                </span>
+              </p>
+            )}
+          </div>
+        ),
+      },
+      {
+        header: "Questions",
+        accessor: (row) => (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleView(row)}
+              title="View questions"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
+            >
+              {row.questions?.length ?? 0} View Q
+            </button>
+            {canQuickAddQuestion && (
+              <button
+                type="button"
+                onClick={() => setQuickAddRow(row)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
+              >
+                + Add Q
+              </button>
+            )}
+          </div>
+        ),
+      },
+      ...(showWordsColumn
+        ? [
+            {
+              header: "Words",
+              accessor: (row) => (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleView(row)}
+                    title="View words"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
+                  >
+                    {row.words?.length ?? 0} View W
+                  </button>
+                  {canQuickAddWord && (
+                    <button
+                      type="button"
+                      onClick={() => setQuickAddWordRow(row)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
+                    >
+                      + Add W
+                    </button>
+                  )}
+                </div>
+              ),
+            },
+          ]
+        : []),
+      {
+        header: "Actions",
+        accessor: (row) => (
+          <ActionButton
+            onView={() => handleView(row)}
+            onEdit={() => handleEdit(row)}
+            onDelete={() => handleDelete(row)}
+          />
+        ),
+      },
+    ],
+    [
+      meta,
+      handleView,
+      handleEdit,
+      handleDelete,
+      canQuickAddQuestion,
+      canQuickAddWord,
+      showWordsColumn,
+    ],
+  );
+
+  const handleQuestionAdded = useCallback(async () => {
+    setQuickAddRow(null);
+    if (selectedSubtopic) {
+      const r = await getModules(type, selectedSubtopic);
+      setModules(
+        Array.isArray(r.data?.data || r.data) ? r.data?.data || r.data : [],
+      );
+    }
+    Swal.fire({
+      icon: "success",
+      title: "Question Added",
+      timer: 1200,
+      showConfirmButton: false,
+    });
+  }, [type, selectedSubtopic]);
+
+  const handleWordAdded = useCallback(async () => {
+    setQuickAddWordRow(null);
+    if (selectedSubtopic) {
+      const r = await getModules(type, selectedSubtopic);
+      setModules(
+        Array.isArray(r.data?.data || r.data) ? r.data?.data || r.data : [],
+      );
+    }
+    Swal.fire({
+      icon: "success",
+      title: "Word Added",
+      timer: 1200,
+      showConfirmButton: false,
+    });
+  }, [type, selectedSubtopic]);
 
   const Form = {
     text: TextForm,
@@ -1883,11 +2373,13 @@ export default function ModuleTypePage({ type, addUrl }) {
   return (
     <EditorLayout>
       <div className="space-y-5">
-        <Breadcrumb items={[
-          { label: "Editor", href: "/editor" },
-          { label: "Modules", href: "/editor/modules" },
-          { label: `${meta.label} Modules` },
-        ]} />
+        <Breadcrumb
+          items={[
+            { label: "Editor", href: "/editor" },
+            { label: "Modules" },
+            { label: `${meta.label} Modules` },
+          ]}
+        />
         <div className="flex items-center gap-3">
           <div
             className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shrink-0 ${meta.color}`}
@@ -1906,9 +2398,18 @@ export default function ModuleTypePage({ type, addUrl }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border border-slate-200 rounded-2xl p-4">
-            <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">
-              Select Topic
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Select Topic
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowAddTopic(true)}
+                className="text-xs text-orange-600 font-bold cursor-pointer"
+              >
+                + Add Topic
+              </button>
+            </div>
             <div className="relative">
               <select
                 className={`${inp} cursor-pointer pr-8 appearance-none`}
@@ -1934,9 +2435,19 @@ export default function ModuleTypePage({ type, addUrl }) {
           <div
             className={`bg-white border border-slate-200 rounded-2xl p-4 transition-all ${!selectedTopic ? "opacity-40" : ""}`}
           >
-            <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">
-              Select SubTopic
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Select SubTopic
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowAddSub(true)}
+                disabled={!selectedTopic}
+                className="text-xs text-orange-600 font-bold cursor-pointer disabled:text-slate-300 disabled:cursor-not-allowed"
+              >
+                + Add SubTopic
+              </button>
+            </div>
             <div className="relative">
               <select
                 className={`${inp} cursor-pointer pr-8 appearance-none`}
@@ -1994,7 +2505,11 @@ export default function ModuleTypePage({ type, addUrl }) {
             }
             action={
               selectedSubtopic
-                ? { label: `Add ${meta.label} Module`, onClick: () => addUrl ? router.push(addUrl) : setShowForm(true) }
+                ? {
+                    label: `Add ${meta.label} Module`,
+                    onClick: () =>
+                      addUrl ? router.push(addUrl) : setShowForm(true),
+                  }
                 : null
             }
           />
@@ -2042,6 +2557,70 @@ export default function ModuleTypePage({ type, addUrl }) {
           meta={meta}
           loading={viewLoading}
           onClose={() => setViewingMod(null)}
+        />
+      )}
+
+      {showAddTopic && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 bg-orange-500">
+              <p className="font-black text-white">Add Topic</p>
+              <button
+                onClick={() => setShowAddTopic(false)}
+                className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer font-black"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="px-6 py-5">
+              <QuickAddForm
+                label="Topic"
+                onSave={handleAddTopic}
+                onCancel={() => setShowAddTopic(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAddSub && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 bg-orange-500">
+              <p className="font-black text-white">Add SubTopic</p>
+              <button
+                onClick={() => setShowAddSub(false)}
+                className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer font-black"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="px-6 py-5">
+              <QuickAddForm
+                label="SubTopic"
+                onSave={handleAddSubtopic}
+                onCancel={() => setShowAddSub(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {quickAddRow && (
+        <QuickAddQuestionModal
+          type={type}
+          row={quickAddRow}
+          onClose={() => setQuickAddRow(null)}
+          onSaved={handleQuestionAdded}
+        />
+      )}
+
+      {quickAddWordRow && (
+        <QuickAddWordModal
+          type={type}
+          row={quickAddWordRow}
+          onClose={() => setQuickAddWordRow(null)}
+          onSaved={handleWordAdded}
         />
       )}
     </EditorLayout>
