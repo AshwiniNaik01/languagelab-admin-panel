@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   FaUniversity,
   FaUserGraduate,
@@ -11,12 +12,60 @@ import {
   FaClipboardList,
   FaUserPlus,
 } from "react-icons/fa";
+import { getDashboard } from "../services/superadmin";
+
+function timeAgo(isoString) {
+  const diff = Date.now() - new Date(isoString).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
+function formatExpiry(isoString) {
+  return new Date(isoString).toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
+
+function licenseUrgency(daysLeft) {
+  if (daysLeft <= 7) return "high";
+  if (daysLeft <= 20) return "medium";
+  return "low";
+}
+
+function auditIconType(type) {
+  if (type === "editor_created") return "staff";
+  if (type === "license_assigned") return "renew";
+  if (type === "curriculum_update") return "publish";
+  return "add";
+}
 
 export default function Dashboard() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getDashboard()
+      .then((res) => setData(res.data.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const stats = data?.stats;
+  const licenseMonitors = data?.license_monitors ?? [];
+  const instituteActivity = data?.institute_activity ?? [];
+  const auditLog = data?.recent_audit_log ?? [];
+  const engagement = data?.user_engagement;
+
   return (
     <div className="min-h-screen bg-[#FFF8F4] px-8 py-8 font-sans space-y-8">
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-gradient-to-r from-orange-500/5 to-amber-500/5 p-6 rounded-3xl border border-orange-500/10 backdrop-blur-sm">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-linear-to-r from-orange-500/5 to-amber-500/5 p-6 rounded-3xl border border-orange-500/10 backdrop-blur-sm">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-[#3C1E0A] leading-tight tracking-tight">
             Welcome back, Curator 👋
@@ -28,7 +77,8 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-3">
           <div className="text-xs font-black text-[#3C1E0A] bg-white border border-orange-500/20 px-4 py-2.5 rounded-2xl shadow-sm">
-            📅 Active Session: May 2026
+            📅 Active Session:{" "}
+            {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}
           </div>
         </div>
       </div>
@@ -38,43 +88,43 @@ export default function Dashboard() {
         <StatCard
           icon={<FaUniversity className="text-[#3C1E0A]" />}
           title="Total Institutes"
-          value="25 Registered"
-          sub="+3 institutes this month"
+          value={loading ? "—" : `${stats?.total_institutes.count} Registered`}
+          sub={loading ? "" : `+${stats?.total_institutes.this_month} institutes this month`}
           color="from-orange-400 to-amber-400"
         />
         <StatCard
           icon={<FaUserGraduate className="text-[#3C1E0A]" />}
           title="Total Students"
-          value="12,450 Users"
-          sub="+850 enrolled this month"
+          value={loading ? "—" : `${stats?.total_students.count.toLocaleString()} Users`}
+          sub={loading ? "" : `+${stats?.total_students.this_month} enrolled this month`}
           color="from-amber-400 to-yellow-400"
         />
         <StatCard
           icon={<FaKey className="text-[#3C1E0A]" />}
           title="Active Licenses"
-          value="22 Assigned"
-          sub="2 keys expiring shortly"
+          value={loading ? "—" : `${stats?.active_licenses.count} Assigned`}
+          sub={loading ? "" : `${stats?.active_licenses.expiring_soon} keys expiring shortly`}
           color="from-orange-500 to-orange-400"
         />
         <StatCard
           icon={<FaBookOpen className="text-[#3C1E0A]" />}
           title="Published Courses"
-          value="35 Materials"
-          sub="+4 modules added this week"
+          value={loading ? "—" : `${stats?.published_courses.count} Materials`}
+          sub={loading ? "" : `+${stats?.published_courses.topics_this_week} topics added this week`}
           color="from-amber-500 to-orange-400"
         />
         <StatCard
           icon={<FaChartLine className="text-[#3C1E0A]" />}
           title="Assessments Taken"
-          value="8,950 Tests"
-          sub="+1,280 submitted recently"
+          value={loading ? "—" : `${stats?.assessments_taken.count.toLocaleString()} Tests`}
+          sub={loading ? "" : `+${stats?.assessments_taken.submitted_recently} submitted recently`}
           color="from-yellow-400 to-orange-400"
         />
       </div>
 
       {/* MAIN CONTENT ROW */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         {/* LICENSE MONITOR */}
         <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
           <div>
@@ -88,27 +138,22 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-4">
-              <LicenseItem
-                name="ABC Institute of Engineering"
-                plan="Premium License Package"
-                days="7 days left"
-                date="Exp: May 08, 2026"
-                urgency="high"
-              />
-              <LicenseItem
-                name="XYZ Institute of Technology"
-                plan="Standard License Package"
-                days="12 days left"
-                date="Exp: May 13, 2026"
-                urgency="medium"
-              />
-              <LicenseItem
-                name="PQR Group of Institutes"
-                plan="Basic Academic Package"
-                days="19 days left"
-                date="Exp: May 20, 2026"
-                urgency="low"
-              />
+              {loading ? (
+                <p className="text-xs text-orange-950/50 font-bold">Loading...</p>
+              ) : licenseMonitors.length === 0 ? (
+                <p className="text-xs text-orange-950/50 font-bold">No expiring licenses.</p>
+              ) : (
+                licenseMonitors.map((lic) => (
+                  <LicenseItem
+                    key={lic._id}
+                    name={lic.institute_name}
+                    plan={lic.license_code}
+                    days={`${lic.days_left} days left`}
+                    date={`Exp: ${formatExpiry(lic.expiry_date)}`}
+                    urgency={licenseUrgency(lic.days_left)}
+                  />
+                ))
+              )}
             </div>
           </div>
           <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
@@ -116,7 +161,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* COLLEGE ACTIVITY LEDGER */}
+        {/* INSTITUTE ACTIVITY LEDGER */}
         <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-center mb-6">
@@ -129,26 +174,20 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-4">
-              <ActivityItem
-                name="MMCOE, Pune"
-                sub="120 new students onboarded"
-                time="10:30 AM"
-              />
-              <ActivityItem
-                name="PCCOE, Pune"
-                sub="80 new students onboarded"
-                time="11:15 AM"
-              />
-              <ActivityItem
-                name="VIT, Mumbai"
-                sub="60 new students onboarded"
-                time="01:20 PM"
-              />
-              <ActivityItem
-                name="DY Patil Institute"
-                sub="45 new students onboarded"
-                time="03:30 PM"
-              />
+              {loading ? (
+                <p className="text-xs text-orange-950/50 font-bold">Loading...</p>
+              ) : instituteActivity.length === 0 ? (
+                <p className="text-xs text-orange-950/50 font-bold">No recent activity.</p>
+              ) : (
+                instituteActivity.map((act, i) => (
+                  <ActivityItem
+                    key={i}
+                    name={act.institute_name}
+                    sub={`${act.new_students} new students onboarded`}
+                    time={timeAgo(act.time)}
+                  />
+                ))
+              )}
             </div>
           </div>
           <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
@@ -176,7 +215,7 @@ export default function Dashboard() {
 
       {/* PLATFORM METRICS ROW */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         {/* RECENT AUDIT LOG */}
         <div className="lg:col-span-8 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm">
           <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider mb-6">
@@ -184,45 +223,38 @@ export default function Dashboard() {
           </h2>
 
           <div className="space-y-4">
-            <AuditItem
-              type="add"
-              title="New Institute Registered"
-              desc="MMCOE, Pune was registered onto the platform database."
-              time="1 hour ago"
-            />
-            <AuditItem
-              type="renew"
-              title="License Agreement Extended"
-              desc="ABC Institute of Engineering license terms were renewed."
-              time="3 hours ago"
-            />
-            <AuditItem
-              type="publish"
-              title="Curriculum Update Published"
-              desc="'Business Communication Essentials' course modules are now live."
-              time="5 hours ago"
-            />
-            <AuditItem
-              type="staff"
-              title="Instructor Access Created"
-              desc="Instructor profile initialized for Prof. Rahul Sharma."
-              time="1 day ago"
-            />
+            {loading ? (
+              <p className="text-xs text-orange-950/50 font-bold">Loading...</p>
+            ) : auditLog.length === 0 ? (
+              <p className="text-xs text-orange-950/50 font-bold">No recent audit events.</p>
+            ) : (
+              auditLog.map((log, i) => (
+                <AuditItem
+                  key={i}
+                  type={auditIconType(log.type)}
+                  title={log.title}
+                  desc={log.description}
+                  time={timeAgo(log.time)}
+                />
+              ))
+            )}
           </div>
         </div>
 
-        {/* PLATFORM ENGAGEMENT */}
+        {/* USER ENGAGEMENT */}
         <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm">
           <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider mb-4">
             User Engagement
           </h2>
 
           <div className="mb-4">
-            <div className="text-3xl font-black text-[#3C1E0A]">12,450</div>
+            <div className="text-3xl font-black text-[#3C1E0A]">
+              {loading ? "—" : engagement?.active_students.toLocaleString()}
+            </div>
             <p className="text-xs text-orange-950/60 font-bold">Total Platform Active Students</p>
           </div>
 
-          {/* TRANSITIONAL MINI BAR CHART */}
+          {/* DECORATIVE MINI BAR CHART */}
           <div className="h-32 flex items-end gap-2.5 p-4 rounded-2xl bg-orange-500/5 border border-orange-500/10 mb-4">
             <Bar h="35%" />
             <Bar h="55%" />
@@ -236,15 +268,21 @@ export default function Dashboard() {
           {/* KEY METRIC LABELS */}
           <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-orange-500/10">
             <div>
-              <p className="font-black text-sm text-[#3C1E0A]">1.2k</p>
-              <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Units</p>
+              <p className="font-black text-sm text-[#3C1E0A]">
+                {loading ? "—" : engagement?.active_students.toLocaleString()}
+              </p>
+              <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Students</p>
             </div>
             <div>
-              <p className="font-black text-sm text-[#3C1E0A]">48</p>
+              <p className="font-black text-sm text-[#3C1E0A]">
+                {loading ? "—" : engagement?.curators}
+              </p>
               <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Curators</p>
             </div>
             <div>
-              <p className="font-black text-sm text-[#3C1E0A]">320</p>
+              <p className="font-black text-sm text-[#3C1E0A]">
+                {loading ? "—" : engagement?.tests}
+              </p>
               <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Tests</p>
             </div>
           </div>
@@ -260,9 +298,8 @@ export default function Dashboard() {
 function StatCard({ icon, title, value, sub, color }) {
   return (
     <div className="bg-white border border-orange-500/20 rounded-2xl p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-orange-500/40 transition duration-300 h-32">
-      {/* Decorative Gradient Tag */}
-      <div className={`absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r ${color}`} />
-      
+      <div className={`absolute top-0 left-0 w-full h-0.75 bg-linear-to-r ${color}`} />
+
       <div className="flex justify-between items-start">
         <span className="text-xs font-black text-orange-950/60 uppercase tracking-widest">{title}</span>
         <div className="bg-orange-500/10 p-2 rounded-xl">
@@ -279,7 +316,7 @@ function StatCard({ icon, title, value, sub, color }) {
 }
 
 function LicenseItem({ name, plan, days, date, urgency }) {
-  const badgeColor = 
+  const badgeColor =
     urgency === "high" ? "text-red-600 bg-red-50 border-red-200" :
     urgency === "medium" ? "text-orange-600 bg-orange-50 border-orange-200" :
     "text-amber-600 bg-amber-50 border-amber-200";
@@ -318,7 +355,7 @@ function ActionCard({ icon, label, link }) {
   return (
     <a
       href={link}
-      className="border border-orange-500/20 rounded-2xl p-4 flex flex-col items-center justify-center gap-2.5 bg-[#FFF8F4]/50 hover:bg-gradient-to-br hover:from-orange-500 hover:to-amber-500 hover:text-white text-orange-700 hover:border-transparent transition duration-300 shadow-sm hover:shadow-md hover:shadow-orange-500/10 group cursor-pointer h-24"
+      className="border border-orange-500/20 rounded-2xl p-4 flex flex-col items-center justify-center gap-2.5 bg-[#FFF8F4]/50 hover:bg-linear-to-br hover:from-orange-500 hover:to-amber-500 hover:text-white text-orange-700 hover:border-transparent transition duration-300 shadow-sm hover:shadow-md hover:shadow-orange-500/10 group cursor-pointer h-24"
     >
       <div className="text-lg text-[#3C1E0A] group-hover:text-white transition duration-300">
         {icon}
@@ -331,7 +368,7 @@ function ActionCard({ icon, label, link }) {
 }
 
 function AuditItem({ type, title, desc, time }) {
-  const icon = 
+  const icon =
     type === "add" ? "✨" :
     type === "renew" ? "🔄" :
     type === "publish" ? "📚" : "👤";
@@ -354,6 +391,6 @@ function AuditItem({ type, title, desc, time }) {
 
 function Bar({ h }) {
   return (
-    <div className="flex-1 bg-gradient-to-t from-orange-600 to-amber-500 rounded-lg shadow-sm hover:opacity-85 transition duration-300 cursor-pointer" style={{ height: h }} />
+    <div className="flex-1 bg-linear-to-t from-orange-600 to-amber-500 rounded-lg shadow-sm hover:opacity-85 transition duration-300 cursor-pointer" style={{ height: h }} />
   );
 }

@@ -1,6 +1,9 @@
 import api from "./api";
 import { base64ToBlob } from "@/app/utils/imageUtils";
 
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+export const getDashboard = () => api.get("/api/super-admin/dashboard");
+
 // ── Profile ──────────────────────────────────────────────────────────────────
 export const getProfile = () => api.get("/api/super-admin/profile");
 
