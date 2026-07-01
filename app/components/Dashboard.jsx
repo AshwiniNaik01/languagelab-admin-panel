@@ -8,7 +8,7 @@ import {
   FaBookOpen,
   FaChartLine,
   FaPlus,
-  FaUpload,
+  FaUserCircle,
   FaClipboardList,
   FaUserPlus,
 } from "react-icons/fa";
@@ -126,8 +126,8 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {/* LICENSE MONITOR */}
-        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
-          <div>
+        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm flex flex-col  h-[420px]">
+          <div className="flex flex-col flex-1 min-h-0">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider">
                 License Monitors
@@ -137,7 +137,7 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <div className="space-y-4">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scroll space-y-4">
               {loading ? (
                 <p className="text-xs text-orange-950/50 font-bold">Loading...</p>
               ) : licenseMonitors.length === 0 ? (
@@ -156,14 +156,14 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-          <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
+           {/* <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
             View All License Ledgers
-          </button>
+          </button>  */}
         </div>
 
         {/* INSTITUTE ACTIVITY LEDGER */}
-        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
-          <div>
+        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm flex flex-col  h-[420px] ">
+          <div className="flex flex-col flex-1 min-h-0">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider">
                 Institute Activity
@@ -173,7 +173,7 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <div className="space-y-4">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scroll space-y-4">
               {loading ? (
                 <p className="text-xs text-orange-950/50 font-bold">Loading...</p>
               ) : instituteActivity.length === 0 ? (
@@ -190,23 +190,23 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-          <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
+          {/* <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
             Export Live Ledger Log
-          </button>
+          </button> */}
         </div>
 
         {/* QUICK MANAGEMENT PANEL */}
-        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm">
+        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm h-[420px]">
           <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider mb-6">
             Quick Management
           </h2>
 
           <div className="grid grid-cols-2 gap-4">
             <ActionCard icon={<FaPlus />} label="Add Institute" link="/institutes/new" />
-            <ActionCard icon={<FaKey />} label="Issue License" link="/licenses/new" />
+            <ActionCard icon={<FaKey />} label="Issue License" link="/institutes" />
             <ActionCard icon={<FaUserPlus />} label="Register Editor" link="/editors/new" />
-            <ActionCard icon={<FaUpload />} label="Upload Material" link="/content" />
-            <ActionCard icon={<FaBookOpen />} label="Manage Curriculum" link="/content" />
+            <ActionCard icon={<FaBookOpen/>} label="Add Course" link="/courses" />
+            <ActionCard icon={<FaUserCircle />} label="View Profile" link="/profile" />
             <ActionCard icon={<FaClipboardList />} label="Configure Testing" link="/sessions" />
           </div>
         </div>
@@ -217,12 +217,12 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {/* RECENT AUDIT LOG */}
-        <div className="lg:col-span-8 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm">
+        <div className="lg:col-span-8 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm h-[450px] flex flex-col">
           <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider mb-6">
             Recent Audit Log
           </h2>
 
-          <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scroll">
             {loading ? (
               <p className="text-xs text-orange-950/50 font-bold">Loading...</p>
             ) : auditLog.length === 0 ? (
