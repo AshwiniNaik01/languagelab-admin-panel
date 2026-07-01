@@ -175,10 +175,57 @@ export default function InstituteForm({
     normaliseCourseIds(initialData.course_id ?? initialData.courses),
   );
 
+  useEffect(() => {
+    if (errors.course_id && selectedCourseIds.length > 0) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.course_id;
+        return next;
+      });
+    }
+  }, [selectedCourseIds, errors.course_id]);
+
   const toggleCourse = (id) => {
     setSelectedCourseIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
+  };
+
+  const handleChange = async (e) => {
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+    data.is_active = data.is_active === "on" || data.is_active === true;
+    data.logo = logoBase64;
+    data.course_id = selectedCourseIds;
+
+    const schema = initialData._id ? editInstituteSchema : instituteSchema;
+    try {
+      await schema.validate(
+        {
+          ...data,
+          course_id: selectedCourseIds.length > 0 ? selectedCourseIds[0] : "",
+        },
+        { abortEarly: false },
+      );
+      setErrors({});
+    } catch (error) {
+      const validationErrors = {};
+      error.inner?.forEach((err) => {
+        validationErrors[err.path] = err.message;
+      });
+      setErrors((prev) => {
+        if (Object.keys(prev).length === 0) return prev;
+        const next = { ...prev };
+        Object.keys(prev).forEach((key) => {
+          if (!validationErrors[key]) {
+            delete next[key];
+          } else {
+            next[key] = validationErrors[key];
+          }
+        });
+        return next;
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -215,6 +262,7 @@ export default function InstituteForm({
 
   return (
     <form
+      onChange={handleChange}
       onSubmit={handleSubmit}
       className="space-y-6 w-full bg-white p-8 rounded-3xl border border-orange-500/20 shadow-xl"
     >
