@@ -12,7 +12,7 @@ import {
   getTopics, createTopic, updateTopic, deleteTopic,
   getSubTopics, createSubTopic, updateSubTopic, deleteSubTopic,
 } from "../../services/editorPanel";
-import { BookOpen, ListTree, Plus, X, Search } from "lucide-react";
+import { ListTree, Plus, X, Search } from "lucide-react";
 
 const F = "w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-gray-800 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 placeholder:text-slate-400";
 
@@ -299,8 +299,8 @@ export default function CurriculumPage() {
       header: "Actions",
       accessor: (row) => (
         <ActionButton
-          onView={() => openModal("viewTopic", row)}
-          onEdit={() => openModal("editTopic", row)}
+          onView={() => router.push(`/editor/topics/${row._id}`)}
+          onEdit={() => router.push(`/editor/topics/${row._id}/edit`)}
           onDelete={() => handleDeleteTopic(row)}
         />
       ),
@@ -329,8 +329,8 @@ export default function CurriculumPage() {
       header: "Actions",
       accessor: (row) => (
         <ActionButton
-          onView={() => openModal("viewSub", row)}
-          onEdit={() => openModal("editSub", row)}
+          onView={() => router.push(`/editor/subtopics/${row._id}`)}
+          onEdit={() => router.push(`/editor/subtopics/${row._id}/edit`)}
           onDelete={() => handleDeleteSub(row)}
         />
       ),
@@ -369,7 +369,7 @@ export default function CurriculumPage() {
                   </button>
                 )}
               </div>
-              <Button onClick={() => openModal("addTopic")}>
+              <Button onClick={() => router.push("/editor/topics/new")}>
                 <Plus size={15} className="mr-1" /> Add Topic
               </Button>
             </div>
@@ -419,7 +419,7 @@ export default function CurriculumPage() {
                       </button>
                     )}
                   </div>
-                  <Button onClick={() => openModal("addSub")}>
+                  <Button onClick={() => router.push(`/editor/subtopics/new?topic_id=${selectedTopicId}`)}>
                     <Plus size={15} className="mr-1" /> Add SubTopic
                   </Button>
                 </div>
