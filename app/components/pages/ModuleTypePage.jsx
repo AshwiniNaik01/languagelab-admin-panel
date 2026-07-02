@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -37,6 +37,8 @@ import {
   ChevronDown,
   Trash2,
   X,
+  Search,
+  Inbox,
 } from "lucide-react";
 
 const TYPE_META = {
@@ -94,7 +96,7 @@ const DIFF_OPTIONS = ["easy", "medium", "hard"];
 const inp =
   "w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-gray-800 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 placeholder:text-slate-400 transition-all";
 
-/* ── Shared: Questions section ───────────────────────────────────────────── */
+/* Shared: Questions section */
 function QuestionsSection({
   questions,
   setQuestions,
@@ -302,7 +304,7 @@ function QuestionsSection({
   );
 }
 
-/* ── Shared: Words section ───────────────────────────────────────────────── */
+/* Shared: Words section */
 function WordsSection({ words, setWords, withDetails = false }) {
   const blank = () => ({
     word: "",
@@ -368,7 +370,7 @@ function WordsSection({ words, setWords, withDetails = false }) {
             <div className="grid grid-cols-2 gap-2">
               <input
                 className={inp}
-                placeholder="Pronunciation (e.g. sɪnˈsɪəli)"
+                placeholder="Pronunciation (e.g. sÉªnËˆsÉªÉ™li)"
                 value={w.pronunciation || ""}
                 onChange={(e) => updW(i, "pronunciation", e.target.value)}
               />
@@ -412,7 +414,7 @@ function WordsSection({ words, setWords, withDetails = false }) {
   );
 }
 
-/* ── Per-type create forms ───────────────────────────────────────────────── */
+/* Per-type create forms */
 function TextForm({ topicId, subtopicId, onDone, onCancel }) {
   const [f, setF] = useState({
     title: "",
@@ -588,7 +590,7 @@ function TextForm({ topicId, subtopicId, onDone, onCancel }) {
         <textarea
           className={`${inp} resize-none`}
           rows={5}
-          placeholder="Write lesson text here…"
+          placeholder="Write lesson text here..."
           value={f.body}
           onChange={set("body")}
         />
@@ -766,7 +768,7 @@ function VideoForm({ topicId, subtopicId, onDone, onCancel }) {
         <textarea
           className={`${inp} resize-none`}
           rows={3}
-          placeholder="Full transcript of the video…"
+          placeholder="Full transcript of the video..."
           value={transcript}
           onChange={(e) => setTranscript(e.target.value)}
         />
@@ -957,7 +959,7 @@ function AudioForm({ topicId, subtopicId, onDone, onCancel }) {
         <textarea
           className={`${inp} resize-none`}
           rows={3}
-          placeholder="Full transcript of the audio…"
+          placeholder="Full transcript of the audio..."
           value={transcript}
           onChange={(e) => setTranscript(e.target.value)}
         />
@@ -1268,7 +1270,7 @@ function FormBtns({ saving, onCancel, label = "Create Module" }) {
         disabled={saving}
         className="flex items-center gap-2 px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition cursor-pointer disabled:opacity-50"
       >
-        <Check size={15} /> {saving ? "Creating…" : label}
+        <Check size={15} /> {saving ? "Creating..." : label}
       </button>
       <button
         type="button"
@@ -1281,363 +1283,9 @@ function FormBtns({ saving, onCancel, label = "Create Module" }) {
   );
 }
 
-/* ── View Modal ──────────────────────────────────────────────────────────── */
-function InfoRow({ label, value }) {
-  if (value === undefined || value === null || value === "") return null;
-  return (
-    <div className="bg-slate-50 rounded-xl px-4 py-3">
-      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">
-        {label}
-      </p>
-      <p className="text-sm font-semibold text-slate-800">{value}</p>
-    </div>
-  );
-}
 
-/* Strips HTML tags down to plain text, for places that can't render markup (e.g. the header banner) */
-function stripHtml(html) {
-  if (!html) return "";
-  return html
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
-/* Renders CKEditor-produced HTML content safely within a styled card */
-function RichHtml({ html, className = "" }) {
-  if (!html) return null;
-  return (
-    <div
-      className={`text-sm text-slate-700 leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 ${className}`}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  );
-}
-
-function ViewModal({ mod, meta, loading, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div
-          className={`flex items-center justify-between px-6 py-4 shrink-0 ${meta.color}`}
-        >
-          <div className="flex items-center gap-3">
-            <meta.icon size={18} className="text-white" />
-            <div>
-              <p className="font-black text-white text-base">{mod.title}</p>
-              {mod.description && (
-                <p className="text-white/70 text-xs mt-0.5">
-                  {stripHtml(mod.description)}
-                </p>
-              )}
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer font-black"
-          >
-            ✕
-          </button>
-        </div>
-
-        {loading && (
-          <div className="flex items-center justify-center py-10 gap-3 text-slate-400 text-sm shrink-0">
-            <svg
-              className="animate-spin w-5 h-5 text-orange-500"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8z"
-              />
-            </svg>
-            Loading full data…
-          </div>
-        )}
-
-        <div
-          className={`px-6 py-5 space-y-4 flex-1 min-h-0 overflow-y-auto ${loading ? "opacity-40 pointer-events-none" : ""}`}
-        >
-          {/* ── Basic Info ─────────────────────────────────────────────── */}
-          <div className="grid grid-cols-3 gap-3">
-            <InfoRow label="Order" value={`#${mod.order ?? "—"}`} />
-            <InfoRow label="Type" value={meta.label} />
-            <InfoRow label="Max Attempts" value={mod.max_attempts} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <InfoRow
-              label="Total Marks"
-              value={mod.total_marks > 0 ? mod.total_marks : null}
-            />
-            <InfoRow label="Time Limit (sec)" value={mod.time_limit_sec} />
-          </div>
-
-          {/* ── Text specific ───────────────────────────────────────────── */}
-          {mod.content && (
-            <>
-              <div className="grid grid-cols-3 gap-3">
-                <InfoRow label="CEFR Level" value={mod.content.level} />
-                <InfoRow label="Word Count" value={mod.content.word_count} />
-                <InfoRow
-                  label="Read Time (min)"
-                  value={mod.content.read_time_min}
-                />
-              </div>
-              <InfoRow label="Source" value={mod.content.source} />
-              {mod.content.body && (
-                <div className="bg-slate-50 rounded-xl px-4 py-3">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-2">
-                    Content Body
-                  </p>
-                  <RichHtml html={mod.content.body} className="line-clamp-6" />
-                </div>
-              )}
-            </>
-          )}
-
-          {/* ── Video specific ──────────────────────────────────────────── */}
-          {mod.video && (
-            <>
-              {mod.video.url && (
-                <div className="bg-slate-50 rounded-xl overflow-hidden">
-                  <video
-                    controls
-                    className="w-full max-h-64 bg-black"
-                    src={mod.video.url}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-              )}
-              <div className="grid grid-cols-3 gap-3">
-                <InfoRow
-                  label="Format"
-                  value={mod.video.format?.toUpperCase()}
-                />
-                <InfoRow label="Speed" value={mod.video.speed} />
-                <InfoRow
-                  label="Duration (sec)"
-                  value={mod.video.duration_sec}
-                />
-              </div>
-              {mod.video.transcript && (
-                <div className="bg-slate-50 rounded-xl px-4 py-3">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-2">
-                    Transcript
-                  </p>
-                  <RichHtml
-                    html={mod.video.transcript}
-                    className="line-clamp-6"
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          {/* ── Audio specific ──────────────────────────────────────────── */}
-          {mod.audio && (
-            <>
-              {mod.audio.url && (
-                <div className="bg-slate-50 rounded-xl px-4 py-4">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-3">
-                    Audio Player
-                  </p>
-                  <audio controls className="w-full" src={mod.audio.url}>
-                    Your browser does not support the audio tag.
-                  </audio>
-                </div>
-              )}
-              <div className="grid grid-cols-3 gap-3">
-                <InfoRow label="Type" value={mod.audio.type?.toUpperCase()} />
-                <InfoRow label="Speed" value={mod.audio.speed} />
-                <InfoRow
-                  label="Duration (sec)"
-                  value={mod.audio.duration_sec}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <InfoRow label="Speaker Name" value={mod.audio.speaker_name} />
-                <InfoRow label="Language" value={mod.audio.language} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <InfoRow
-                  label="Allow Replay"
-                  value={
-                    mod.allow_replay === true
-                      ? "Yes"
-                      : mod.allow_replay === false
-                        ? "No"
-                        : null
-                  }
-                />
-                <InfoRow label="Replay Limit" value={mod.replay_limit} />
-              </div>
-              {mod.audio.transcript && (
-                <div className="bg-slate-50 rounded-xl px-4 py-3">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-2">
-                    Transcript
-                  </p>
-                  <RichHtml
-                    html={mod.audio.transcript}
-                    className="line-clamp-6"
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          {/* ── Exercise specific ───────────────────────────────────────── */}
-          {mod.exercise_type && (
-            <div className="grid grid-cols-3 gap-3">
-              <InfoRow
-                label="Exercise Type"
-                value={mod.exercise_type?.replace(/_/g, " ")}
-              />
-              <InfoRow label="Difficulty" value={mod.difficulty} />
-              <InfoRow label="Max Attempts" value={mod.max_attempts} />
-            </div>
-          )}
-          {(mod.shuffle_questions !== undefined ||
-            mod.shuffle_options !== undefined) && (
-            <div className="grid grid-cols-3 gap-3">
-              <InfoRow
-                label="Shuffle Questions"
-                value={mod.shuffle_questions ? "Yes" : "No"}
-              />
-              <InfoRow
-                label="Shuffle Options"
-                value={mod.shuffle_options ? "Yes" : "No"}
-              />
-              <InfoRow
-                label="Show Explanation"
-                value={mod.show_explanation ? "Yes" : "No"}
-              />
-            </div>
-          )}
-
-          {/* ── Words ───────────────────────────────────────────────────── */}
-          {mod.words?.length > 0 && (
-            <div className="bg-slate-50 rounded-xl px-4 py-3">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-3">
-                Words ({mod.words.length})
-              </p>
-              <div className="space-y-2">
-                {mod.words.map((w, i) => (
-                  <div
-                    key={i}
-                    className="bg-white rounded-lg px-3 py-2 border border-slate-100"
-                  >
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-slate-800 text-sm">
-                        {w.word}
-                      </span>
-                      {w.pronunciation && (
-                        <span className="text-[10px] text-slate-400">
-                          /{w.pronunciation}/
-                        </span>
-                      )}
-                      {w.part_of_speech && (
-                        <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded font-semibold">
-                          {w.part_of_speech}
-                        </span>
-                      )}
-                      {w.difficulty && (
-                        <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-semibold capitalize">
-                          {w.difficulty}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-600 mt-0.5">{w.meaning}</p>
-                    {w.example && (
-                      <p className="text-[11px] text-slate-400 italic mt-0.5">
-                        &ldquo;{w.example}&rdquo;
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── Questions ───────────────────────────────────────────────── */}
-          {mod.questions?.length > 0 && (
-            <div className="bg-slate-50 rounded-xl px-4 py-3">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-3">
-                Questions ({mod.questions.length})
-              </p>
-              <div className="space-y-3">
-                {mod.questions.map((q, i) => (
-                  <div
-                    key={i}
-                    className="bg-white rounded-lg px-3 py-2.5 border border-slate-100"
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[9px] font-black text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">
-                        Q{i + 1}
-                      </span>
-                      <span className="text-[9px] text-slate-400 font-semibold uppercase">
-                        {q.question_type?.replace(/_/g, " ")}
-                      </span>
-                      {q.marks && (
-                        <span className="text-[9px] text-slate-400 font-semibold ml-auto">
-                          {q.marks} mark{q.marks !== 1 ? "s" : ""}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm font-semibold text-slate-800">
-                      {q.question_text}
-                    </p>
-                    {q.question_type === "mcq" &&
-                      q.options?.some((o) => o.trim()) && (
-                        <div className="mt-1.5 space-y-0.5">
-                          {q.options.map((o, oi) => (
-                            <p
-                              key={oi}
-                              className={`text-xs px-2 py-0.5 rounded ${o === q.correct_answer ? "bg-green-100 text-green-700 font-bold" : "text-slate-500"}`}
-                            >
-                              {String.fromCharCode(65 + oi)}. {o}
-                            </p>
-                          ))}
-                        </div>
-                      )}
-                    <p className="text-[11px] text-green-600 font-semibold mt-1">
-                      ✓ {q.correct_answer}
-                    </p>
-                    {q.explanation && (
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        <span className="font-semibold">Explanation:</span>{" "}
-                        {stripHtml(q.explanation)}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="px-6 pb-5 pt-3 shrink-0">
-          <Button variant="secondary" onClick={onClose} className="w-full">
-            Close
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Quick-add form: Topic / SubTopic ────────────────────────────────────── */
+/* Quick-add inline form used for Topic and SubTopic creation */
 function QuickAddForm({ label, onSave, onCancel }) {
   const [f, setF] = useState({ title: "", description: "", order: 1 });
   const [saving, setSaving] = useState(false);
@@ -1702,8 +1350,7 @@ function QuickAddForm({ label, onSave, onCancel }) {
   );
 }
 
-/* ── Quick-add Question: builds a full update payload from the fetched module
-   so existing fields (topic, content, settings, etc.) aren't lost on save ──── */
+/* Quick-add Question: builds a full update payload so existing module fields are not lost on save */
 
 function buildQuestionsUpdatePayload(type, mod, newQuestions) {
   const topic_id = mod.topic_id?._id || mod.topic_id;
@@ -1825,19 +1472,19 @@ function QuickAddQuestionModal({ type, row, onClose, onSaved }) {
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 bg-orange-500">
           <p className="font-black text-white truncate">
-            Add Question — {row.title}
+            Add Question - {row.title}
           </p>
           <button
             onClick={onClose}
             className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer font-black shrink-0"
           >
-            ✕
+            x
           </button>
         </div>
         <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">
           {loading ? (
             <p className="text-sm text-slate-400 text-center py-8">
-              Loading module…
+              Loading module...
             </p>
           ) : (
             <form onSubmit={submit} className="space-y-3">
@@ -1860,112 +1507,8 @@ function QuickAddQuestionModal({ type, row, onClose, onSaved }) {
   );
 }
 
-/* ── Quick-add Word: same full-payload-merge approach as Questions, only
-   safe for module types whose update doesn't require re-uploading a file ──── */
-function buildWordsUpdatePayload(type, mod, newWords) {
-  if (type !== "vocabulary") return null;
-  const topic_id = mod.topic_id?._id || mod.topic_id;
-  const sub_topic_id = mod.sub_topic_id?._id || mod.sub_topic_id;
-  const words = [...(mod.words || []), ...newWords];
 
-  return {
-    topic_id,
-    sub_topic_id,
-    title: mod.title,
-    order: mod.order ?? 1,
-    max_attempts: mod.max_attempts ?? 5,
-    ...(mod.description && { description: mod.description }),
-    ...(mod.total_marks != null && { total_marks: mod.total_marks }),
-    ...(mod.time_limit_sec != null && { time_limit_sec: mod.time_limit_sec }),
-    words,
-    ...(mod.questions?.length > 0 && { questions: mod.questions }),
-  };
-}
-
-function QuickAddWordModal({ type, row, onClose, onSaved }) {
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [mod, setMod] = useState(null);
-  const [words, setWords] = useState([]);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const r = await getModule(type, row._id);
-        setMod(r.data?.data || r.data);
-      } catch (err) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed to load module",
-          text: err?.response?.data?.message || err.message,
-        });
-        onClose();
-      } finally {
-        setLoading(false);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const submit = async (e) => {
-    e.preventDefault();
-    const validWords = words.filter((w) => w.word.trim() && w.meaning.trim());
-    if (validWords.length === 0) {
-      Swal.fire({ icon: "warning", title: "Add at least one word" });
-      return;
-    }
-    setSaving(true);
-    try {
-      const payload = buildWordsUpdatePayload(type, mod, validWords);
-      await updateModule(type, row._id, payload);
-      onSaved();
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Failed",
-        text: err?.response?.data?.message || err.message,
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 bg-orange-500">
-          <p className="font-black text-white truncate">
-            Add Word — {row.title}
-          </p>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer font-black shrink-0"
-          >
-            ✕
-          </button>
-        </div>
-        <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">
-          {loading ? (
-            <p className="text-sm text-slate-400 text-center py-8">
-              Loading module…
-            </p>
-          ) : (
-            <form onSubmit={submit} className="space-y-3">
-              <WordsSection words={words} setWords={setWords} withDetails />
-              <FormBtns
-                saving={saving}
-                onCancel={onClose}
-                label="Add Word(s)"
-              />
-            </form>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Shared page used by each module type ────────────────────────────────── */
+/* Shared list page used by each module type */
 export default function ModuleTypePage({ type, addUrl }) {
   const meta = TYPE_META[type];
   const router = useRouter();
@@ -1979,31 +1522,16 @@ export default function ModuleTypePage({ type, addUrl }) {
   const [loadingTopics, setLoadingTopics] = useState(true);
   const [loadingMods, setLoadingMods] = useState(false);
   const [showForm, setShowForm] = useState(searchParams.get("add") === "1");
-  const [viewingMod, setViewingMod] = useState(null);
-  const [viewLoading, setViewLoading] = useState(false);
   const [showAddTopic, setShowAddTopic] = useState(false);
   const [showAddSub, setShowAddSub] = useState(false);
   const [quickAddRow, setQuickAddRow] = useState(null);
-  const [quickAddWordRow, setQuickAddWordRow] = useState(null);
-
-  const canQuickAddQuestion = ["text", "exercise", "vocabulary"].includes(type);
-  const showWordsColumn = ["audio", "video", "vocabulary"].includes(type);
-  const canQuickAddWord = type === "vocabulary";
+  const canQuickAddQuestion = true;
 
   const handleView = useCallback(
-    async (row) => {
-      setViewLoading(true);
-      setViewingMod(row);
-      try {
-        const r = await getModule(type, row._id);
-        const full = r.data?.data || r.data;
-        if (full) setViewingMod(full);
-      } catch {
-      } finally {
-        setViewLoading(false);
-      }
+    (row) => {
+      router.push(`/editor/modules/${type}/${row._id}`);
     },
-    [type],
+    [router, type],
   );
 
   const handleEdit = useCallback(
@@ -2167,7 +1695,7 @@ export default function ModuleTypePage({ type, addUrl }) {
             <div>
               <p className="font-bold text-slate-900 text-sm">{row.title}</p>
               <p className="text-[11px] text-slate-400">
-                Order #{row.order ?? "—"}
+                Order #{row.order ?? "-"}
               </p>
               {row.description && (
                 <p className="text-[11px] text-slate-400 truncate max-w-50">
@@ -2271,7 +1799,7 @@ export default function ModuleTypePage({ type, addUrl }) {
             {canQuickAddQuestion && (
               <button
                 type="button"
-                onClick={() => setQuickAddRow(row)}
+                onClick={() => router.push(`/editor/modules/${type}/${row._id}/add-question`)}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
               >
                 + Add Q
@@ -2280,34 +1808,6 @@ export default function ModuleTypePage({ type, addUrl }) {
           </div>
         ),
       },
-      ...(showWordsColumn
-        ? [
-            {
-              header: "Words",
-              accessor: (row) => (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleView(row)}
-                    title="View words"
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
-                  >
-                    {row.words?.length ?? 0} View W
-                  </button>
-                  {canQuickAddWord && (
-                    <button
-                      type="button"
-                      onClick={() => setQuickAddWordRow(row)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
-                    >
-                      + Add W
-                    </button>
-                  )}
-                </div>
-              ),
-            },
-          ]
-        : []),
       {
         header: "Actions",
         accessor: (row) => (
@@ -2325,8 +1825,6 @@ export default function ModuleTypePage({ type, addUrl }) {
       handleEdit,
       handleDelete,
       canQuickAddQuestion,
-      canQuickAddWord,
-      showWordsColumn,
     ],
   );
 
@@ -2346,21 +1844,6 @@ export default function ModuleTypePage({ type, addUrl }) {
     });
   }, [type, selectedSubtopic]);
 
-  const handleWordAdded = useCallback(async () => {
-    setQuickAddWordRow(null);
-    if (selectedSubtopic) {
-      const r = await getModules(type, selectedSubtopic);
-      setModules(
-        Array.isArray(r.data?.data || r.data) ? r.data?.data || r.data : [],
-      );
-    }
-    Swal.fire({
-      icon: "success",
-      title: "Word Added",
-      timer: 1200,
-      showConfirmButton: false,
-    });
-  }, [type, selectedSubtopic]);
 
   const Form = {
     text: TextForm,
@@ -2416,7 +1899,7 @@ export default function ModuleTypePage({ type, addUrl }) {
                 value={selectedTopic}
                 onChange={(e) => onTopicChange(e.target.value)}
               >
-                <option value="">— Choose topic —</option>
+                <option value="">-- Choose topic --</option>
                 {topics.map((t) => (
                   <option key={t._id} value={t._id}>
                     {t.title}
@@ -2429,7 +1912,7 @@ export default function ModuleTypePage({ type, addUrl }) {
               />
             </div>
             {loadingTopics && (
-              <p className="text-[10px] text-slate-400 mt-1">Loading topics…</p>
+              <p className="text-[10px] text-slate-400 mt-1">Loading topics...</p>
             )}
           </div>
           <div
@@ -2455,7 +1938,7 @@ export default function ModuleTypePage({ type, addUrl }) {
                 onChange={(e) => onSubtopicChange(e.target.value)}
                 disabled={!selectedTopic}
               >
-                <option value="">— Choose subtopic —</option>
+                <option value="">-- Choose subtopic --</option>
                 {subtopics.map((s) => (
                   <option key={s._id} value={s._id}>
                     {s.title}
@@ -2492,7 +1975,10 @@ export default function ModuleTypePage({ type, addUrl }) {
           <TableSkeleton rows={5} cols={4} />
         ) : modules.length === 0 ? (
           <EmptyState
-            icon={selectedSubtopic ? "📭" : "🔍"}
+            icon={selectedSubtopic
+              ? <Inbox size={48} className="text-slate-300" strokeWidth={1.5} />
+              : <Search size={48} className="text-slate-300" strokeWidth={1.5} />
+            }
             title={
               selectedSubtopic
                 ? `No ${meta.label} modules yet`
@@ -2536,7 +2022,7 @@ export default function ModuleTypePage({ type, addUrl }) {
                 onClick={() => setShowForm(false)}
                 className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer font-black"
               >
-                ✕
+                x
               </button>
             </div>
             <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">
@@ -2551,15 +2037,6 @@ export default function ModuleTypePage({ type, addUrl }) {
         </div>
       )}
 
-      {viewingMod && (
-        <ViewModal
-          mod={viewingMod}
-          meta={meta}
-          loading={viewLoading}
-          onClose={() => setViewingMod(null)}
-        />
-      )}
-
       {showAddTopic && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
@@ -2569,7 +2046,7 @@ export default function ModuleTypePage({ type, addUrl }) {
                 onClick={() => setShowAddTopic(false)}
                 className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer font-black"
               >
-                ✕
+                x
               </button>
             </div>
             <div className="px-6 py-5">
@@ -2592,7 +2069,7 @@ export default function ModuleTypePage({ type, addUrl }) {
                 onClick={() => setShowAddSub(false)}
                 className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer font-black"
               >
-                ✕
+                x
               </button>
             </div>
             <div className="px-6 py-5">
@@ -2615,14 +2092,6 @@ export default function ModuleTypePage({ type, addUrl }) {
         />
       )}
 
-      {quickAddWordRow && (
-        <QuickAddWordModal
-          type={type}
-          row={quickAddWordRow}
-          onClose={() => setQuickAddWordRow(null)}
-          onSaved={handleWordAdded}
-        />
-      )}
     </EditorLayout>
   );
 }
