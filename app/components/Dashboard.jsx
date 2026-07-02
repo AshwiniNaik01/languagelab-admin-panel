@@ -11,6 +11,7 @@ import {
   FaUserCircle,
   FaClipboardList,
   FaUserPlus,
+   ArrowRight,
 } from "react-icons/fa";
 import { getDashboard } from "../services/superadmin";
 
@@ -126,7 +127,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {/* LICENSE MONITOR */}
-        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm flex flex-col  h-[420px]">
+        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm flex flex-col  h-[400px]">
           <div className="flex flex-col flex-1 min-h-0">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider">
