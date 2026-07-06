@@ -1796,7 +1796,7 @@ export default function ModuleTypePage({ type, addUrl }) {
               title="View questions"
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
             >
-              {row.questions} View Q
+              {row.questions?.length || 0} View Q
             </button>
             {canQuickAddQuestion && (
               <button
