@@ -11,6 +11,7 @@ import Breadcrumb from "../ui/Breadcrumb";
 import { ActionButton } from "../ui/ActionIconButton";
 import Button from "../ui/Button";
 import { Q_TYPES as QUESTION_TYPES_ALL } from "../form/shared/ModuleFormShared";
+import {htmlToText} from "../../utils/htmlToText";
 import {
   getTopics,
   getSubTopics,
@@ -502,7 +503,7 @@ function TextForm({ topicId, subtopicId, onDone, onCancel }) {
           className={`${inp} resize-none`}
           rows={3}
           placeholder="Short description (optional)"
-          value={f.description}
+          value={htmlToText(f.description)}
           onChange={set("description")}
         />
       </div>
@@ -1686,6 +1687,7 @@ export default function ModuleTypePage({ type, addUrl }) {
       {
         header: "Module",
         accessor: (row) => (
+          
           <div className="flex items-center gap-3">
             <span
               className={`w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0 ${meta.color}`}
@@ -1699,7 +1701,7 @@ export default function ModuleTypePage({ type, addUrl }) {
               </p>
               {row.description && (
                 <p className="text-[11px] text-slate-400 truncate max-w-50">
-                  {row.description}
+                  {htmlToText(row.description)}
                 </p>
               )}
             </div>
@@ -1738,7 +1740,7 @@ export default function ModuleTypePage({ type, addUrl }) {
         ),
       },
       {
-        header: "Content",
+        header: "Details",
         accessor: (row) => (
           <div className="space-y-1 text-[11px] text-slate-500">
             {row.exercise_type && (
@@ -1794,7 +1796,7 @@ export default function ModuleTypePage({ type, addUrl }) {
               title="View questions"
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
             >
-              {row.questions?.length ?? 0} View Q
+              {row.questions} View Q
             </button>
             {canQuickAddQuestion && (
               <button

@@ -82,6 +82,7 @@ export default function CourseForm({ initialData = {}, onCancel, onSuccess }) {
         <InputField
           label="Course Name"
           name="course_name"
+          required
           placeholder="e.g. Business English"
           defaultValue={initialData.course_name}
           error={errors.course_name}
@@ -90,6 +91,7 @@ export default function CourseForm({ initialData = {}, onCancel, onSuccess }) {
         <InputField
           label="Course Code"
           name="course_code"
+          required
           placeholder="e.g. BENG01"
           defaultValue={initialData.course_code}
           error={errors.course_code}

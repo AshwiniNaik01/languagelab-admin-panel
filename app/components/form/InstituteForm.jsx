@@ -276,6 +276,7 @@ export default function InstituteForm({
         <InputField
           label="Institute Name"
           name="institute_name"
+          required
           placeholder="e.g. VP Institute"
           defaultValue={initialData.institute_name}
           error={errors.institute_name}
@@ -284,6 +285,7 @@ export default function InstituteForm({
         <InputField
           label="Institute Code"
           name="institute_code"
+          required
           placeholder="e.g. VP2486"
           defaultValue={initialData.institute_code}
           error={errors.institute_code}
@@ -304,6 +306,7 @@ export default function InstituteForm({
         <InputField
           label="Email Address"
           name="email"
+          required
           type="email"
           placeholder="e.g. contact@institute.edu"
           defaultValue={initialData.email}
@@ -353,6 +356,7 @@ export default function InstituteForm({
           <InputField
             label="Line 1"
             name="_addr_line1"
+          
             placeholder="Street / Building"
             value={addressData.line1 || ""}
             onChange={(e) => setAddr("line1", e.target.value)}
@@ -371,6 +375,7 @@ export default function InstituteForm({
           <InputField
             label="Pincode"
             name="_addr_pincode"
+            
             placeholder="e.g. 411001"
             value={addressData.pincode || ""}
             onChange={(e) => setAddr("pincode", e.target.value)}
@@ -380,6 +385,7 @@ export default function InstituteForm({
           <InputField
             label="State"
             name="_addr_state"
+          
             placeholder="e.g. Maharashtra"
             value={addressData.state || ""}
             onChange={(e) => setAddr("state", e.target.value)}
@@ -389,6 +395,7 @@ export default function InstituteForm({
           <InputField
             label="District"
             name="_addr_dist"
+          
             placeholder="e.g. Pune"
             value={addressData.dist || ""}
             onChange={(e) => setAddr("dist", e.target.value)}
@@ -398,6 +405,7 @@ export default function InstituteForm({
           <InputField
             label="Taluka"
             name="_addr_taluka"
+          
             placeholder="e.g. Haveli"
             value={addressData.taluka || ""}
             onChange={(e) => setAddr("taluka", e.target.value)}
@@ -407,6 +415,7 @@ export default function InstituteForm({
           <InputField
             label="Authorized Person Name"
             name="_addr_autorizedName"
+           
             placeholder="Contact person name"
             value={addressData.autorizedName || ""}
             onChange={(e) => setAddr("autorizedName", e.target.value)}
@@ -416,6 +425,7 @@ export default function InstituteForm({
           <InputField
             label="Authorized Person Phone"
             name="_addr_autorizedPhono"
+            
             placeholder="e.g. 9876543210"
             value={addressData.autorizedPhono || ""}
             onChange={(e) => setAddr("autorizedPhono", e.target.value)}
@@ -426,6 +436,7 @@ export default function InstituteForm({
         <InputField
           label="Nearby Landmarks"
           name="_addr_nearbyLandmarks"
+        
           placeholder="e.g. Near Railway Station"
           value={addressData.nearbyLandmarks || ""}
           onChange={(e) => setAddr("nearbyLandmarks", e.target.value)}
@@ -442,6 +453,7 @@ export default function InstituteForm({
         <InputField
           label="Student Capacity"
           name="max_students"
+          
           type="number"
           placeholder="e.g. 200"
           defaultValue={initialData.max_students || 500}

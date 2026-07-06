@@ -171,6 +171,7 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess, onSu
         <InputField
           label="Full Name"
           name="full_name"
+          required
           placeholder="e.g. John Doe"
           defaultValue={initialData.full_name}
           error={errors.full_name}
@@ -179,6 +180,7 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess, onSu
         <InputField
           label="Email Address"
           name="email"
+          required
           type="email"
           placeholder="e.g. editor@example.com"
           defaultValue={initialData.email}

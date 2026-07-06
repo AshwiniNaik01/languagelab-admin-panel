@@ -10,6 +10,7 @@ import {
   Hash, Clock, BarChart2, BookOpen,
 } from "lucide-react";
 import { getModule } from "../../services/editorPanel";
+import {htmlToText} from "../../utils/htmlToText";
 
 const TYPE_META = {
   text:       { label: "Text Module",       Icon: FileText,   color: "from-blue-500 to-blue-600",     light: "bg-blue-50",   text: "text-blue-700",   border: "border-blue-200"   },
@@ -86,6 +87,8 @@ export default function ModuleViewPage({ type }) {
 
   const { Icon } = meta;
 
+
+
   return (
     <EditorLayout>
       <div className="space-y-6">
@@ -111,13 +114,13 @@ export default function ModuleViewPage({ type }) {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="text-2xl font-black text-slate-950">{mod.title}</h2>
+              <h2 className="text-2xl font-black text-slate-950">{htmlToText(mod.title)}</h2>
               <span className={`px-2.5 py-0.5 text-[11px] font-black rounded-full border capitalize ${meta.light} ${meta.text} ${meta.border}`}>
                 {meta.label}
               </span>
             </div>
             {mod.description && (
-              <p className="text-sm text-slate-500 mt-1 line-clamp-1">{mod.description}</p>
+              <p className="text-sm text-slate-500 mt-1 line-clamp-1"> {htmlToText(mod.description)}</p>
             )}
           </div>
 
@@ -152,7 +155,7 @@ export default function ModuleViewPage({ type }) {
             {mod.description && (
               <div className="col-span-2">
                 <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1">Description</p>
-                <p className="font-semibold text-slate-700">{mod.description}</p>
+                <p className="font-semibold text-slate-700">{htmlToText(mod.description)}</p>
               </div>
             )}
 
@@ -326,7 +329,7 @@ export default function ModuleViewPage({ type }) {
                       : `✓ ${q.correct_answer}`
                     }
                   </p>
-                  {q.explanation && <p className="text-[11px] text-slate-400 mt-0.5"><span className="font-semibold">Explanation:</span> {q.explanation}</p>}
+                  {q.explanation && <p className="text-[11px] text-slate-400 mt-0.5"><span className="font-semibold">Explanation:</span> {htmlToText(q.explanation)}</p>}
                 </div>
               ))}
             </div>
