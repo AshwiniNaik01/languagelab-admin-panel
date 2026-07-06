@@ -1695,7 +1695,7 @@ export default function ModuleTypePage({ type, addUrl }) {
               <meta.icon size={15} />
             </span>
             <div>
-              <p className="font-bold text-slate-900 text-sm">{row.title}</p>
+              <p className="font-bold text-slate-900 text-sm max-w-[300px] truncate">{row.title}</p>
               <p className="text-[11px] text-slate-400">
                 Order #{row.order ?? "-"}
               </p>
