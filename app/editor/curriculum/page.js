@@ -341,7 +341,7 @@ export default function CurriculumPage() {
     <EditorLayout>
       <div className="space-y-5">
 
-        {/* Header */}
+        {/* Header
         <div>
           <h2 className="text-2xl font-black text-slate-900">
             {tab === "topics" ? "Topics" : "SubTopics"}
@@ -349,7 +349,7 @@ export default function CurriculumPage() {
           <p className="text-sm text-slate-500 mt-1">
             {tab === "topics" ? "Manage topics for your courses." : "Manage subtopics under a selected topic."}
           </p>
-        </div>
+        </div> */}
 
         {/* ── TOPICS TAB ─────────────────────────────────────────────── */}
         {tab === "topics" && (

@@ -5,6 +5,9 @@ import InputField from "./InputField";
 import Button from "../ui/Button";
 import { courseSchema } from "../../schemas/course.schema.js";
 import { BookOpen, AlignLeft } from "lucide-react";
+import Dropdown from "./Dropdown";
+import { LANGUAGE_OPTIONS }from "../../services/dbService";
+
 
 export default function CourseForm({ initialData = {}, onCancel, onSuccess }) {
   const [loading, setLoading] = useState(false);
@@ -126,14 +129,14 @@ export default function CourseForm({ initialData = {}, onCancel, onSuccess }) {
           {errors.level && <p className="mt-1 text-sm text-red-500">{errors.level}</p>}
         </div>
 
-        <InputField
-          label="Language"
-          name="language"
-          placeholder="e.g. English"
-          defaultValue={initialData.language}
-          error={errors.language}
-          icon="Globe"
-        />
+        <Dropdown
+  label="Language"
+  name="language"
+  defaultValue={initialData.language || ""}
+  options={LANGUAGE_OPTIONS}
+  placeholder="Select Language"
+  required
+/>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
