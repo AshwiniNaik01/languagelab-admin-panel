@@ -22,12 +22,15 @@ export default function NewInstitutePage() {
 
     const handleSubmit = async (data) => {
         try {
-            await createInstitute(data);
+            const res = await createInstitute(data);
+            const emailSent = (res.data?.data || res.data)?.email_sent;
             Swal.fire({
                 icon: 'success',
                 title: 'Institute Created',
-                text: `${data.institute_name} has been registered.`,
-                timer: 2000,
+                text: emailSent
+                    ? `${data.institute_name} has been registered and emailed their login credentials.`
+                    : `${data.institute_name} has been registered. Credentials email was not sent — share the password manually.`,
+                timer: 2500,
                 showConfirmButton: false,
             });
             router.push('/institutes');

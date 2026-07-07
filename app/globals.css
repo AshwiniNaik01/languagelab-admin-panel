@@ -36,6 +36,19 @@ body {
   scrollbar-width: none; /* Firefox */
 }
 
+/* Neutralize Chrome/Safari autofill's forced background color (can't be
+   overridden with background-color — needs the inset box-shadow trick) so
+   autofilled inputs keep the same white background as untouched ones. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset;
+  box-shadow: 0 0 0px 1000px #ffffff inset;
+  -webkit-text-fill-color: #374151;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 /* Hide scrollbar but keep scrolling */
 .custom-scroll {
   scrollbar-width: none;       /* Firefox */

@@ -11,7 +11,7 @@ import Breadcrumb from "../ui/Breadcrumb";
 import { ActionButton } from "../ui/ActionIconButton";
 import Button from "../ui/Button";
 import { Q_TYPES as QUESTION_TYPES_ALL } from "../form/shared/ModuleFormShared";
-import {htmlToText} from "../../utils/htmlToText";
+import { htmlToText } from "../../utils/htmlToText";
 import {
   getTopics,
   getSubTopics,
@@ -1284,8 +1284,6 @@ function FormBtns({ saving, onCancel, label = "Create Module" }) {
   );
 }
 
-
-
 /* Quick-add inline form used for Topic and SubTopic creation */
 function QuickAddForm({ label, onSave, onCancel }) {
   const [f, setF] = useState({ title: "", description: "", order: 1 });
@@ -1508,7 +1506,6 @@ function QuickAddQuestionModal({ type, row, onClose, onSaved }) {
   );
 }
 
-
 /* Shared list page used by each module type */
 export default function ModuleTypePage({ type, addUrl }) {
   const meta = TYPE_META[type];
@@ -1687,7 +1684,6 @@ export default function ModuleTypePage({ type, addUrl }) {
       {
         header: "Module",
         accessor: (row) => (
-          
           <div className="flex items-center gap-3">
             <span
               className={`w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0 ${meta.color}`}
@@ -1695,7 +1691,9 @@ export default function ModuleTypePage({ type, addUrl }) {
               <meta.icon size={15} />
             </span>
             <div>
-              <p className="font-bold text-slate-900 text-sm max-w-[300px] truncate">{row.title}</p>
+              <p className="font-bold text-slate-900 text-sm max-w-[300px] truncate">
+                {row.title}
+              </p>
               <p className="text-[11px] text-slate-400">
                 Order #{row.order ?? "-"}
               </p>
@@ -1801,7 +1799,9 @@ export default function ModuleTypePage({ type, addUrl }) {
             {canQuickAddQuestion && (
               <button
                 type="button"
-                onClick={() => router.push(`/editor/modules/${type}/${row._id}/add-question`)}
+                onClick={() =>
+                  router.push(`/editor/modules/${type}/${row._id}/add-question`)
+                }
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
               >
                 + Add Q
@@ -1821,13 +1821,7 @@ export default function ModuleTypePage({ type, addUrl }) {
         ),
       },
     ],
-    [
-      meta,
-      handleView,
-      handleEdit,
-      handleDelete,
-      canQuickAddQuestion,
-    ],
+    [meta, handleView, handleEdit, handleDelete, canQuickAddQuestion],
   );
 
   const handleQuestionAdded = useCallback(async () => {
@@ -1845,7 +1839,6 @@ export default function ModuleTypePage({ type, addUrl }) {
       showConfirmButton: false,
     });
   }, [type, selectedSubtopic]);
-
 
   const Form = {
     text: TextForm,
@@ -1865,7 +1858,7 @@ export default function ModuleTypePage({ type, addUrl }) {
             { label: `${meta.label} Modules` },
           ]}
         />
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <div
             className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shrink-0 ${meta.color}`}
           >
@@ -1879,7 +1872,7 @@ export default function ModuleTypePage({ type, addUrl }) {
               Manage {meta.label.toLowerCase()} content modules.
             </p>
           </div>
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border border-slate-200 rounded-2xl p-4">
@@ -1914,7 +1907,9 @@ export default function ModuleTypePage({ type, addUrl }) {
               />
             </div>
             {loadingTopics && (
-              <p className="text-[10px] text-slate-400 mt-1">Loading topics...</p>
+              <p className="text-[10px] text-slate-400 mt-1">
+                Loading topics...
+              </p>
             )}
           </div>
           <div
@@ -1977,9 +1972,16 @@ export default function ModuleTypePage({ type, addUrl }) {
           <TableSkeleton rows={5} cols={4} />
         ) : modules.length === 0 ? (
           <EmptyState
-            icon={selectedSubtopic
-              ? <Inbox size={48} className="text-slate-300" strokeWidth={1.5} />
-              : <Search size={48} className="text-slate-300" strokeWidth={1.5} />
+            icon={
+              selectedSubtopic ? (
+                <Inbox size={48} className="text-slate-300" strokeWidth={1.5} />
+              ) : (
+                <Search
+                  size={48}
+                  className="text-slate-300"
+                  strokeWidth={1.5}
+                />
+              )
             }
             title={
               selectedSubtopic
@@ -2093,7 +2095,6 @@ export default function ModuleTypePage({ type, addUrl }) {
           onSaved={handleQuestionAdded}
         />
       )}
-
     </EditorLayout>
   );
 }

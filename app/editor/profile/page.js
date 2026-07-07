@@ -19,9 +19,9 @@ function FormInput({ label, icon: Icon, required, type = "text", showToggle = fa
       <div className="relative">
         {Icon && <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none"><Icon size={16} strokeWidth={2} /></span>}
         <input
+          autoComplete={type === "password" ? "new-password" : "on"}
           {...props}
           type={inputType}
-          autoComplete="new-password"
           className={`w-full ${Icon ? "pl-10" : "px-4"} ${showToggle ? "pr-10" : "pr-4"} py-3 rounded-xl border border-orange-300 bg-white text-gray-700 placeholder:text-gray-400 outline-none transition-all text-sm hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200`}
         />
         {showToggle && type === "password" && (
@@ -174,9 +174,9 @@ const handleGeneratePassword = () => {
               <h3 className="text-xl font-black text-[#3C1E0A] border-b border-orange-500/10 pb-4 mb-6">Edit Profile</h3>
               <form onSubmit={handleUpdateProfile} className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <FormInput label="Full Name" icon={User} required type="text" placeholder="Your full name"
+                  <FormInput label="Full Name" icon={User} required type="text" autoComplete="name" placeholder="Your full name"
                     value={form.full_name} onChange={(e) => setForm(p => ({ ...p, full_name: e.target.value }))} />
-                  <FormInput label="Phone" icon={Phone} type="text" placeholder="10-digit number"
+                  <FormInput label="Phone" icon={Phone} type="text" autoComplete="tel" placeholder="10-digit number"
                     value={form.phone} onChange={(e) => setForm(p => ({ ...p, phone: e.target.value }))} />
                 </div>
                 <LogoFileUploader
@@ -196,7 +196,7 @@ const handleGeneratePassword = () => {
             <div className="bg-white rounded-3xl border border-orange-500/20 shadow-sm p-8">
               <h3 className="text-xl font-black text-[#3C1E0A] border-b border-orange-500/10 pb-4 mb-6">Change Password</h3>
               <form onSubmit={handleChangePassword} className="space-y-5">
-                <FormInput label="Current Password" icon={Lock} required type="password" showToggle placeholder="••••••••"
+                <FormInput label="Current Password" icon={Lock} required type="password" autoComplete="current-password" showToggle placeholder="••••••••"
                   value={pwForm.current_password} onChange={(e) => setPwForm(p => ({ ...p, current_password: e.target.value }))} />
                   <div className="flex justify-end">
   <Button
