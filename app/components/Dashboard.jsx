@@ -14,6 +14,8 @@ import {
    ArrowRight,
 } from "react-icons/fa";
 import { getDashboard } from "../services/superadmin";
+import DashboardSkeleton from "./DashboardSkeleton";
+
 
 function timeAgo(isoString) {
   const diff = Date.now() - new Date(isoString).getTime();
@@ -63,13 +65,17 @@ export default function Dashboard() {
   const auditLog = data?.recent_audit_log ?? [];
   const engagement = data?.user_engagement;
 
+  if (loading) {
+  return <DashboardSkeleton />;
+}
+
   return (
     <div className="min-h-screen bg-[#FFF8F4] px-8 py-8 font-sans space-y-8">
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-linear-to-r from-orange-500/5 to-amber-500/5 p-6 rounded-3xl border border-orange-500/10 backdrop-blur-sm">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-[#3C1E0A] leading-tight tracking-tight">
-            Welcome back, Curator 👋
+            Welcome back, Super Admin👋
           </h1>
           <p className="text-xs md:text-sm text-orange-950/70 font-semibold mt-1">
             System overview and active statistics dashboard is live.
@@ -89,36 +95,36 @@ export default function Dashboard() {
         <StatCard
           icon={<FaUniversity className="text-[#3C1E0A]" />}
           title="Total Institutes"
-          value={loading ? "—" : `${stats?.total_institutes.count} Registered`}
-          sub={loading ? "" : `+${stats?.total_institutes.this_month} institutes this month`}
+          value={`${stats.total_institutes.count} Registered`}
+          sub={`+${stats.total_institutes.this_month} institutes this month`}
           color="from-orange-400 to-amber-400"
         />
         <StatCard
           icon={<FaUserGraduate className="text-[#3C1E0A]" />}
           title="Total Students"
-          value={loading ? "—" : `${stats?.total_students.count.toLocaleString()} Users`}
-          sub={loading ? "" : `+${stats?.total_students.this_month} enrolled this month`}
+          value={`${stats.total_students.count.toLocaleString()} Users`}
+          sub={`+${stats.total_students.this_month} enrolled this month`}
           color="from-amber-400 to-yellow-400"
         />
         <StatCard
           icon={<FaKey className="text-[#3C1E0A]" />}
           title="Active Licenses"
-          value={loading ? "—" : `${stats?.active_licenses.count} Assigned`}
-          sub={loading ? "" : `${stats?.active_licenses.expiring_soon} keys expiring shortly`}
+          value={`${stats.published_courses.count} Materials`}
+          sub={`${stats.active_licenses.expiring_soon} keys expiring shortly`}
           color="from-orange-500 to-orange-400"
         />
         <StatCard
           icon={<FaBookOpen className="text-[#3C1E0A]" />}
           title="Published Courses"
-          value={loading ? "—" : `${stats?.published_courses.count} Materials`}
-          sub={loading ? "" : `+${stats?.published_courses.topics_this_week} topics added this week`}
+         value={`${stats.published_courses.count} Materials`}
+          sub={`+${stats.published_courses.topics_this_week} topics added this week`}
           color="from-amber-500 to-orange-400"
         />
         <StatCard
           icon={<FaChartLine className="text-[#3C1E0A]" />}
           title="Assessments Taken"
-          value={loading ? "—" : `${stats?.assessments_taken.count.toLocaleString()} Tests`}
-          sub={loading ? "" : `+${stats?.assessments_taken.submitted_recently} submitted recently`}
+          value={`${stats.assessments_taken.count.toLocaleString()} Tests`}
+          sub={`+${stats.assessments_taken.submitted_recently} submitted recently`}
           color="from-yellow-400 to-orange-400"
         />
       </div>
@@ -139,22 +145,22 @@ export default function Dashboard() {
             </div>
 
             <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scroll space-y-4">
-              {loading ? (
-                <p className="text-xs text-orange-950/50 font-bold">Loading...</p>
-              ) : licenseMonitors.length === 0 ? (
-                <p className="text-xs text-orange-950/50 font-bold">No expiring licenses.</p>
-              ) : (
-                licenseMonitors.map((lic) => (
-                  <LicenseItem
-                    key={lic._id}
-                    name={lic.institute_name}
-                    plan={lic.license_code}
-                    days={`${lic.days_left} days left`}
-                    date={`Exp: ${formatExpiry(lic.expiry_date)}`}
-                    urgency={licenseUrgency(lic.days_left)}
-                  />
-                ))
-              )}
+              {licenseMonitors.length === 0 ? (
+  <p className="text-xs text-orange-950/50 font-bold">
+    No expiring licenses.
+  </p>
+) : (
+  licenseMonitors.map((lic) => (
+    <LicenseItem
+      key={lic._id}
+      name={lic.institute_name}
+      plan={lic.license_code}
+      days={`${lic.days_left} days left`}
+      date={`Exp: ${formatExpiry(lic.expiry_date)}`}
+      urgency={licenseUrgency(lic.days_left)}
+    />
+  ))
+)}
             </div>
           </div>
            {/* <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
@@ -175,20 +181,20 @@ export default function Dashboard() {
             </div>
 
             <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scroll space-y-4">
-              {loading ? (
-                <p className="text-xs text-orange-950/50 font-bold">Loading...</p>
-              ) : instituteActivity.length === 0 ? (
-                <p className="text-xs text-orange-950/50 font-bold">No recent activity.</p>
-              ) : (
-                instituteActivity.map((act, i) => (
-                  <ActivityItem
-                    key={i}
-                    name={act.institute_name}
-                    sub={`${act.new_students} new students onboarded`}
-                    time={timeAgo(act.time)}
-                  />
-                ))
-              )}
+  {instituteActivity.length === 0 ? (
+  <p className="text-xs text-orange-950/50 font-bold">
+    No recent activity.
+  </p>
+) : (
+  instituteActivity.map((act, i) => (
+    <ActivityItem
+      key={i}
+      name={act.institute_name}
+      sub={`${act.new_students} new students onboarded`}
+      time={timeAgo(act.time)}
+    />
+  ))
+)}
             </div>
           </div>
           {/* <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
@@ -224,21 +230,21 @@ export default function Dashboard() {
           </h2>
 
           <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scroll">
-            {loading ? (
-              <p className="text-xs text-orange-950/50 font-bold">Loading...</p>
-            ) : auditLog.length === 0 ? (
-              <p className="text-xs text-orange-950/50 font-bold">No recent audit events.</p>
-            ) : (
-              auditLog.map((log, i) => (
-                <AuditItem
-                  key={i}
-                  type={auditIconType(log.type)}
-                  title={log.title}
-                  desc={log.description}
-                  time={timeAgo(log.time)}
-                />
-              ))
-            )}
+            {auditLog.length === 0 ? (
+  <p className="text-xs text-orange-950/50 font-bold">
+    No recent audit events.
+  </p>
+) : (
+  auditLog.map((log, i) => (
+    <AuditItem
+      key={i}
+      type={auditIconType(log.type)}
+      title={log.title}
+      desc={log.description}
+      time={timeAgo(log.time)}
+    />
+  ))
+)}
           </div>
         </div>
 
@@ -270,19 +276,19 @@ export default function Dashboard() {
           <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-orange-500/10">
             <div>
               <p className="font-black text-sm text-[#3C1E0A]">
-                {loading ? "—" : engagement?.active_students.toLocaleString()}
+                {engagement.active_students.toLocaleString()}
               </p>
               <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Students</p>
             </div>
             <div>
               <p className="font-black text-sm text-[#3C1E0A]">
-                {loading ? "—" : engagement?.curators}
+                {engagement.curators}
               </p>
               <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Curators</p>
             </div>
             <div>
               <p className="font-black text-sm text-[#3C1E0A]">
-                {loading ? "—" : engagement?.tests}
+                {engagement.tests}
               </p>
               <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Tests</p>
             </div>

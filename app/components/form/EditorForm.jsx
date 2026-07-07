@@ -167,50 +167,73 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess, onSu
       </h3>
 
       {/* Full Name + Email */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Full Name"
-          name="full_name"
-          required
-          placeholder="e.g. John Doe"
-          defaultValue={initialData.full_name}
-          error={errors.full_name}
-          icon="User"
-        />
-        <InputField
-          label="Email Address"
-          name="email"
-          required
-          type="email"
-          placeholder="e.g. editor@example.com"
-          defaultValue={initialData.email}
-          error={errors.email}
-          icon="Mail"
-        />
-      </div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <InputField
+    label="Full Name"
+    name="full_name"
+    required
+    placeholder="e.g. John Doe"
+    defaultValue={initialData.full_name}
+    error={errors.full_name}
+    icon="User"
+  />
 
-      {/* Password + Phone */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Password"
-          name="password"
-          type="password"
-          placeholder={initialData._id ? "Leave blank to keep current" : "Enter account password"}
-          error={errors.password}
-          icon="Lock"
-          showToggle
-          autoComplete="new-password"
-          disabled={!!initialData._id}
-        />
-        <InputField
-          label="Phone Number"
-          name="phone"
-          placeholder="e.g. 9876543210"
-          defaultValue={initialData.phone}
-          error={errors.phone}
-          icon="Phone"
-        />
-      </div>
+  <InputField
+    label="Email Address"
+    name="email"
+    required
+    type="email"
+    placeholder="e.g. editor@example.com"
+    defaultValue={initialData.email}
+    error={errors.email}
+    icon="Mail"
+  />
+</div>
+
+{/* Phone Number */}
+<div className="grid grid-cols-1">
+  <InputField
+    label="Phone Number"
+    name="phone"
+    placeholder="e.g. 9876543210"
+    defaultValue={initialData.phone}
+    error={errors.phone}
+    icon="Phone"
+  />
+</div>
+
+{/* Password + Confirm Password */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <InputField
+    label="Password"
+    name="password"
+    type="password"
+    placeholder={
+      initialData._id
+        ? "Leave blank to keep current"
+        : "Enter account password"
+    }
+    error={errors.password}
+    icon="Lock"
+    showToggle
+    autoComplete="new-password"
+    disabled={!!initialData._id}
+  />
+
+  <InputField
+    label="Confirm Password"
+    name="confirmPassword"
+    type="password"
+    placeholder="Re-enter password"
+    error={errors.confirmPassword}
+    icon="Lock"
+    showToggle
+    autoComplete="new-password"
+    disabled={!!initialData._id}
+  />
+</div>
+
+
 
       {/* Profile Photo */}
       <LogoFileUploader

@@ -12,7 +12,23 @@ import { ChevronDown, Check, X } from "lucide-react";
 
 function CourseMultiSelect({ courses, selectedIds, onToggle, onClear, error }) {
   const [open, setOpen] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState("");
   const ref = useRef(null);
+
+  const generatePassword = () => {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+
+  let password = "";
+
+  for (let i = 0; i < 12; i++) {
+    password += chars.charAt(
+      Math.floor(Math.random() * chars.length)
+    );
+  }
+
+  setGeneratedPassword(password);
+};
 
   useEffect(() => {
     const close = (e) => {
@@ -303,16 +319,125 @@ export default function InstituteForm({
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Email Address"
-          name="email"
-          required
-          type="email"
-          placeholder="e.g. contact@institute.edu"
-          defaultValue={initialData.email}
-          error={errors.email}
-          icon="Mail"
-        />
+  <InputField
+    label="Email Address"
+    name="email"
+    required
+    type="email"
+    placeholder="e.g. contact@institute.edu"
+    defaultValue={initialData.email}
+    error={errors.email}
+    icon="Mail"
+  />
+
+  <InputField
+    label="Phone Number"
+    name="phone"
+    placeholder="e.g. 9876543210"
+    defaultValue={initialData.phone}
+    error={errors.phone}
+    icon="Phone"
+  />
+
+  <div className="md:col-span-2">
+    <InputField
+      label="Website URL"
+      name="website"
+      placeholder="e.g. https://institute.edu"
+      defaultValue={initialData.website}
+      error={errors.website}
+      icon="Globe"
+    />
+  </div>
+</div>
+
+      <div className="space-y-3">
+  <p className="text-sm font-semibold text-[#3C1E0A]">Address </p>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <InputField
+      label="Address Line 1"
+      name="_addr_line1"
+      placeholder="Street / Building"
+      value={addressData.line1 || ""}
+      onChange={(e) => setAddr("line1", e.target.value)}
+      error={errors["address.line1"]}
+      icon="MapPin"
+    />
+
+    <InputField
+      label="Address Line 2"
+      name="_addr_line2"
+      placeholder="Apartment / Area"
+      value={addressData.line2 || ""}
+      onChange={(e) => setAddr("line2", e.target.value)}
+      error={errors["address.line2"]}
+      icon="MapPin"
+    />
+
+    <InputField
+      label="State"
+      name="_addr_state"
+      placeholder="e.g. Maharashtra"
+      value={addressData.state || ""}
+      onChange={(e) => setAddr("state", e.target.value)}
+      error={errors["address.state"]}
+      icon="MapPin"
+    />
+
+    <InputField
+      label="City"
+      name="_addr_city"
+      placeholder="e.g. Pune"
+      value={addressData.city || ""}
+      onChange={(e) => setAddr("city", e.target.value)}
+      error={errors["address.city"]}
+      icon="MapPin"
+    />
+
+    <InputField
+      label="Pincode"
+      name="_addr_pincode"
+      placeholder="411001"
+      value={addressData.pincode || ""}
+      onChange={(e) => setAddr("pincode", e.target.value)}
+      error={errors["address.pincode"]}
+      icon="Hash"
+    />
+
+    <InputField
+      label="Nearby Landmark"
+      name="_addr_nearbyLandmarks"
+      placeholder="Near Railway Station"
+      value={addressData.nearbyLandmarks || ""}
+      onChange={(e) => setAddr("nearbyLandmarks", e.target.value)}
+      error={errors["address.nearbyLandmarks"]}
+      icon="Navigation"
+    />
+
+    <InputField
+      label="Authorized Person"
+      name="_addr_authorizedName"
+      placeholder="Contact person name"
+      value={addressData.authorizedName || ""}
+      onChange={(e) => setAddr("authorizedName", e.target.value)}
+      error={errors["address.authorizedName"]}
+      icon="User"
+    />
+
+    <InputField
+      label="Contact Number"
+      name="_addr_authorizedPhone"
+      placeholder="9876543210"
+      value={addressData.authorizedPhone || ""}
+      onChange={(e) => setAddr("authorizedPhone", e.target.value)}
+      error={errors["address.authorizedPhone"]}
+      icon="Phone"
+    />
+
+ 
+
         <InputField
           label="Password"
           name="password"
@@ -328,122 +453,22 @@ export default function InstituteForm({
           autoComplete="new-password"
           disabled={!!initialData._id}
         />
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          label="Phone Number"
-          name="phone"
-          placeholder="e.g. 9876543210"
-          defaultValue={initialData.phone}
-          error={errors.phone}
-          icon="Phone"
-        />
-        <InputField
-          label="Website URL"
-          name="website"
-          placeholder="e.g. https://institute.edu"
-          defaultValue={initialData.website}
-          error={errors.website}
-          icon="Globe"
-        />
-      </div>
 
-      {/* Address */}
-      <div className="space-y-3">
-        <p className="text-sm font-semibold text-[#3C1E0A]">Address</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField
-            label="Line 1"
-            name="_addr_line1"
-          
-            placeholder="Street / Building"
-            value={addressData.line1 || ""}
-            onChange={(e) => setAddr("line1", e.target.value)}
-            error={errors["address.line1"]}
-            icon="MapPin"
-          />
-          <InputField
-            label="Line 2"
-            name="_addr_line2"
-            placeholder="Area / Locality (optional)"
-            value={addressData.line2 || ""}
-            onChange={(e) => setAddr("line2", e.target.value)}
-            error={errors["address.line2"]}
-            icon="MapPin"
-          />
-          <InputField
-            label="Pincode"
-            name="_addr_pincode"
-            
-            placeholder="e.g. 411001"
-            value={addressData.pincode || ""}
-            onChange={(e) => setAddr("pincode", e.target.value)}
-            error={errors["address.pincode"]}
-            icon="Hash"
-          />
-          <InputField
-            label="State"
-            name="_addr_state"
-          
-            placeholder="e.g. Maharashtra"
-            value={addressData.state || ""}
-            onChange={(e) => setAddr("state", e.target.value)}
-            error={errors["address.state"]}
-            icon="MapPin"
-          />
-          <InputField
-            label="District"
-            name="_addr_dist"
-          
-            placeholder="e.g. Pune"
-            value={addressData.dist || ""}
-            onChange={(e) => setAddr("dist", e.target.value)}
-            error={errors["address.dist"]}
-            icon="MapPin"
-          />
-          <InputField
-            label="Taluka"
-            name="_addr_taluka"
-          
-            placeholder="e.g. Haveli"
-            value={addressData.taluka || ""}
-            onChange={(e) => setAddr("taluka", e.target.value)}
-            error={errors["address.taluka"]}
-            icon="MapPin"
-          />
-          <InputField
-            label="Authorized Person Name"
-            name="_addr_autorizedName"
-           
-            placeholder="Contact person name"
-            value={addressData.autorizedName || ""}
-            onChange={(e) => setAddr("autorizedName", e.target.value)}
-            error={errors["address.autorizedName"]}
-            icon="User"
-          />
-          <InputField
-            label="Authorized Person Phone"
-            name="_addr_autorizedPhono"
-            
-            placeholder="e.g. 9876543210"
-            value={addressData.autorizedPhono || ""}
-            onChange={(e) => setAddr("autorizedPhono", e.target.value)}
-            error={errors["address.autorizedPhono"]}
-            icon="Phone"
-          />
-        </div>
         <InputField
-          label="Nearby Landmarks"
-          name="_addr_nearbyLandmarks"
-        
-          placeholder="e.g. Near Railway Station"
-          value={addressData.nearbyLandmarks || ""}
-          onChange={(e) => setAddr("nearbyLandmarks", e.target.value)}
-          error={errors["address.nearbyLandmarks"]}
-          icon="Navigation"
-        />
+    label="Confirm Password"
+    name="confirmPassword"
+    type="password"
+    placeholder="Re-enter password"
+    error={errors.confirmPassword}
+    icon="Lock"
+    showToggle
+    autoComplete="new-password"
+    disabled={!!initialData._id}
+  />
       </div>
+      </div>
+   
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
         <LogoFileUploader
