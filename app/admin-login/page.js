@@ -272,6 +272,7 @@ export default function LoginPage() {
                                 label="Email"
                                 name="email"
                                 type="email"
+                                autoComplete="username"
                                 value={adminData.email}
                                 onChange={handleAdminChange}
                                 required
@@ -283,6 +284,7 @@ export default function LoginPage() {
                                     label="Password"
                                     name="password"
                                     type={showAdminPassword ? 'text' : 'password'}
+                                    autoComplete="current-password"
                                     value={adminData.password}
                                     onChange={handleAdminChange}
                                     required
@@ -320,6 +322,7 @@ export default function LoginPage() {
                                 label="Email"
                                 name="email"
                                 type="email"
+                                autoComplete="username"
                                 value={editorData.email}
                                 onChange={handleEditorChange}
                                 required
@@ -331,6 +334,7 @@ export default function LoginPage() {
                                     label="Password"
                                     name="password"
                                     type={showEditorPassword ? 'text' : 'password'}
+                                    autoComplete="current-password"
                                     value={editorData.password}
                                     onChange={handleEditorChange}
                                     required

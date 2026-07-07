@@ -25,9 +25,9 @@ function FormInput({ label, icon: Icon, required, type = 'text', showToggle = fa
                     </span>
                 )}
                 <input
+                    autoComplete={type === 'password' ? 'new-password' : 'on'}
                     {...props}
                     type={inputType}
-                    autoComplete="new-password"
                     className={`w-full ${Icon ? 'pl-10' : 'px-4'} ${showToggle ? 'pr-10' : 'pr-4'} py-3 rounded-xl border border-orange-300 bg-white text-gray-700 placeholder:text-gray-400 outline-none transition-all text-sm hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200`}
                 />
                 {showToggle && type === 'password' && (
@@ -222,6 +222,7 @@ const handleGeneratePassword = () => {
                                         icon={User}
                                         required
                                         type="text"
+                                        autoComplete="name"
                                         placeholder="Your full name"
                                         value={form.full_name}
                                         onChange={(e) => setForm((p) => ({ ...p, full_name: e.target.value }))}
@@ -230,6 +231,7 @@ const handleGeneratePassword = () => {
                                         label="Phone"
                                         icon={Phone}
                                         type="text"
+                                        autoComplete="tel"
                                         placeholder="10-digit number"
                                         value={form.phone}
                                         onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}

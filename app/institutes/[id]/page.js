@@ -10,6 +10,7 @@ import {
   getInstituteById,
   toggleInstituteStatus,
   generateLicense,
+  resendInstituteCredentials,
 } from "../../services/institute";
 import {
   getInstituteLicenses,
@@ -18,7 +19,7 @@ import {
   expireLicense,
   renewLicense,
 } from "../../services/superadmin";
-import { KeyRound, ArrowLeft, RotateCcw } from "lucide-react";
+import { KeyRound, ArrowLeft, RotateCcw, Mail, MailCheck } from "lucide-react";
 
 const licenseStatusColor = (status) => {
   switch (status) {
@@ -63,6 +64,10 @@ export default function InstituteViewPage() {
   const [licenseLoading, setLicenseLoading] = useState(false);
   const [generatedLicenses, setGeneratedLicenses] = useState(null);
 
+  // Resend credentials
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resentCredentials, setResentCredentials] = useState(null);
+
   const loadInstitute = async () => {
     setLoading(true);
     try {
@@ -106,6 +111,34 @@ export default function InstituteViewPage() {
         title: "Toggle Failed",
         text: err?.response?.data?.message || err.message,
       });
+    }
+  };
+
+  const handleResendCredentials = async () => {
+    const result = await Swal.fire({
+      title: "Reset & resend credentials?",
+      text: "This generates a brand-new password for the institute and emails it. The current password stops working immediately.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, reset & send",
+      confirmButtonColor: "#ea580c",
+    });
+    if (!result.isConfirmed) return;
+
+    setResendLoading(true);
+    try {
+      const res = await resendInstituteCredentials(id);
+      const payload = res.data?.data || res.data;
+      setResentCredentials(payload);
+      await loadInstitute();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Resend Failed",
+        text: err?.response?.data?.message || err.message,
+      });
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -390,6 +423,32 @@ export default function InstituteViewPage() {
                   />
                   {institute.is_active ? "Active" : "Inactive"}
                 </span>
+              </div>
+              <div className="col-span-2 flex items-center justify-between gap-3 pt-1">
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1">
+                    Credentials Email
+                  </p>
+                  {institute.credentials_email_sent_at ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-green-50 text-green-700 border border-green-300">
+                      <MailCheck size={12} strokeWidth={2.5} />
+                      Sent {new Date(institute.credentials_email_sent_at).toLocaleString()}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-500 border border-slate-300">
+                      <Mail size={12} strokeWidth={2.5} />
+                      Not sent
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={handleResendCredentials}
+                  disabled={resendLoading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-black rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all disabled:opacity-50 whitespace-nowrap"
+                >
+                  <RotateCcw size={11} strokeWidth={2.5} />
+                  {resendLoading ? "Sending…" : "Reset & Resend"}
+                </button>
               </div>
             </div>
           </div>
@@ -827,6 +886,23 @@ export default function InstituteViewPage() {
               be retrieved again.
             </div>
 
+            <div
+              className={`mb-4 flex items-center gap-2 p-3 rounded-xl border text-xs font-bold ${
+                generatedLicenses.email_sent
+                  ? "bg-green-50 border-green-300 text-green-700"
+                  : "bg-amber-50 border-amber-300 text-amber-700"
+              }`}
+            >
+              {generatedLicenses.email_sent ? (
+                <MailCheck size={14} strokeWidth={2.5} />
+              ) : (
+                <Mail size={14} strokeWidth={2.5} />
+              )}
+              {generatedLicenses.email_sent
+                ? "Purchase confirmation emailed to the institute."
+                : "Email not sent (Zoho not configured or delivery failed) — share these credentials manually."}
+            </div>
+
             <div className="space-y-2 mb-6">
               <div className="grid grid-cols-5 gap-2 text-[10px] font-black text-slate-500 uppercase tracking-wider px-2">
                 <span>#</span>
@@ -876,6 +952,55 @@ export default function InstituteViewPage() {
             <div className="flex justify-end">
               <Button onClick={() => setGeneratedLicenses(null)}>
                 I have saved the passwords — Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── RESENT CREDENTIALS MODAL (shown ONCE) ──────────────────────────── */}
+      {resentCredentials && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
+            <h3 className="text-xl font-black text-green-700 mb-1">
+              Credentials Reset ✓
+            </h3>
+            <p className="text-xs text-slate-500 mb-4">{resentCredentials.email}</p>
+
+            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-300 text-xs text-red-700 font-bold">
+              ⚠ CRITICAL — This password is shown ONCE only. Copy and save now.
+              Cannot be retrieved again.
+            </div>
+
+            <div className="mb-4 p-4 rounded-xl bg-orange-50 border border-orange-200 text-center">
+              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1">
+                New Password
+              </p>
+              <p className="font-mono font-black text-orange-700 text-lg">
+                {resentCredentials.password}
+              </p>
+            </div>
+
+            <div
+              className={`mb-4 flex items-center gap-2 p-3 rounded-xl border text-xs font-bold ${
+                resentCredentials.email_sent
+                  ? "bg-green-50 border-green-300 text-green-700"
+                  : "bg-amber-50 border-amber-300 text-amber-700"
+              }`}
+            >
+              {resentCredentials.email_sent ? (
+                <MailCheck size={14} strokeWidth={2.5} />
+              ) : (
+                <Mail size={14} strokeWidth={2.5} />
+              )}
+              {resentCredentials.email_sent
+                ? "New credentials emailed to the institute."
+                : "Email not sent (Zoho not configured or delivery failed) — share this password manually."}
+            </div>
+
+            <div className="flex justify-end">
+              <Button onClick={() => setResentCredentials(null)}>
+                I have saved the password — Close
               </Button>
             </div>
           </div>

@@ -324,6 +324,7 @@ export default function InstituteForm({
     name="email"
     required
     type="email"
+    autoComplete="email"
     placeholder="e.g. contact@institute.edu"
     defaultValue={initialData.email}
     error={errors.email}
@@ -387,12 +388,22 @@ export default function InstituteForm({
     />
 
     <InputField
-      label="City"
-      name="_addr_city"
+      label="District"
+      name="_addr_dist"
       placeholder="e.g. Pune"
-      value={addressData.city || ""}
-      onChange={(e) => setAddr("city", e.target.value)}
-      error={errors["address.city"]}
+      value={addressData.dist || ""}
+      onChange={(e) => setAddr("dist", e.target.value)}
+      error={errors["address.dist"]}
+      icon="MapPin"
+    />
+
+    <InputField
+      label="Taluka"
+      name="_addr_taluka"
+      placeholder="e.g. Haveli"
+      value={addressData.taluka || ""}
+      onChange={(e) => setAddr("taluka", e.target.value)}
+      error={errors["address.taluka"]}
       icon="MapPin"
     />
 
@@ -420,9 +431,9 @@ export default function InstituteForm({
       label="Authorized Person"
       name="_addr_authorizedName"
       placeholder="Contact person name"
-      value={addressData.authorizedName || ""}
-      onChange={(e) => setAddr("authorizedName", e.target.value)}
-      error={errors["address.authorizedName"]}
+      value={addressData.autorizedName || ""}
+      onChange={(e) => setAddr("autorizedName", e.target.value)}
+      error={errors["address.autorizedName"]}
       icon="User"
     />
 
@@ -430,9 +441,9 @@ export default function InstituteForm({
       label="Contact Number"
       name="_addr_authorizedPhone"
       placeholder="9876543210"
-      value={addressData.authorizedPhone || ""}
-      onChange={(e) => setAddr("authorizedPhone", e.target.value)}
-      error={errors["address.authorizedPhone"]}
+      value={addressData.autorizedPhono || ""}
+      onChange={(e) => setAddr("autorizedPhono", e.target.value)}
+      error={errors["address.autorizedPhono"]}
       icon="Phone"
     />
 

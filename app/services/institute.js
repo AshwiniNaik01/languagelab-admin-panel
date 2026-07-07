@@ -57,6 +57,9 @@ export const deleteInstitute = (id) => api.delete(`/api/institute/${id}`);
 export const toggleInstituteStatus = (id) =>
   api.put(`/api/institute/${id}/toggle-status`);
 
+export const resendInstituteCredentials = (id) =>
+  api.put(`/api/institute/${id}/resend-credentials`);
+
 // Fixed URL: was /api/super-admin/api/institute/... (duplicate /api)
 export const generateLicense = (instituteId, payload) =>
   api.put(`/api/super-admin/institute/${instituteId}/license`, payload);

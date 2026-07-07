@@ -183,6 +183,7 @@ export default function EditorForm({ initialData = {}, onCancel, onSuccess, onSu
     name="email"
     required
     type="email"
+    autoComplete="email"
     placeholder="e.g. editor@example.com"
     defaultValue={initialData.email}
     error={errors.email}
