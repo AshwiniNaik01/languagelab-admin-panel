@@ -2,10 +2,86 @@
 
 import { UserCircle2, ChevronDown, Menu, Sparkles, BookOpen } from "lucide-react";
 import { useSidebar } from "./SidebarContext";
+import { usePathname, useSearchParams } from "next/navigation";
+
 
 export default function EditorNavbar() {
-  const { toggleSidebar } = useSidebar();
 
+  const { toggleSidebar } = useSidebar();
+ const pathname = usePathname();
+const searchParams = useSearchParams();
+
+
+const getPageInfo = () => {
+
+  const tab = searchParams.get("tab");
+
+
+  // Curriculum page tabs
+  if (pathname === "/editor/curriculum") {
+
+    const curriculumTabs = {
+      topics: {
+        title: "Topics",
+        description: "Manage course topics",
+      },
+
+      subtopics: {
+        title: "SubTopics",
+        description: "Manage topic sub-sections",
+      },
+
+      modules: {
+        title: "Modules",
+        description: "Manage learning modules",
+      },
+
+      materials: {
+        title: "Materials",
+        description: "Manage course materials",
+      },
+
+      exercises: {
+        title: "Exercises",
+        description: "Manage assessments",
+      },
+    };
+
+
+    return curriculumTabs[tab] || {
+      title: "Curriculum",
+      description: "Manage curriculum",
+    };
+  }
+
+
+  // Normal pages
+  const path = pathname.split("/").filter(Boolean);
+
+  const page = path[path.length - 1];
+
+
+  if (!page || page === "editor") {
+    return {
+      title: "Dashboard",
+      description: "Manage your content workspace",
+    };
+  }
+
+
+  const title = page
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
+
+  return {
+    title,
+    description: `Manage ${title.toLowerCase()}`,
+  };
+};
+
+
+const pageInfo = getPageInfo();
   return (
     <header className="h-20 bg-gradient-to-r from-[#FFF8F4]/95 to-[#FFF2EA]/95 backdrop-blur-md border-b border-orange-500/20 px-4 flex items-center justify-between z-10 shrink-0 shadow-lg shadow-orange-950/5">
       
@@ -36,6 +112,20 @@ export default function EditorNavbar() {
               Editor Workspace
             </span>
           </div>
+          <span className="text-orange-900/40 font-light text-xl">
+  /
+</span>
+
+
+<div className="hidden md:block ml-2">
+  <h2 className="text-sm font-black text-[#3C1E0A]">
+    {pageInfo.title}
+  </h2>
+
+  <p className="text-[10px] font-bold text-orange-600/75">
+    {pageInfo.description}
+  </p>
+</div>
         </div>
       </div>
 

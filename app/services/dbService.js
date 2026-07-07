@@ -1,5 +1,12 @@
 // Mock database store for the Language-Lab application schemas
-
+export const LANGUAGE_OPTIONS = [
+  "English",
+  "French",
+  "German",
+  "Spanish",
+  "Hindi",
+  "Marathi",
+];
 export const initialInstitutes = [
   {
     _id: "col1",
