@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import AdminLayout from '../layouts/AdminLayout';
 import { getInstitutes } from '../services/institute';
-import { Eye } from 'lucide-react';
+import Button from "../components/ui/Button";
+import { Eye,  RotateCcw,} from 'lucide-react';
 import {
     getInstituteLicenses,
     suspendLicense,
     activateLicense,
     expireLicense,
+    renewLicense,
 } from '../services/superadmin';
 
 export default function LicensesPage() {
@@ -19,6 +21,13 @@ export default function LicensesPage() {
     const [loading, setLoading] = useState(false);
     const [licenseLoading, setLicenseLoading] = useState(null);
     const [viewingLicense, setViewingLicense] = useState(null);
+
+    // Renewal modal
+  const [renewingLicense, setRenewingLicense] = useState(null);
+  const [renewStartDate, setRenewStartDate] = useState("");
+  const [renewEndDate, setRenewEndDate] = useState("");
+  const [renewLoading, setRenewLoading] = useState(false);
+
 
     useEffect(() => {
         const load = async () => {
@@ -98,7 +107,70 @@ export default function LicensesPage() {
         const d = Math.ceil((new Date(expiry) - new Date()) / 86400000);
         return d > 0 ? d : 0;
     };
+    
+  
 
+const openRenewModal = (lic) => {
+  setRenewingLicense(lic);
+  setRenewStartDate("");
+  setRenewEndDate("");
+};
+
+    
+      const handleRenewLicense = async () => {
+  if (!renewStartDate || !renewEndDate) {
+    Swal.fire({
+      icon: "warning",
+      title: "Select both start and expiry dates",
+    });
+    return;
+  }
+
+  setRenewLoading(true);
+
+  try {
+    // Call Renew API
+    await renewLicense(renewingLicense._id, {
+      start_date: renewStartDate,
+      expiry_date: renewEndDate,
+    });
+
+    // Refresh licenses of this institute
+    const res = await getInstituteLicenses(
+      renewingLicense.institute_id
+    );
+
+    const list =
+      res.data?.data?.licenses ||
+      res.data?.licenses ||
+      res.data ||
+      [];
+
+    setLicenseMap((prev) => ({
+      ...prev,
+      [renewingLicense.institute_id]: Array.isArray(list)
+        ? list
+        : [],
+    }));
+
+    setRenewingLicense(null);
+
+    Swal.fire({
+      icon: "success",
+      title: "License Renewed",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "Renewal Failed",
+      text: err?.response?.data?.message || err.message,
+    });
+  } finally {
+    setRenewLoading(false);
+  }
+};
     return (
         <>
         <AdminLayout>
@@ -187,10 +259,17 @@ export default function LicensesPage() {
                                                 {/* Scrollable rows only */}
                                                 <div className="max-h-80 overflow-y-auto overflow-x-hidden space-y-2">
                                                 {licenses.map((lic) => (
-                                                    <div
-                                                        key={lic._id}
-                                                        className="grid grid-cols-5 gap-2 bg-white border border-orange-500/10 rounded-xl px-3 py-3 text-xs items-center"
-                                                    >
+    <div
+        key={lic._id}
+        className={`grid grid-cols-5 gap-2 rounded-xl px-3 py-3 text-xs items-center border-l-4 border
+            ${
+                lic.status === "expired"
+                    ? "border-l-red-600 border-red-200 bg-red-50"
+                    : lic.status === "suspended"
+                    ? "border-l-amber-500 border-amber-200 bg-amber-50"
+                    : "border-l-green-500 border-orange-500/10 bg-white"
+            }`}
+    >
                                                         {/* Code */}
                                                         <div>
                                                             <span className="font-mono font-black text-orange-700">{lic.license_code}</span>
@@ -263,9 +342,19 @@ export default function LicensesPage() {
                                                                 >
                                                                     Expire
                                                                 </button>
+                                                                
 
                                                                 
                                                             )}
+                                                             <button
+                        onClick={() => openRenewModal(lic)}
+                        title="Renew license"
+                        className="flex items-center gap-0.5 px-2 py-1 text-[10px] font-black rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-500 hover:text-white hover:border-sky-500 transition-all whitespace-nowrap"
+                      >
+                        <RotateCcw size={10} strokeWidth={2.5} />
+                        Renew
+                      </button>
+                                                            
                                                         </div>
                                                     </div>
                                                 ))}
@@ -410,8 +499,82 @@ export default function LicensesPage() {
                         </div>
                     </div>
                 </div>
+                
             );
         })()}
+
+              {/* ── RENEWAL MODAL ──────────────────────────────────────────────────── */}
+              {renewingLicense && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                  <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl p-6">
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center shrink-0">
+                        <RotateCcw
+                          size={16}
+                          className="text-sky-600"
+                          strokeWidth={2.5}
+                        />
+                      </div>
+                      <h3 className="text-lg font-black text-slate-950">
+                        Renew License
+                      </h3>
+                    </div>
+                    <p className="text-xs text-sky-700 font-mono font-bold mb-5 ml-12">
+                      {renewingLicense.license_code}
+                    </p>
+        
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold mb-1.5">
+                          New Start Date
+                        </label>
+                        <input
+                          type="date"
+                          value={renewStartDate}
+                          onChange={(e) => setRenewStartDate(e.target.value)}
+                          className="w-full border border-orange-200 rounded-xl px-3 py-2 focus:outline-none focus:border-orange-500 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-1.5">
+                          New Expiry Date
+                        </label>
+                        <input
+                          type="date"
+                          value={renewEndDate}
+                          onChange={(e) => setRenewEndDate(e.target.value)}
+                          className="w-full border border-orange-200 rounded-xl px-3 py-2 focus:outline-none focus:border-orange-500 text-sm"
+                        />
+                      </div>
+                    </div>
+        
+                    {renewingLicense.status === "expired" && (
+                      <div className="mt-4 p-3 rounded-xl bg-sky-50 border border-sky-200 text-xs text-sky-800 font-semibold">
+                        This license is expired. Renewing will reactivate it with the
+                        new dates.
+                      </div>
+                    )}
+        
+                    <div className="flex justify-end gap-3 mt-6">
+                      <Button
+                        variant="secondary"
+                        onClick={() => setRenewingLicense(null)}
+                      >
+                        Cancel
+                      </Button>
+                      <button
+                        onClick={handleRenewLicense}
+                        disabled={renewLoading}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-500 text-white text-sm font-bold hover:bg-sky-600 transition-colors disabled:opacity-50"
+                      >
+                        <RotateCcw size={14} strokeWidth={2.5} />
+                        {renewLoading ? "Renewing…" : "Confirm Renewal"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+        
         </>
     );
 }

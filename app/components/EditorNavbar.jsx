@@ -3,85 +3,22 @@
 import { UserCircle2, ChevronDown, Menu, Sparkles, BookOpen } from "lucide-react";
 import { useSidebar } from "./SidebarContext";
 import { usePathname, useSearchParams } from "next/navigation";
+import { getEditorPageInfo } from "../utils/editorPageTitles";
+
 
 
 export default function EditorNavbar() {
-
   const { toggleSidebar } = useSidebar();
- const pathname = usePathname();
-const searchParams = useSearchParams();
+
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const pageInfo = getEditorPageInfo(
+    pathname,
+    searchParams.get("tab")
+  );
 
 
-const getPageInfo = () => {
-
-  const tab = searchParams.get("tab");
-
-
-  // Curriculum page tabs
-  if (pathname === "/editor/curriculum") {
-
-    const curriculumTabs = {
-      topics: {
-        title: "Topics",
-        description: "Manage course topics",
-      },
-
-      subtopics: {
-        title: "SubTopics",
-        description: "Manage topic sub-sections",
-      },
-
-      modules: {
-        title: "Modules",
-        description: "Manage learning modules",
-      },
-
-      materials: {
-        title: "Materials",
-        description: "Manage course materials",
-      },
-
-      exercises: {
-        title: "Exercises",
-        description: "Manage assessments",
-      },
-    };
-
-
-    return curriculumTabs[tab] || {
-      title: "Curriculum",
-      description: "Manage curriculum",
-    };
-  }
-
-
-  // Normal pages
-  const path = pathname.split("/").filter(Boolean);
-
-  const page = path[path.length - 1];
-
-
-  if (!page || page === "editor") {
-    return {
-      title: "Dashboard",
-      description: "Manage your content workspace",
-    };
-  }
-
-
-  const title = page
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-
-
-  return {
-    title,
-    description: `Manage ${title.toLowerCase()}`,
-  };
-};
-
-
-const pageInfo = getPageInfo();
   return (
     <header className="h-20 bg-gradient-to-r from-[#FFF8F4]/95 to-[#FFF2EA]/95 backdrop-blur-md border-b border-orange-500/20 px-4 flex items-center justify-between z-10 shrink-0 shadow-lg shadow-orange-950/5">
       
