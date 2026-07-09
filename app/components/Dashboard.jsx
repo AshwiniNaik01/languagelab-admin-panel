@@ -11,7 +11,7 @@ import {
   FaUserCircle,
   FaClipboardList,
   FaUserPlus,
-   ArrowRight,
+  ArrowRight,
 } from "react-icons/fa";
 import { getDashboard } from "../services/superadmin";
 import DashboardSkeleton from "./DashboardSkeleton";
@@ -55,7 +55,7 @@ export default function Dashboard() {
   useEffect(() => {
     getDashboard()
       .then((res) => setData(res.data.data))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -66,8 +66,8 @@ export default function Dashboard() {
   const engagement = data?.user_engagement;
 
   if (loading) {
-  return <DashboardSkeleton />;
-}
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-[#FFF8F4] px-8 py-8 font-sans space-y-8">
@@ -95,36 +95,36 @@ export default function Dashboard() {
         <StatCard
           icon={<FaUniversity className="text-[#3C1E0A]" />}
           title="Total Institutes"
-          value={`${stats.total_institutes.count} Registered`}
-          sub={`+${stats.total_institutes.this_month} institutes this month`}
+          value={`${stats?.total_institutes?.count || 0} Registered`}
+          sub={`+${stats?.total_institutes?.this_month || 0} institutes this month`}
           color="from-orange-400 to-amber-400"
         />
         <StatCard
           icon={<FaUserGraduate className="text-[#3C1E0A]" />}
           title="Total Students"
-          value={`${stats.total_students.count.toLocaleString()} Users`}
-          sub={`+${stats.total_students.this_month} enrolled this month`}
+          value={`${(stats?.total_students?.count || 0).toLocaleString()} Users`}
+          sub={`+${stats?.total_students?.this_month || 0} enrolled this month`}
           color="from-amber-400 to-yellow-400"
         />
         <StatCard
           icon={<FaKey className="text-[#3C1E0A]" />}
           title="Active Licenses"
-          value={`${stats.published_courses.count} Materials`}
-          sub={`${stats.active_licenses.expiring_soon} keys expiring shortly`}
+          value={`${stats?.active_licenses?.count || 0} Licenses`}
+          sub={`${stats?.active_licenses?.expiring_soon || 0} keys expiring shortly`}
           color="from-orange-500 to-orange-400"
         />
         <StatCard
           icon={<FaBookOpen className="text-[#3C1E0A]" />}
           title="Published Courses"
-         value={`${stats.published_courses.count} Materials`}
-          sub={`+${stats.published_courses.topics_this_week} topics added this week`}
+          value={`${stats?.published_courses?.count || 0} Materials`}
+          sub={`+${stats?.published_courses?.topics_this_week || 0} topics added this week`}
           color="from-amber-500 to-orange-400"
         />
         <StatCard
           icon={<FaChartLine className="text-[#3C1E0A]" />}
           title="Assessments Taken"
-          value={`${stats.assessments_taken.count.toLocaleString()} Tests`}
-          sub={`+${stats.assessments_taken.submitted_recently} submitted recently`}
+          value={`${(stats?.assessments_taken?.count || 0).toLocaleString()} Tests`}
+          sub={`+${stats?.assessments_taken?.submitted_recently || 0} submitted recently`}
           color="from-yellow-400 to-orange-400"
         />
       </div>
@@ -146,24 +146,24 @@ export default function Dashboard() {
 
             <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scroll space-y-4">
               {licenseMonitors.length === 0 ? (
-  <p className="text-xs text-orange-950/50 font-bold">
-    No expiring licenses.
-  </p>
-) : (
-  licenseMonitors.map((lic) => (
-    <LicenseItem
-      key={lic._id}
-      name={lic.institute_name}
-      plan={lic.license_code}
-      days={`${lic.days_left} days left`}
-      date={`Exp: ${formatExpiry(lic.expiry_date)}`}
-      urgency={licenseUrgency(lic.days_left)}
-    />
-  ))
-)}
+                <p className="text-xs text-orange-950/50 font-bold">
+                  No expiring licenses.
+                </p>
+              ) : (
+                licenseMonitors.map((lic) => (
+                  <LicenseItem
+                    key={lic._id}
+                    name={lic.institute_name}
+                    plan={lic.license_code}
+                    days={`${lic.days_left} days left`}
+                    date={`Exp: ${formatExpiry(lic.expiry_date)}`}
+                    urgency={licenseUrgency(lic.days_left)}
+                  />
+                ))
+              )}
             </div>
           </div>
-           {/* <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
+          {/* <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
             View All License Ledgers
           </button>  */}
         </div>
@@ -181,20 +181,20 @@ export default function Dashboard() {
             </div>
 
             <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scroll space-y-4">
-  {instituteActivity.length === 0 ? (
-  <p className="text-xs text-orange-950/50 font-bold">
-    No recent activity.
-  </p>
-) : (
-  instituteActivity.map((act, i) => (
-    <ActivityItem
-      key={i}
-      name={act.institute_name}
-      sub={`${act.new_students} new students onboarded`}
-      time={timeAgo(act.time)}
-    />
-  ))
-)}
+              {instituteActivity.length === 0 ? (
+                <p className="text-xs text-orange-950/50 font-bold">
+                  No recent activity.
+                </p>
+              ) : (
+                instituteActivity.map((act, i) => (
+                  <ActivityItem
+                    key={i}
+                    name={act.institute_name}
+                    sub={`${act.new_students} new students onboarded`}
+                    time={timeAgo(act.time)}
+                  />
+                ))
+              )}
             </div>
           </div>
           {/* <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
@@ -212,7 +212,7 @@ export default function Dashboard() {
             <ActionCard icon={<FaPlus />} label="Add Institute" link="/institutes/new" />
             <ActionCard icon={<FaKey />} label="Issue License" link="/institutes" />
             <ActionCard icon={<FaUserPlus />} label="Register Editor" link="/editors/new" />
-            <ActionCard icon={<FaBookOpen/>} label="Add Course" link="/courses" />
+            <ActionCard icon={<FaBookOpen />} label="Add Course" link="/courses" />
             <ActionCard icon={<FaUserCircle />} label="View Profile" link="/profile" />
             <ActionCard icon={<FaClipboardList />} label="Configure Testing" link="/sessions" />
           </div>
@@ -231,20 +231,20 @@ export default function Dashboard() {
 
           <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scroll">
             {auditLog.length === 0 ? (
-  <p className="text-xs text-orange-950/50 font-bold">
-    No recent audit events.
-  </p>
-) : (
-  auditLog.map((log, i) => (
-    <AuditItem
-      key={i}
-      type={auditIconType(log.type)}
-      title={log.title}
-      desc={log.description}
-      time={timeAgo(log.time)}
-    />
-  ))
-)}
+              <p className="text-xs text-orange-950/50 font-bold">
+                No recent audit events.
+              </p>
+            ) : (
+              auditLog.map((log, i) => (
+                <AuditItem
+                  key={i}
+                  type={auditIconType(log.type)}
+                  title={log.title}
+                  desc={log.description}
+                  time={timeAgo(log.time)}
+                />
+              ))
+            )}
           </div>
         </div>
 
@@ -256,7 +256,7 @@ export default function Dashboard() {
 
           <div className="mb-4">
             <div className="text-3xl font-black text-[#3C1E0A]">
-              {loading ? "—" : engagement?.active_students.toLocaleString()}
+              {loading ? "—" : (engagement?.active_students || 0).toLocaleString()}
             </div>
             <p className="text-xs text-orange-950/60 font-bold">Total Platform Active Students</p>
           </div>
@@ -276,19 +276,19 @@ export default function Dashboard() {
           <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-orange-500/10">
             <div>
               <p className="font-black text-sm text-[#3C1E0A]">
-                {engagement.active_students.toLocaleString()}
+                {(engagement?.active_students || 0).toLocaleString()}
               </p>
               <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Students</p>
             </div>
             <div>
               <p className="font-black text-sm text-[#3C1E0A]">
-                {engagement.curators}
+                {engagement?.curators || 0}
               </p>
               <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Curators</p>
             </div>
             <div>
               <p className="font-black text-sm text-[#3C1E0A]">
-                {engagement.tests}
+                {engagement?.tests || 0}
               </p>
               <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Tests</p>
             </div>
@@ -325,8 +325,8 @@ function StatCard({ icon, title, value, sub, color }) {
 function LicenseItem({ name, plan, days, date, urgency }) {
   const badgeColor =
     urgency === "high" ? "text-red-600 bg-red-50 border-red-200" :
-    urgency === "medium" ? "text-orange-600 bg-orange-50 border-orange-200" :
-    "text-amber-600 bg-amber-50 border-amber-200";
+      urgency === "medium" ? "text-orange-600 bg-orange-50 border-orange-200" :
+        "text-amber-600 bg-amber-50 border-amber-200";
 
   return (
     <div className="flex justify-between items-center py-3 border-b border-orange-500/10">
@@ -377,8 +377,8 @@ function ActionCard({ icon, label, link }) {
 function AuditItem({ type, title, desc, time }) {
   const icon =
     type === "add" ? "✨" :
-    type === "renew" ? "🔄" :
-    type === "publish" ? "📚" : "👤";
+      type === "renew" ? "🔄" :
+        type === "publish" ? "📚" : "👤";
 
   return (
     <div className="flex items-start gap-3.5 p-3 rounded-2xl hover:bg-orange-500/5 border border-transparent hover:border-orange-500/10 transition duration-300">
