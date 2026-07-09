@@ -60,6 +60,13 @@ export function getEditorPageInfo(pathname, tab) {
       description: "Manage vocabulary",
     };
 
+    if (pathname.startsWith("/editor/modules/overview"))
+    return {
+      title: "Modules overview",
+      description: "Manage and organize learning modules.",
+    };
+
+
   if (
     pathname.startsWith("/editor/modules/exercise") &&
     pathname.includes("/questions")
