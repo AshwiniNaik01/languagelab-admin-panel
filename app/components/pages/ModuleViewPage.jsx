@@ -161,7 +161,7 @@ export default function ModuleViewPage({ type }) {
         />
 
         {/* Header */}
-        <div className="flex items-center gap-5">
+        {/* <div className="flex items-center gap-5">
           <button
             onClick={() => router.push(`/editor/modules/${type}`)}
             className="w-9 h-9 flex items-center justify-center rounded-xl border border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors shrink-0"
@@ -200,7 +200,7 @@ export default function ModuleViewPage({ type }) {
           >
             <Pencil size={14} strokeWidth={2.5} /> Edit Module
           </button>
-        </div>
+        </div> */}
 
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

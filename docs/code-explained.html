@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Code Explained — Language Lab Admin Panel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --orange:#f97316;--orange-dark:#ea580c;--orange-light:#fff7ed;
+  --brown:#3C1E0A;--border:#e5e7eb;--muted:#6b7280;
+  --green:#16a34a;--blue:#2563eb;--purple:#7c3aed;--red:#dc2626;
+  --sidebar:260px;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f9fafb;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+#nav{width:var(--sidebar);background:var(--brown);position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:100;padding-bottom:40px}
+#nav .brand{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:6px}
+#nav .brand h2{color:#fff;font-size:14px;font-weight:800}
+#nav .brand p{color:rgba(255,255,255,.45);font-size:10px;margin-top:2px}
+#nav .grp{padding:12px 18px 4px;font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.35)}
+#nav a{display:flex;align-items:center;gap:8px;padding:8px 18px;color:rgba(255,255,255,.7);text-decoration:none;font-size:12px;font-weight:600;border-left:3px solid transparent;transition:.2s}
+#nav a:hover,#nav a.on{color:#fff;background:rgba(249,115,22,.2);border-left-color:var(--orange)}
+#nav a .d{width:5px;height:5px;border-radius:50%;background:var(--orange);flex-shrink:0}
+
+/* MAIN */
+#main{margin-left:var(--sidebar);flex:1;padding:36px 44px;max-width:calc(100% - var(--sidebar))}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--brown) 0%,#7c3a1a 100%);border-radius:18px;padding:36px 44px;margin-bottom:44px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;border-radius:50%;background:rgba(249,115,22,.15)}
+.hero h1{font-size:26px;font-weight:900;color:#fff;position:relative}
+.hero p{color:rgba(255,255,255,.65);font-size:13px;margin-top:8px;position:relative;max-width:520px}
+
+/* FILE BLOCK */
+.file-block{margin-bottom:52px}
+.file-title{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--border)}
+.file-title .num{width:34px;height:34px;border-radius:10px;background:var(--orange);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.file-title h2{font-size:17px;font-weight:800;color:var(--brown)}
+.file-title .path{font-family:monospace;font-size:11px;color:var(--muted);background:#f3f4f6;padding:3px 9px;border-radius:5px;border:1px solid var(--border)}
+.file-title .role{font-size:11px;color:var(--orange-dark);background:var(--orange-light);border:1px solid rgba(249,115,22,.25);padding:3px 9px;border-radius:5px;font-weight:700}
+
+/* LINE TABLE */
+.lt{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:8px}
+.lt thead tr{background:var(--orange-light)}
+.lt th{padding:10px 16px;text-align:left;font-size:10px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:.6px;border-bottom:2px solid rgba(249,115,22,.2)}
+.lt td{padding:10px 16px;border-bottom:1px solid var(--border);vertical-align:top;font-size:12.5px;line-height:1.6}
+.lt tr:last-child td{border-bottom:none}
+.lt tr:hover td{background:#fafafa}
+.lt .ln{color:var(--muted);font-family:monospace;font-size:11px;font-weight:700;white-space:nowrap;width:60px}
+.lt .code{font-family:'Consolas',monospace;font-size:12px;color:#1e293b;background:#f8f9fa;padding:3px 8px;border-radius:4px;white-space:pre;display:inline-block;border:1px solid #e2e8f0}
+.lt .explain{color:#374151}
+.lt .explain b{color:var(--brown)}
+.lt .explain code{font-family:monospace;font-size:11.5px;background:#f3f4f6;padding:1px 5px;border-radius:3px;color:var(--orange-dark)}
+
+/* TAGS */
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:.3px;margin-left:4px}
+.tag-import{background:#dbeafe;color:#1d4ed8}
+.tag-config{background:#fce7f3;color:#be185d}
+.tag-hook{background:#d1fae5;color:var(--green)}
+.tag-render{background:#fef3c7;color:#92400e}
+.tag-logic{background:#ede9fe;color:var(--purple)}
+.tag-export{background:#dcfce7;color:#15803d}
+.tag-style{background:#f0fdf4;color:#166534}
+
+/* NOTE BOX */
+.note{background:var(--orange-light);border:1px solid rgba(249,115,22,.25);border-left:4px solid var(--orange);border-radius:10px;padding:12px 16px;font-size:12.5px;color:var(--brown);margin:12px 0 16px;line-height:1.6}
+.note b{font-weight:800}
+
+/* DIVIDER */
+.div{height:1px;background:var(--border);margin:44px 0}
+
+@media(max-width:900px){#nav{display:none}#main{margin-left:0;max-width:100%;padding:20px}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="nav">
+  <div class="brand"><h2>Code Explained</h2><p>Line-by-line · All Files</p></div>
+
+  <div class="grp">Core</div>
+  <a href="#f1"><span class="d"></span>middleware.js</a>
+  <a href="#f2"><span class="d"></span>app/layout.js</a>
+  <a href="#f3"><span class="d"></span>app/page.js</a>
+
+  <div class="grp">Auth &amp; Context</div>
+  <a href="#f4"><span class="d"></span>SidebarContext.jsx</a>
+  <a href="#f5"><span class="d"></span>ProtectedRoute.jsx</a>
+  <a href="#f6"><span class="d"></span>ErrorBoundary.jsx</a>
+
+  <div class="grp">Layouts</div>
+  <a href="#f7"><span class="d"></span>AdminLayout.jsx</a>
+  <a href="#f8"><span class="d"></span>EditorLayout.jsx</a>
+
+  <div class="grp">Navigation</div>
+  <a href="#f9"><span class="d"></span>Sidebar.jsx</a>
+  <a href="#f10"><span class="d"></span>EditorSidebar.jsx</a>
+  <a href="#f11"><span class="d"></span>Navbar.jsx</a>
+  <a href="#f12"><span class="d"></span>EditorNavbar.jsx</a>
+
+  <div class="grp">Core Components</div>
+  <a href="#f13"><span class="d"></span>Table.jsx</a>
+  <a href="#f14"><span class="d"></span>Dashboard.jsx</a>
+
+  <div class="grp">Services</div>
+  <a href="#f15"><span class="d"></span>services/api.js</a>
+  <a href="#f16"><span class="d"></span>services/admin-login.js</a>
+
+  <div class="grp">Schemas</div>
+  <a href="#f17"><span class="d"></span>admin.schema.js</a>
+  <a href="#f18"><span class="d"></span>editor.schema.js</a>
+
+  <div class="grp">Pages</div>
+  <a href="#f19"><span class="d"></span>admin-login/page.js</a>
+</nav>
+
+<!-- MAIN -->
+<main id="main">
+
+<div class="hero">
+  <h1>Code Explained — Line by Line</h1>
+  <p>Every file in the Language Lab Admin Panel explained in plain English, one line at a time.</p>
+</div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 1 · middleware.js             -->
+<!-- ═══════════════════════════════════ -->
+<div id="f1" class="file-block">
+  <div class="file-title">
+    <div class="num">1</div>
+    <div>
+      <h2>middleware.js</h2>
+      <span class="path">middleware.js</span>
+      <span class="role">Route Protection</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> This is a Next.js Edge Middleware file. It runs <b>before</b>
+    every page request on the server. Its only job is to check whether the user has a login token.
+    If they don't, it redirects them to the login page.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">import { NextResponse } from "next/server";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Brings in <code>NextResponse</code> from Next.js. This is the tool used to send responses — either "continue to the page" or "redirect to login".</td></tr>
+      <tr><td class="ln">3–7</td><td><span class="code">const PROTECTED = [...]</span></td>
+        <td class="explain"><span class="tag tag-config">CONFIG</span> Defines an array of route prefixes that require login. Any URL starting with one of these strings is "protected". <code>/editor</code>, <code>/institutes</code>, <code>/students</code>, <code>/editors</code>, <code>/licenses</code>, <code>/courses</code>, <code>/sessions</code>, <code>/analytics</code>, <code>/content</code>, <code>/profile</code>.</td></tr>
+      <tr><td class="ln">9</td><td><span class="code">export function middleware(request) {</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> Declares and exports the middleware function. Next.js automatically calls this function for every matching request before serving the page.</td></tr>
+      <tr><td class="ln">10</td><td><span class="code">const { pathname } = request.nextUrl;</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Extracts just the path part of the URL (e.g. <code>/institutes/new</code>) from the incoming request object.</td></tr>
+      <tr><td class="ln">11</td><td><span class="code">const isProtected = PROTECTED.some((p) => pathname.startsWith(p));</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Checks if the current URL starts with ANY of the protected prefixes. <code>.some()</code> returns <code>true</code> as soon as one match is found. If it's not protected, skip everything.</td></tr>
+      <tr><td class="ln">12</td><td><span class="code">if (!isProtected) return NextResponse.next();</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> If the route is <b>not</b> protected (e.g. the login page itself), immediately let the request through. <code>NextResponse.next()</code> means "proceed normally".</td></tr>
+      <tr><td class="ln">14–16</td><td><span class="code">const token = request.cookies.get("token")?.value || request.cookies.get("editor_token")?.value;</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Reads cookies from the request. First tries to find a <code>token</code> cookie (admin), then falls back to <code>editor_token</code>. The <code>?.</code> (optional chaining) prevents crashes if the cookie doesn't exist.</td></tr>
+      <tr><td class="ln">18–20</td><td><span class="code">if (!token) { return NextResponse.redirect(...) }</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> If no token is found, redirect the user to <code>/admin-login</code>. <code>new URL("/admin-login", request.url)</code> builds the full redirect URL. The user never sees the protected page.</td></tr>
+      <tr><td class="ln">21</td><td><span class="code">return NextResponse.next();</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> If a token exists, let the request through normally. The user can see the page.</td></tr>
+      <tr><td class="ln">24–31</td><td><span class="code">export const config = { matcher: [...] }</span></td>
+        <td class="explain"><span class="tag tag-config">CONFIG</span> Tells Next.js <b>which URLs</b> this middleware should run on. Each entry uses the <code>:path*</code> wildcard to match the route and all sub-routes. Without this, the middleware would run on every single request including images and API calls.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 2 · app/layout.js             -->
+<!-- ═══════════════════════════════════ -->
+<div id="f2" class="file-block">
+  <div class="file-title">
+    <div class="num">2</div>
+    <div>
+      <h2>Root Layout</h2>
+      <span class="path">app/layout.js</span>
+      <span class="role">App Shell</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> This is the top-level wrapper for the <b>entire application</b>.
+    Every page in the app is rendered inside this layout. It sets up fonts, page metadata, the
+    sidebar context, and the auth protection wrapper.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">import { Geist, Geist_Mono } from "next/font/google";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Imports two Google Fonts — <b>Geist</b> (sans-serif for body text) and <b>Geist Mono</b> (monospace for code). Next.js optimizes these fonts at build time so they load instantly.</td></tr>
+      <tr><td class="ln">2</td><td><span class="code">import "./globals.css";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Loads the global CSS file. This includes Tailwind CSS base styles and any custom global styles that apply across the whole app.</td></tr>
+      <tr><td class="ln">4–7</td><td><span class="code">const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });</span></td>
+        <td class="explain"><span class="tag tag-config">CONFIG</span> Initializes the Geist Sans font. <code>variable</code> creates a CSS custom property (<code>--font-geist-sans</code>) that Tailwind can use. <code>subsets: ["latin"]</code> only loads Latin character glyphs to keep the bundle small.</td></tr>
+      <tr><td class="ln">9–12</td><td><span class="code">const geistMono = Geist_Mono({...})</span></td>
+        <td class="explain"><span class="tag tag-config">CONFIG</span> Same as above but for the monospace font. Used for code blocks, file paths, and technical text.</td></tr>
+      <tr><td class="ln">14–18</td><td><span class="code">export const metadata = {...}</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> Sets the HTML <code>&lt;title&gt;</code> and <code>&lt;meta description&gt;</code> for the entire app. <code>robots: { index: false, follow: false }</code> tells search engines NOT to index this admin panel — it's private.</td></tr>
+      <tr><td class="ln">20</td><td><span class="code">import ProtectedRoute from "./components/ProtectedRoute";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Imports the auth guard component that checks for a login token and redirects unauthenticated users.</td></tr>
+      <tr><td class="ln">21</td><td><span class="code">import { SidebarProvider } from "./components/SidebarContext";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Imports the context provider that manages whether the sidebar is open or collapsed. Wrapping the whole app in this means any component can read/change sidebar state.</td></tr>
+      <tr><td class="ln">23</td><td><span class="code">export default function RootLayout({ children }) {</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> The default export is the root layout function. <code>children</code> represents whatever page is currently being visited — Next.js automatically passes the current page here.</td></tr>
+      <tr><td class="ln">25–27</td><td><span class="code">&lt;html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> The root HTML element. <code>lang="en"</code> is for accessibility/screen readers. The font variables are applied as CSS classes. <code>h-full</code> makes the page fill the full height. <code>antialiased</code> makes font edges smoother.</td></tr>
+      <tr><td class="ln">29</td><td><span class="code">&lt;body className="min-h-full flex flex-col"&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> The body element. <code>min-h-full</code> ensures the body is at least full viewport height. <code>flex flex-col</code> stacks children vertically.</td></tr>
+      <tr><td class="ln">30</td><td><span class="code">&lt;SidebarProvider&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Wraps everything in the sidebar context. Now every component inside can call <code>useSidebar()</code> to get or change the sidebar state.</td></tr>
+      <tr><td class="ln">31</td><td><span class="code">&lt;ProtectedRoute&gt;{children}&lt;/ProtectedRoute&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Wraps every page in the auth guard. If there's no token, the user sees a loading spinner and gets redirected. If authenticated, <code>{children}</code> (the actual page) is shown.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 3 · app/page.js              -->
+<!-- ═══════════════════════════════════ -->
+<div id="f3" class="file-block">
+  <div class="file-title">
+    <div class="num">3</div>
+    <div>
+      <h2>Home / Dashboard Page</h2>
+      <span class="path">app/page.js</span>
+      <span class="role">Route: /</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> This is the root page — what the admin sees when they visit
+    the homepage (<code>/</code>). It simply puts the Dashboard component inside the AdminLayout.
+    It's intentionally tiny — logic lives in the components, not the page file.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">"use client";</span></td>
+        <td class="explain"><span class="tag tag-config">DIRECTIVE</span> Tells Next.js this component runs in the browser (client-side), not on the server. Required because Dashboard uses browser-only features like <code>useState</code>.</td></tr>
+      <tr><td class="ln">3</td><td><span class="code">import AdminLayout from "./layouts/AdminLayout";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Imports the layout wrapper that adds the Sidebar and Navbar around the page content.</td></tr>
+      <tr><td class="ln">4</td><td><span class="code">import Dashboard from "./components/Dashboard";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Imports the Dashboard component which contains all the stat cards, charts, and activity feeds.</td></tr>
+      <tr><td class="ln">6</td><td><span class="code">export default function Home() {</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> The page component. <code>default export</code> is required — Next.js uses it as the page to render for the <code>/</code> route.</td></tr>
+      <tr><td class="ln">7–11</td><td><span class="code">return ( &lt;AdminLayout&gt;&lt;Dashboard /&gt;&lt;/AdminLayout&gt; );</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Wraps the Dashboard inside AdminLayout. AdminLayout provides the Sidebar on the left and Navbar on top. Dashboard fills the main content area.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 4 · SidebarContext.jsx        -->
+<!-- ═══════════════════════════════════ -->
+<div id="f4" class="file-block">
+  <div class="file-title">
+    <div class="num">4</div>
+    <div>
+      <h2>Sidebar Context</h2>
+      <span class="path">app/components/SidebarContext.jsx</span>
+      <span class="role">State Management</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> Creates a React Context that stores whether the sidebar is
+    collapsed or expanded. Any component in the app can read this state or trigger a toggle
+    without needing to pass props through every parent.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">"use client";</span></td>
+        <td class="explain"><span class="tag tag-config">DIRECTIVE</span> Context with state must run on the client — this marks it as a client component.</td></tr>
+      <tr><td class="ln">3</td><td><span class="code">import { createContext, useContext, useState } from "react";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> <code>createContext</code> — creates a new context object. <code>useContext</code> — lets components read the context. <code>useState</code> — tracks the collapsed/expanded state.</td></tr>
+      <tr><td class="ln">5</td><td><span class="code">const SidebarContext = createContext();</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Creates the context object. Think of it as a "global variable bucket" that can be read by any child component. Starts empty (undefined).</td></tr>
+      <tr><td class="ln">7</td><td><span class="code">export function SidebarProvider({ children }) {</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> The Provider component. This wraps the whole app (in <code>layout.js</code>) and makes the sidebar state available everywhere inside it.</td></tr>
+      <tr><td class="ln">8</td><td><span class="code">const [isCollapsed, setIsCollapsed] = useState(false);</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Creates state for the sidebar. <code>isCollapsed</code> is <code>false</code> by default (sidebar starts expanded). <code>setIsCollapsed</code> is the function to change it.</td></tr>
+      <tr><td class="ln">10–12</td><td><span class="code">const toggleSidebar = () => { setIsCollapsed(prev => !prev); };</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> A function that flips the collapsed state. <code>prev => !prev</code> means "whatever the current value is, flip it". Called when the hamburger menu button is clicked.</td></tr>
+      <tr><td class="ln">14–16</td><td><span class="code">&lt;SidebarContext.Provider value={{ isCollapsed, toggleSidebar }}&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> The Provider passes <code>isCollapsed</code> and <code>toggleSidebar</code> to all child components via context. Any component that calls <code>useSidebar()</code> gets these two values.</td></tr>
+      <tr><td class="ln">21–23</td><td><span class="code">export function useSidebar() { return useContext(SidebarContext); }</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> A custom hook that shortens the usage. Instead of writing <code>useContext(SidebarContext)</code> everywhere, components just call <code>useSidebar()</code> to get <code>{ isCollapsed, toggleSidebar }</code>.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 5 · ProtectedRoute.jsx        -->
+<!-- ═══════════════════════════════════ -->
+<div id="f5" class="file-block">
+  <div class="file-title">
+    <div class="num">5</div>
+    <div>
+      <h2>Protected Route</h2>
+      <span class="path">app/components/ProtectedRoute.jsx</span>
+      <span class="role">Auth Guard</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> A client-side auth guard that wraps all pages. It reads the
+    <code>token</code> cookie in the browser and redirects to login if missing.
+    It also seeds LocalStorage with initial data the first time the app loads.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">"use client";</span></td>
+        <td class="explain"><span class="tag tag-config">DIRECTIVE</span> Must be client-side — reads <code>document.cookie</code> and uses browser router.</td></tr>
+      <tr><td class="ln">3</td><td><span class="code">import { useEffect, useState } from "react";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> <code>useEffect</code> runs code after the component mounts (i.e. after the browser renders). <code>useState</code> stores whether the user is authorized.</td></tr>
+      <tr><td class="ln">4</td><td><span class="code">import { useRouter, usePathname } from "next/navigation";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> <code>useRouter</code> allows programmatic navigation (redirect). <code>usePathname</code> gives the current URL path to know if we're on the login page.</td></tr>
+      <tr><td class="ln">5</td><td><span class="code">import { initialTopics, initialSubTopics } from "../services/dbService";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Imports seed data for topics and subtopics — used to pre-populate LocalStorage when the app first loads.</td></tr>
+      <tr><td class="ln">8–14</td><td><span class="code">function getCookie(name) {...}</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> A helper function that reads a specific cookie by name from <code>document.cookie</code>. <br><br>
+          <b>Step 1:</b> <code>if (typeof document === "undefined") return null</code> — prevents crashes during server-side rendering where <code>document</code> doesn't exist.<br>
+          <b>Step 2:</b> Prepends a semicolon and splits on the cookie name to isolate its value.<br>
+          <b>Step 3:</b> If found, decodes the URL-encoded value and returns it.</td></tr>
+      <tr><td class="ln">16</td><td><span class="code">export default function ProtectedRoute({ children }) {</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> The guard component. <code>children</code> is the actual page content that will be shown only if the user is logged in.</td></tr>
+      <tr><td class="ln">17</td><td><span class="code">const router = useRouter();</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Gets the Next.js router so we can redirect the user programmatically.</td></tr>
+      <tr><td class="ln">18</td><td><span class="code">const pathname = usePathname();</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Gets the current URL path. Used to check if we're already on the login page (avoid redirect loop).</td></tr>
+      <tr><td class="ln">19</td><td><span class="code">const [authorized, setAuthorized] = useState(false);</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Starts as <code>false</code> (not authorized). Gets set to <code>true</code> only after the token check passes. While <code>false</code>, a loading spinner is shown.</td></tr>
+      <tr><td class="ln">21</td><td><span class="code">useEffect(() => {...}, [pathname, router]);</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Runs after every render AND whenever the <code>pathname</code> or <code>router</code> changes (i.e., when the user navigates). This re-checks auth on every page change.</td></tr>
+      <tr><td class="ln">23–29</td><td><span class="code">if (!localStorage.getItem("lab_topics")) { localStorage.setItem(...) }</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> First-time setup. Checks if topics data exists in LocalStorage. If not, seeds it with <code>initialTopics</code> data. Same for subtopics. This only runs once on first app load.</td></tr>
+      <tr><td class="ln">32–41</td><td><span class="code">const token = getCookie("token"); ... if (!token && !isLoginRoute) { router.push("/admin-login") }</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span>
+          <b>Line 33:</b> Reads the token cookie.<br>
+          <b>Line 34:</b> Checks if we're on the login page (to avoid redirect loops).<br>
+          <b>Line 36–38:</b> If no token AND not on login page — mark unauthorized and redirect to login.<br>
+          <b>Line 39–41:</b> If token exists OR we're on login page — mark as authorized, show the page.</td></tr>
+      <tr><td class="ln">44–51</td><td><span class="code">if (!authorized && pathname !== "/admin-login") { return (&lt;loading spinner&gt;) }</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> While the auth check is running, show a full-screen loading spinner with "Authenticating access credentials..." text. This prevents the protected page from flashing briefly before the redirect.</td></tr>
+      <tr><td class="ln">53</td><td><span class="code">return children;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> If authorized, render the actual page content (the children passed in).</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 6 · ErrorBoundary.jsx         -->
+<!-- ═══════════════════════════════════ -->
+<div id="f6" class="file-block">
+  <div class="file-title">
+    <div class="num">6</div>
+    <div>
+      <h2>Error Boundary</h2>
+      <span class="path">app/components/ErrorBoundary.jsx</span>
+      <span class="role">Error Handling</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> A React class component that catches JavaScript errors inside
+    editor pages and shows a friendly "Something went wrong" message with a retry button,
+    instead of crashing the whole app.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">"use client";</span></td>
+        <td class="explain"><span class="tag tag-config">DIRECTIVE</span> Error boundaries must be client components in Next.js App Router.</td></tr>
+      <tr><td class="ln">3</td><td><span class="code">import { Component } from "react";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Imports React's base class. Error boundaries <b>must</b> be class components — they cannot be written as function components because they need lifecycle methods like <code>getDerivedStateFromError</code>.</td></tr>
+      <tr><td class="ln">5</td><td><span class="code">export default class ErrorBoundary extends Component {</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> Declares a class component. <code>extends Component</code> gives it React lifecycle methods.</td></tr>
+      <tr><td class="ln">6–9</td><td><span class="code">constructor(props) { super(props); this.state = { hasError: false, error: null }; }</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> The constructor runs when the component is created. <code>super(props)</code> is required to properly initialize the React Component class. <code>this.state</code> stores two things: whether an error occurred, and what the error is.</td></tr>
+      <tr><td class="ln">11–13</td><td><span class="code">static getDerivedStateFromError(error) { return { hasError: true, error }; }</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> A React lifecycle method that runs automatically when a child component throws an error. It updates the state to record that an error happened. <code>static</code> means it belongs to the class, not an instance.</td></tr>
+      <tr><td class="ln">15–17</td><td><span class="code">componentDidCatch(error, info) { console.error("ErrorBoundary caught:", error, info); }</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Another lifecycle method that fires after an error is caught. Used for logging. <code>info</code> contains the component stack trace showing where the error occurred.</td></tr>
+      <tr><td class="ln">19–38</td><td><span class="code">render() { if (this.state.hasError) { return (&lt;error UI&gt;) } return this.props.children; }</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span>
+          <b>If error:</b> Shows a warning box with the error message and a "Try Again" button.<br>
+          <b>"Try Again" button:</b> Calls <code>this.setState({ hasError: false, error: null })</code> which resets state and tries to re-render the children.<br>
+          <b>If no error:</b> Renders children normally — completely transparent.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 7 · AdminLayout.jsx           -->
+<!-- ═══════════════════════════════════ -->
+<div id="f7" class="file-block">
+  <div class="file-title">
+    <div class="num">7</div>
+    <div>
+      <h2>Admin Layout</h2>
+      <span class="path">app/layouts/AdminLayout.jsx</span>
+      <span class="role">Layout Wrapper</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> Provides the visual shell for every admin page — Sidebar on the
+    left, Navbar on top, and a scrollable main area where page content appears.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">import Sidebar from "../components/Sidebar";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> The collapsible left navigation sidebar.</td></tr>
+      <tr><td class="ln">2</td><td><span class="code">import Navbar from "../components/Navbar";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> The top navigation bar with user info and sidebar toggle button.</td></tr>
+      <tr><td class="ln">4</td><td><span class="code">export default function AdminLayout({ children }) {</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> Accepts <code>children</code> — the page content that will be placed inside this layout.</td></tr>
+      <tr><td class="ln">6</td><td><span class="code">&lt;div className="h-screen flex bg-white"&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> The outermost container. <code>h-screen</code> = full viewport height. <code>flex</code> = children sit side by side (sidebar left, content right). <code>bg-white</code> = white background.</td></tr>
+      <tr><td class="ln">8</td><td><span class="code">&lt;Sidebar /&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Places the Sidebar on the left. Its width (64px or 256px) is controlled by the collapsed state in SidebarContext.</td></tr>
+      <tr><td class="ln">10</td><td><span class="code">&lt;div className="flex flex-col flex-1"&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> The right column. <code>flex flex-col</code> = Navbar on top, main content below. <code>flex-1</code> = this column takes all remaining width after the sidebar.</td></tr>
+      <tr><td class="ln">12</td><td><span class="code">&lt;Navbar /&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Places the Navbar at the top of the right column.</td></tr>
+      <tr><td class="ln">14</td><td><span class="code">&lt;main className="flex-1 overflow-y-auto p-8"&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> The scrollable content area. <code>flex-1</code> = fills all space below the navbar. <code>overflow-y-auto</code> = adds a scrollbar only when content is taller than the screen. <code>p-8</code> = 32px padding on all sides.</td></tr>
+      <tr><td class="ln">15</td><td><span class="code">{children}</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Renders the actual page content here — Dashboard, Institutes list, etc. Whatever page is active gets placed in this spot.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 8 · EditorLayout.jsx          -->
+<!-- ═══════════════════════════════════ -->
+<div id="f8" class="file-block">
+  <div class="file-title">
+    <div class="num">8</div>
+    <div>
+      <h2>Editor Layout</h2>
+      <span class="path">app/layouts/EditorLayout.jsx</span>
+      <span class="role">Layout Wrapper</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> Same concept as AdminLayout but for the editor panel. Has the
+    same sidebar + navbar + main structure, but with added error handling (ErrorBoundary) and
+    loading support (Suspense) for async content.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">import { Suspense } from "react";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> React's built-in component for handling async loading states. Shows a fallback UI while waiting for lazy-loaded content.</td></tr>
+      <tr><td class="ln">2–4</td><td><span class="code">import EditorSidebar...; import EditorNavbar...; import ErrorBoundary...;</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Editor-specific sidebar and navbar, plus the error boundary component.</td></tr>
+      <tr><td class="ln">6–12</td><td><span class="code">function PageLoader() { return &lt;spinning div&gt; }</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> A local loading spinner component used as the Suspense fallback. Shows a centered orange spinning circle while async content loads.</td></tr>
+      <tr><td class="ln">16</td><td><span class="code">&lt;div className="h-screen flex bg-[#FFF8F4]"&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Outer container. <code>bg-[#FFF8F4]</code> is a warm cream/ivory background color used in the editor theme.</td></tr>
+      <tr><td class="ln">21–25</td><td><span class="code">&lt;ErrorBoundary&gt;&lt;Suspense fallback={&lt;PageLoader /&gt;}&gt;{children}&lt;/Suspense&gt;&lt;/ErrorBoundary&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span>
+          <b>ErrorBoundary</b> wraps everything — catches any crashes in editor pages.<br>
+          <b>Suspense</b> wraps the content — shows the spinner while page data loads.<br>
+          <b>children</b> is the actual editor page content.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 9 · Sidebar.jsx              -->
+<!-- ═══════════════════════════════════ -->
+<div id="f9" class="file-block">
+  <div class="file-title">
+    <div class="num">9</div>
+    <div>
+      <h2>Admin Sidebar</h2>
+      <span class="path">app/components/Sidebar.jsx</span>
+      <span class="role">Navigation</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> The collapsible left navigation panel for admin pages.
+    Has accordion-style sections (Institutes, Licenses, Editors, Courses) that expand/collapse
+    to show sub-links. Highlights the active page. Can be collapsed to icon-only mode.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">"use client";</span></td>
+        <td class="explain"><span class="tag tag-config">DIRECTIVE</span> Client component — uses browser hooks like <code>usePathname</code> and <code>useState</code>.</td></tr>
+      <tr><td class="ln">3</td><td><span class="code">import { useState, useEffect } from "react";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> <code>useState</code> tracks which sections are open. <code>useEffect</code> auto-opens the section matching the current URL.</td></tr>
+      <tr><td class="ln">4</td><td><span class="code">import Link from "next/link";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Next.js's optimized link — prefetches pages on hover for faster navigation.</td></tr>
+      <tr><td class="ln">5</td><td><span class="code">import { usePathname } from "next/navigation";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Hook that returns the current URL path — used to highlight the active nav item.</td></tr>
+      <tr><td class="ln">6</td><td><span class="code">import { useSidebar } from "./SidebarContext";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Gets the <code>isCollapsed</code> state to know whether to show text labels or icons only.</td></tr>
+      <tr><td class="ln">7–21</td><td><span class="code">import { House, Building2, ... } from "lucide-react";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> All the icons used in the sidebar. Each is a React component from the Lucide icon library.</td></tr>
+      <tr><td class="ln">24</td><td><span class="code">const pathname = usePathname();</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Current URL path (e.g. <code>/institutes/new</code>). Updated automatically on navigation.</td></tr>
+      <tr><td class="ln">25</td><td><span class="code">const { isCollapsed } = useSidebar();</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Reads whether the sidebar is collapsed from global context. If <code>true</code>, only show icons.</td></tr>
+      <tr><td class="ln">27–32</td><td><span class="code">const [openSections, setOpenSections] = useState({ institutes: false, ... })</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Tracks which accordion sections are open. Starts with all closed. An object is used so multiple sections could theoretically be open (though only one is auto-opened by URL).</td></tr>
+      <tr><td class="ln">34–42</td><td><span class="code">useEffect(() => { if (isCollapsed) return; setOpenSections({ institutes: pathname.startsWith("/institutes"), ... }) }, [pathname, isCollapsed]);</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Every time the URL changes, auto-expand the section that matches it. For example, if URL starts with <code>/institutes</code>, the Institutes accordion opens. If sidebar is collapsed, skip this entirely.</td></tr>
+      <tr><td class="ln">44–47</td><td><span class="code">const toggleSection = (section) => { if (isCollapsed) return; setOpenSections(prev => ({...prev, [section]: !prev[section]})); }</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Toggles a specific accordion section open or closed. <code>[section]</code> uses a computed property name to update just the clicked section. <code>...prev</code> spreads all existing values to keep the rest unchanged.</td></tr>
+      <tr><td class="ln">49</td><td><span class="code">const isLinkActive = (href) => pathname === href;</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Returns <code>true</code> if the link's href exactly matches the current URL. Used to apply the active (highlighted) style.</td></tr>
+      <tr><td class="ln">51–69</td><td><span class="code">const accordionBtn = (section, icon, label) => (&lt;button ...&gt;)</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> A helper function that returns the accordion header button JSX. Accepts the section key, icon, and label. Shows a ChevronUp or ChevronDown based on whether the section is open. Hides text when collapsed.</td></tr>
+      <tr><td class="ln">71–83</td><td><span class="code">const subLink = (href, icon, label) => (&lt;Link ...&gt;)</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Helper that returns a styled sub-menu link. Applies orange highlight styles when the link is active.</td></tr>
+      <tr><td class="ln">86–89</td><td><span class="code">&lt;aside className={`... ${isCollapsed ? "w-20" : "w-64"}`}&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> The sidebar container. <code>w-20</code> (80px) when collapsed, <code>w-64</code> (256px) when expanded. <code>transition-all duration-300</code> animates the width change smoothly.</td></tr>
+      <tr><td class="ln">92–108</td><td><span class="code">Logo section</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Shows the LanguageLab logo icon always. Shows "LanguageLab / Control Center" text only when not collapsed.</td></tr>
+      <tr><td class="ln">113–126</td><td><span class="code">Dashboard Link</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> A direct link to <code>/</code>. Applies a gradient orange background when active. Shows icon only when collapsed.</td></tr>
+      <tr><td class="ln">129–137</td><td><span class="code">Institutes accordion</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> The accordion section for Institutes. Uses <code>accordionBtn</code> helper for the header. Sub-links (Manage Institutes, Add Institute) appear only when not collapsed and the section is open.</td></tr>
+      <tr><td class="ln">201–215</td><td><span class="code">Logout button</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> On click: sets the <code>token</code> cookie's expiry to the past (effectively deletes it), then redirects to the login page using <code>window.location.href</code>.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 10 · EditorSidebar.jsx        -->
+<!-- ═══════════════════════════════════ -->
+<div id="f10" class="file-block">
+  <div class="file-title">
+    <div class="num">10</div>
+    <div>
+      <h2>Editor Sidebar</h2>
+      <span class="path">app/components/EditorSidebar.jsx</span>
+      <span class="role">Navigation</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> The left navigation for the editor panel. Similar to Sidebar.jsx
+    but has editor-specific sections: Courses, Curriculum (Topics/Subtopics), and Modules
+    (Text / Video / Audio / Exercise / Vocabulary).
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">5</td><td><span class="code">import { useSearchParams } from "next/navigation";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Reads URL query parameters like <code>?tab=topics</code>. Used by the Curriculum section which has tab-based sub-navigation.</td></tr>
+      <tr><td class="ln">26–32</td><td><span class="code">const MODULE_TYPES = [{ key: "text", label: "Text", icon: FileText }, ...]</span></td>
+        <td class="explain"><span class="tag tag-config">CONFIG</span> An array defining all 5 module types. Using an array makes it easy to render all module links in a loop instead of writing each one manually. Each entry has a key (for URL), a display label, and an icon component.</td></tr>
+      <tr><td class="ln">39–45</td><td><span class="code">const urlSection = useMemo(() => {...}, [pathname, isCollapsed]);</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> <code>useMemo</code> computes which section should be auto-open based on the URL, and caches the result. Recalculates only when pathname or collapsed state changes. Avoids redundant computation on re-renders.</td></tr>
+      <tr><td class="ln">47–48</td><td><span class="code">const [manualSection, setManualSection] = useState(null); const openSection = manualSection ?? urlSection;</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Two-source state: the URL auto-opens a section (<code>urlSection</code>), but if the user manually clicks a section header (<code>manualSection</code>), that takes priority. <code>??</code> (nullish coalescing) uses <code>urlSection</code> only when <code>manualSection</code> is null.</td></tr>
+      <tr><td class="ln">58–75</td><td><span class="code">const isActive = (href) => {...}</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> More advanced active detection for the editor sidebar. Handles:<br>
+          • Plain paths (just compare pathname)<br>
+          • Query string paths like <code>?tab=topics</code> (compare pathname + search params)<br>
+          • The <code>/editor</code> root (exact match only, not prefix)<br>
+          • Prefix matching for general links</td></tr>
+      <tr><td class="ln">213–224</td><td><span class="code">{MODULE_TYPES.map(({ key, label, icon: Icon }) => ( &lt;Link key={key} href={`/editor/modules/${key}`}&gt;... ))}</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Loops through all 5 module types and renders a link for each. <code>icon: Icon</code> renames the destructured <code>icon</code> property to <code>Icon</code> (capital letter) so it can be used as a JSX component <code>&lt;Icon /&gt;</code>.</td></tr>
+      <tr><td class="ln">241–246</td><td><span class="code">Logout button</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Editor logout: removes <code>editor_token</code> from both LocalStorage and cookies, then redirects to login. Clears both storage locations to ensure a complete logout.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 11 · Navbar.jsx              -->
+<!-- ═══════════════════════════════════ -->
+<div id="f11" class="file-block">
+  <div class="file-title">
+    <div class="num">11</div>
+    <div>
+      <h2>Admin Navbar</h2>
+      <span class="path">app/components/Navbar.jsx</span>
+      <span class="role">Top Navigation</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> The top header bar on all admin pages. Shows a hamburger menu
+    to collapse/expand the sidebar, a "System Live" badge, and the admin user profile info on
+    the right.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">"use client";</span></td>
+        <td class="explain"><span class="tag tag-config">DIRECTIVE</span> Uses hooks and browser events.</td></tr>
+      <tr><td class="ln">9</td><td><span class="code">const pathname = usePathname();</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Gets the current URL to conditionally change the displayed role text.</td></tr>
+      <tr><td class="ln">10</td><td><span class="code">const isEditorRoute = pathname.startsWith("/teacher");</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Checks if on a teacher route. (Note: this checks <code>/teacher</code> which doesn't currently exist — the editor routes are under <code>/editor</code>. This is a placeholder for future expansion.)</td></tr>
+      <tr><td class="ln">11</td><td><span class="code">const { toggleSidebar } = useSidebar();</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Gets the function to toggle the sidebar from the global context.</td></tr>
+      <tr><td class="ln">14</td><td><span class="code">&lt;header className="h-20 bg-gradient-to-r ..."&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> The header bar. <code>h-20</code> = 80px tall. <code>bg-gradient-to-r</code> = horizontal gradient from cream-orange to slightly darker. <code>backdrop-blur-md</code> = glass blur effect. <code>z-10</code> = sits on top of page content.</td></tr>
+      <tr><td class="ln">21</td><td><span class="code">&lt;button onClick={toggleSidebar}&gt;&lt;Menu size={18} /&gt;&lt;/button&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> The hamburger menu button. Clicking it calls <code>toggleSidebar()</code> which flips <code>isCollapsed</code> in the context, causing the Sidebar to animate between wide and narrow.</td></tr>
+      <tr><td class="ln">29–38</td><td><span class="code">"System Live" badge and role text</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> A badge with a pulsing Sparkles icon showing "System Live". Next to it, shows "Master Panel" for admin routes (or "Instructor Console" for editor routes via <code>isEditorRoute</code>).</td></tr>
+      <tr><td class="ln">45–62</td><td><span class="code">Profile link section</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Clicking this navigates to <code>/profile</code>. Shows an orange avatar circle with a user icon, the name ("Super Admin"), role ("Root Admin"), and a chevron-down arrow suggesting a dropdown (not yet implemented).</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 12 · EditorNavbar.jsx         -->
+<!-- ═══════════════════════════════════ -->
+<div id="f12" class="file-block">
+  <div class="file-title">
+    <div class="num">12</div>
+    <div>
+      <h2>Editor Navbar</h2>
+      <span class="path">app/components/EditorNavbar.jsx</span>
+      <span class="role">Top Navigation</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> Same structure as Navbar.jsx but for the editor panel.
+    Shows "Content Studio / Editor Workspace" branding instead of "Master Panel".
+    No profile link — just shows the user's role as "Content Editor / Course Manager".
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">7</td><td><span class="code">const { toggleSidebar } = useSidebar();</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Gets the same sidebar toggle function from context. Works because EditorLayout is also wrapped in SidebarProvider.</td></tr>
+      <tr><td class="ln">25–38</td><td><span class="code">"Content Studio" badge + "Editor Workspace" label</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Editor-specific branding. <code>BookOpen</code> icon next to "Editor Workspace" text. The <code>animate-pulse</code> on the Sparkles icon makes it gently fade in/out to draw attention.</td></tr>
+      <tr><td class="ln">43–59</td><td><span class="code">Right section — user info</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Orange avatar with "Content Editor" name and "Course Manager" subtitle. No link — purely informational. <code>ChevronDown</code> suggests a future dropdown menu.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 13 · Table.jsx               -->
+<!-- ═══════════════════════════════════ -->
+<div id="f13" class="file-block">
+  <div class="file-title">
+    <div class="num">13</div>
+    <div>
+      <h2>Scrollable Table</h2>
+      <span class="path">app/components/Table.jsx</span>
+      <span class="role">Reusable Component</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> A reusable data table used on all list pages (Institutes,
+    Editors, Students, etc.). Accepts columns and data as props. Has sort toggle, loading spinner,
+    empty state, alternating row colors, and a sticky last column for action buttons.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">"use client";</span></td>
+        <td class="explain"><span class="tag tag-config">DIRECTIVE</span> Uses state for sort order.</td></tr>
+      <tr><td class="ln">3</td><td><span class="code">import { useMemo, useState } from "react";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> <code>useMemo</code> caches the sorted data so it's not re-sorted on every render. <code>useState</code> tracks the sort direction.</td></tr>
+      <tr><td class="ln">6–12</td><td><span class="code">export default function ScrollableTable({ columns, data, maxHeight, loading, emptyMessage })</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> The component accepts:<br>
+          • <code>columns</code> — array of column definitions (each with a <code>header</code> and <code>accessor</code>)<br>
+          • <code>data</code> — array of row objects<br>
+          • <code>maxHeight</code> — CSS height before scrolling kicks in<br>
+          • <code>loading</code> — show spinner instead of rows<br>
+          • <code>emptyMessage</code> — text when no data</td></tr>
+      <tr><td class="ln">13</td><td><span class="code">const [sortOrder, setSortOrder] = useState("top");</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Tracks sort direction. <code>"top"</code> = newest first (default). <code>"bottom"</code> = reversed order.</td></tr>
+      <tr><td class="ln">15–17</td><td><span class="code">const sortedData = useMemo(() => { return sortOrder === "top" ? data : [...data].reverse(); }, [data, sortOrder]);</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Computes sorted data. <code>[...data].reverse()</code> creates a shallow copy first (to avoid mutating the original array) then reverses it. <code>useMemo</code> only recalculates when <code>data</code> or <code>sortOrder</code> changes.</td></tr>
+      <tr><td class="ln">19</td><td><span class="code">const lastIdx = columns.length - 1;</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Index of the last column. Used to apply special "sticky" positioning to the last column (which holds action buttons) so it stays visible when the table scrolls horizontally.</td></tr>
+      <tr><td class="ln">28–57</td><td><span class="code">Table header (&lt;thead&gt;)</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span>
+          <code>sticky top-0</code> = header stays visible when scrolling down.<br>
+          Loops through <code>columns</code> to render each header cell.<br>
+          Last column gets <code>sticky right-0</code> with a shadow to stay on screen when scrolling right.<br>
+          First column gets sort arrows — clicking toggles between up and down sort.</td></tr>
+      <tr><td class="ln">62–69</td><td><span class="code">Loading state</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> If <code>loading</code> prop is true, shows a single row spanning all columns with a centered spinner.</td></tr>
+      <tr><td class="ln">70–95</td><td><span class="code">Data rows</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span>
+          <code>rowIndex % 2 === 0</code> alternates white and cream row colors.<br>
+          For each cell: if <code>col.accessor</code> is a function, call it with the row object to render custom content (e.g. a button). If it's a string, just read that property from the row.<br>
+          First column is bold brown text. Other columns are lighter brown.</td></tr>
+      <tr><td class="ln">97–105</td><td><span class="code">Empty state</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> If data array is empty and not loading, shows the <code>emptyMessage</code> text centered across all columns.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 14 · Dashboard.jsx (KEY PARTS)-->
+<!-- ═══════════════════════════════════ -->
+<div id="f14" class="file-block">
+  <div class="file-title">
+    <div class="num">14</div>
+    <div>
+      <h2>Dashboard</h2>
+      <span class="path">app/components/Dashboard.jsx</span>
+      <span class="role">Main Dashboard</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> The entire admin dashboard UI — stats, monitors, activity
+    feeds, audit log, and engagement chart. All data is currently static/hardcoded
+    (placeholder data for UI demonstration).
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">"use client";</span></td>
+        <td class="explain"><span class="tag tag-config">DIRECTIVE</span> Client component — renders interactive UI.</td></tr>
+      <tr><td class="ln">3–13</td><td><span class="code">import { FaUniversity, FaUserGraduate, ... } from "react-icons/fa";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> FontAwesome icons from react-icons. Each icon represents a stat category: University=Institutes, UserGraduate=Students, Key=Licenses, BookOpen=Courses, ChartLine=Assessments.</td></tr>
+      <tr><td class="ln">37–73</td><td><span class="code">Stats Grid — 5 StatCard components</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> A 5-column grid of stat cards. Each card shows a metric (Total Institutes, Total Students, etc.) with an icon, value, and a green growth indicator. The grid collapses to 2 columns on tablets and 1 column on phones.</td></tr>
+      <tr><td class="ln">76–175</td><td><span class="code">Main Content Row — 3 panels</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> A 12-column grid split into 3 panels (each 4 columns wide):<br>
+          1. <b>License Monitor</b> — 3 expiring licenses with color-coded urgency<br>
+          2. <b>Institute Activity</b> — live feed of student onboarding<br>
+          3. <b>Quick Management</b> — 6 shortcut cards linking to key pages</td></tr>
+      <tr><td class="ln">178–252</td><td><span class="code">Platform Metrics Row</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Another 12-column grid:<br>
+          • <b>Recent Audit Log</b> (8 cols) — list of recent system events<br>
+          • <b>User Engagement</b> (4 cols) — total users + mini bar chart widget</td></tr>
+      <tr><td class="ln">260–279</td><td><span class="code">function StatCard({ icon, title, value, sub, color }) {...}</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> A local sub-component. The colored stripe at the top uses a gradient class passed via <code>color</code> prop. The card has a hover effect (border gets slightly more visible). The <code>sub</code> text (growth indicator) is always green.</td></tr>
+      <tr><td class="ln">281–301</td><td><span class="code">function LicenseItem({ urgency }) {...}</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Renders one license row. The badge color is determined by <code>urgency</code>: <code>"high"</code>=red, <code>"medium"</code>=orange, <code>"low"</code>=amber. Uses a ternary chain to select the correct Tailwind classes.</td></tr>
+      <tr><td class="ln">317–331</td><td><span class="code">function ActionCard({ icon, label, link }) {...}</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Quick-action card. Uses <code>&lt;a href={link}&gt;</code> for navigation. On hover, the card background transitions from neutral to an orange-amber gradient using Tailwind's <code>group</code> and <code>group-hover:</code> utilities. The icon and text color also flip to white on hover.</td></tr>
+      <tr><td class="ln">333–351</td><td><span class="code">function AuditItem({ type, title, desc, time }) {...}</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Renders one audit log entry. Uses a ternary chain to pick an emoji based on <code>type</code>: add=✨, renew=🔄, publish=📚, staff=👤. The emoji is shown in an orange rounded square on the left.</td></tr>
+      <tr><td class="ln">355–358</td><td><span class="code">function Bar({ h }) { return &lt;div style={{ height: h }} /&gt; }</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> A single bar in the mini bar chart. The height is passed as a percentage string (e.g. <code>"70%"</code>) via inline style. Has an orange-to-amber gradient and hover opacity effect.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 15 · services/api.js          -->
+<!-- ═══════════════════════════════════ -->
+<div id="f15" class="file-block">
+  <div class="file-title">
+    <div class="num">15</div>
+    <div>
+      <h2>API Service (Axios Instance)</h2>
+      <span class="path">app/services/api.js</span>
+      <span class="role">HTTP Client</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> Creates and exports a pre-configured Axios instance.
+    Every API call in the app uses this instance instead of raw Axios — ensuring the base URL
+    and auth token are always attached automatically.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">import axios from "axios";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Imports the Axios library — the HTTP client used to make GET, POST, PUT, DELETE requests to the backend API.</td></tr>
+      <tr><td class="ln">3–8</td><td><span class="code">const api = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL, headers: { "Content-Type": "application/json" } });</span></td>
+        <td class="explain"><span class="tag tag-config">CONFIG</span>
+          <code>axios.create()</code> makes a custom Axios instance with default settings.<br>
+          <code>baseURL</code> is read from the <code>.env</code> file — all API calls will automatically prepend this. For example, calling <code>api.get("/users")</code> actually calls <code>https://api.example.com/users</code>.<br>
+          <code>Content-Type: application/json</code> tells the server this app sends JSON data.</td></tr>
+      <tr><td class="ln">11</td><td><span class="code">api.interceptors.request.use((config) => {...});</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Adds a request interceptor — a function that runs automatically <b>before every API request</b>. This is where the auth token is attached.</td></tr>
+      <tr><td class="ln">12</td><td><span class="code">if (typeof document !== "undefined") {</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Safety check — <code>document</code> doesn't exist during server-side rendering. This prevents crashes if the interceptor somehow runs on the server.</td></tr>
+      <tr><td class="ln">13–15</td><td><span class="code">const getCookie = (name) => { const match = document.cookie.match(new RegExp(...)); return match ? decodeURIComponent(match[1]) : null; }</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> A local helper function to read a cookie by name using a regular expression. The regex pattern <code>(?:^|; )name=([^;]*)</code> matches the cookie name followed by its value (everything up to the next semicolon).</td></tr>
+      <tr><td class="ln">17</td><td><span class="code">const token = getCookie("editor_token") || getCookie("token");</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Tries to get the editor token first. If not found, tries the admin token. This way both admins and editors can make authenticated API calls using the same Axios instance.</td></tr>
+      <tr><td class="ln">18–20</td><td><span class="code">if (token) { config.headers.Authorization = `Bearer ${token}`; }</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> If a token was found, adds it to the request headers as a Bearer token. The backend uses this to verify the user's identity on every protected API endpoint.</td></tr>
+      <tr><td class="ln">22</td><td><span class="code">return config;</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Must return the modified config object — this tells Axios to proceed with the request using the updated headers.</td></tr>
+      <tr><td class="ln">25</td><td><span class="code">export default api;</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> Exports the configured Axios instance. All service files (institute.js, editor.js, etc.) import this and use it instead of raw axios.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 16 · admin-login.js           -->
+<!-- ═══════════════════════════════════ -->
+<div id="f16" class="file-block">
+  <div class="file-title">
+    <div class="num">16</div>
+    <div>
+      <h2>Admin Login Service</h2>
+      <span class="path">app/services/admin-login.js</span>
+      <span class="role">API Service</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> Two exported functions that send login credentials to the
+    backend API and return the response (which contains the auth token).
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">import api from "./api";</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Uses the shared Axios instance (with base URL configured).</td></tr>
+      <tr><td class="ln">3–9</td><td><span class="code">export const loginAdmin = async (payload) => { const response = await api.post("/api/super-admin/login", payload); return response.data; };</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span>
+          <code>async</code> — the function returns a Promise.<br>
+          <code>payload</code> — the object with <code>{ email, password }</code> from the login form.<br>
+          <code>api.post()</code> — sends a POST request to the admin login endpoint.<br>
+          <code>response.data</code> — Axios wraps the response in a <code>data</code> property; this unwraps it so callers get the raw API response directly.</td></tr>
+      <tr><td class="ln">14–17</td><td><span class="code">export const loginEditor = async (data) => { const response = await api.post("/api/editor/login", data); return response.data; };</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> Same pattern but hits the editor login endpoint. Returns the response which contains <code>{ token, editor }</code> on success.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 17 · admin.schema.js          -->
+<!-- ═══════════════════════════════════ -->
+<div id="f17" class="file-block">
+  <div class="file-title">
+    <div class="num">17</div>
+    <div>
+      <h2>Admin Login Schema</h2>
+      <span class="path">app/schemas/admin.schema.js</span>
+      <span class="role">Validation</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> Defines validation rules for the Admin login form using Yup.
+    Before any API call is made, the form data is checked against these rules.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">import * as Yup from 'yup';</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Imports everything from the Yup validation library as a namespace called <code>Yup</code>.</td></tr>
+      <tr><td class="ln">3</td><td><span class="code">export const adminSchema = Yup.object({...})</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> <code>Yup.object()</code> creates a schema for validating an object (the form data). The object passed defines rules for each field.</td></tr>
+      <tr><td class="ln">4</td><td><span class="code">email: Yup.string()</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Starts a validation chain for the <code>email</code> field. <code>Yup.string()</code> means "this field must be a string".</td></tr>
+      <tr><td class="ln">5</td><td><span class="code">.trim()</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Automatically removes leading and trailing whitespace from the value before validating. Prevents users from accidentally entering " user@mail.com ".</td></tr>
+      <tr><td class="ln">6</td><td><span class="code">.email('Please enter a valid email address')</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Checks that the string follows email format (contains @, has a domain, etc.). The string is the error message shown to the user if validation fails.</td></tr>
+      <tr><td class="ln">7</td><td><span class="code">.required('Email is required')</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Makes this field mandatory. If the field is empty or undefined, shows the message "Email is required".</td></tr>
+      <tr><td class="ln">9</td><td><span class="code">password: Yup.string().required('Password is required')</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Password must be a non-empty string. No format rules — length or complexity checks would be added here if needed.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 18 · editor.schema.js         -->
+<!-- ═══════════════════════════════════ -->
+<div id="f18" class="file-block">
+  <div class="file-title">
+    <div class="num">18</div>
+    <div>
+      <h2>Editor Login Schema</h2>
+      <span class="path">app/schemas/editor.schema.js</span>
+      <span class="role">Validation</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> Identical validation rules to the admin schema — email format
+    and password required. Kept as a separate file so editor-specific rules (like username
+    format restrictions) can be added later without affecting admin validation.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1–11</td><td><span class="code">Same structure as admin.schema.js</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Exports <code>editorSchema</code> with the same email + password rules as <code>adminSchema</code>. Used by the Editor login form. The separation allows them to diverge in the future (e.g. admins might need 2FA, editors might have username-only login).</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="div"></div>
+
+
+<!-- ═══════════════════════════════════ -->
+<!-- FILE 19 · admin-login/page.js      -->
+<!-- ═══════════════════════════════════ -->
+<div id="f19" class="file-block">
+  <div class="file-title">
+    <div class="num">19</div>
+    <div>
+      <h2>Login Page</h2>
+      <span class="path">app/admin-login/page.js</span>
+      <span class="role">Route: /admin-login</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What this file does:</b> The login page with two sliding forms (Admin + Editor).
+    Handles form state, validation, API calls, cookie storage, and redirects.
+    This is the largest and most complex page file.
+  </div>
+
+  <table class="lt">
+    <thead><tr><th>Line</th><th>Code</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td class="ln">1</td><td><span class="code">'use client';</span></td>
+        <td class="explain"><span class="tag tag-config">DIRECTIVE</span> Client-only — uses event handlers, state, router, and cookies.</td></tr>
+      <tr><td class="ln">3</td><td><span class="code">import { useState } from 'react';</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> For managing all the local state: form values, errors, loading, password visibility, and which panel is active.</td></tr>
+      <tr><td class="ln">4</td><td><span class="code">import { useRouter } from 'next/navigation';</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> For redirecting after successful login (<code>router.push('/')</code>).</td></tr>
+      <tr><td class="ln">5</td><td><span class="code">import { FaEye, FaEyeSlash } from 'react-icons/fa';</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Eye icons for the show/hide password toggle button.</td></tr>
+      <tr><td class="ln">6</td><td><span class="code">import Swal from 'sweetalert2';</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> SweetAlert2 — used to show popup dialogs for success and error messages.</td></tr>
+      <tr><td class="ln">7–8</td><td><span class="code">import InputField... import Button...</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Reusable form components.</td></tr>
+      <tr><td class="ln">9–10</td><td><span class="code">import { adminSchema }... import { editorSchema }...</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> Yup validation schemas for each login form.</td></tr>
+      <tr><td class="ln">11</td><td><span class="code">import { loginAdmin, loginEditor } from '../services/admin-login';</span></td>
+        <td class="explain"><span class="tag tag-import">IMPORT</span> The API service functions that send login requests.</td></tr>
+      <tr><td class="ln">13–41</td><td><span class="code">const getErrorMessage = (error) => {...}</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> A helper function that extracts a human-readable error message from an Axios error. The API might return errors in many formats — as a string, array, or nested object. This function handles all cases by checking <code>error.response.data.message</code>, <code>.errors</code>, <code>.error</code> in order, then falls back to <code>error.message</code>.</td></tr>
+      <tr><td class="ln">43</td><td><span class="code">export default function LoginPage() {</span></td>
+        <td class="explain"><span class="tag tag-export">EXPORT</span> The page component.</td></tr>
+      <tr><td class="ln">44</td><td><span class="code">const router = useRouter();</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Next.js router for programmatic navigation after login.</td></tr>
+      <tr><td class="ln">46</td><td><span class="code">const [errors, setErrors] = useState({});</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Stores validation errors as an object where keys are field names (<code>errors.email</code>, <code>errors.password</code>). These are displayed below each input.</td></tr>
+      <tr><td class="ln">47</td><td><span class="code">const [isEditor, setIsEditor] = useState(false);</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Controls which panel is visible. <code>false</code> = Admin form on screen. <code>true</code> = Editor form on screen. Toggled by the "Switch to Editor" button.</td></tr>
+      <tr><td class="ln">49–50</td><td><span class="code">const [adminData, setAdminData] = useState({ email: '', password: '' }); const [editorData, setEditorData] = useState(...);</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Separate state objects for each form. This way filling the admin form and switching to editor form doesn't clear the admin values.</td></tr>
+      <tr><td class="ln">52–53</td><td><span class="code">const [showAdminPassword, setShowAdminPassword] = useState(false); const [showEditorPassword, ...]</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Separate booleans controlling whether each password field shows plain text or bullets. Toggled by the eye icon button.</td></tr>
+      <tr><td class="ln">54</td><td><span class="code">const [loading, setLoading] = useState(false);</span></td>
+        <td class="explain"><span class="tag tag-hook">HOOK</span> Disables the submit button while the API request is in-flight, preventing double-submission.</td></tr>
+      <tr><td class="ln">56–59</td><td><span class="code">const setCookie = (name, value, days = 1) => {...}</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> A helper to write a cookie. Calculates the expiry date (<code>Date.now() + days * 864e5</code> where <code>864e5</code> = 86400000ms = 1 day). <code>encodeURIComponent</code> safely encodes the value. <code>path=/</code> makes the cookie available across all pages.</td></tr>
+      <tr><td class="ln">61–63</td><td><span class="code">const handleAdminChange = (e) => { setAdminData(prev => ({ ...prev, [e.target.name]: e.target.value })); }</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Generic change handler. <code>e.target.name</code> is the input's <code>name</code> attribute (e.g. "email"). <code>[e.target.name]</code> is a computed property key — it dynamically updates whichever field changed. <code>...prev</code> preserves all other field values.</td></tr>
+      <tr><td class="ln">102–150</td><td><span class="code">const handleAdminLogin = async (e) => {...}</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> The admin login handler. Step by step:<br>
+          1. <code>e.preventDefault()</code> — stops the default form HTML submission<br>
+          2. <code>setErrors({})</code> — clears previous validation errors<br>
+          3. <code>await adminSchema.validate(adminData, { abortEarly: false })</code> — validates ALL fields at once; if any fail, throws an error with <code>error.inner</code> array<br>
+          4. <code>setLoading(true)</code> — disable the button<br>
+          5. <code>await loginAdmin(adminData)</code> — send to API<br>
+          6. If success: save token + admin data to cookies, show Swal success popup, redirect after 1 second<br>
+          7. If Yup error: extract all field errors into object, set them in state<br>
+          8. If API error: show Swal error popup<br>
+          9. <code>finally</code>: always set loading back to false</td></tr>
+      <tr><td class="ln">152–198</td><td><span class="code">const handleEditorLogin = async (e) => {...}</span></td>
+        <td class="explain"><span class="tag tag-logic">LOGIC</span> Same structure as <code>handleAdminLogin</code> but uses <code>editorSchema</code>, calls <code>loginEditor()</code>, saves as <code>editor</code> cookie, and redirects to <code>/editor</code> instead of <code>/</code>.</td></tr>
+      <tr><td class="ln">202–204</td><td><span class="code">&lt;div className="min-h-screen bg-orange-50 flex items-center justify-center"&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> Outer wrapper. Full screen, orange-tinted background. Centers everything with flexbox.</td></tr>
+      <tr><td class="ln">204</td><td><span class="code">&lt;div className="relative w-full max-w-4xl h-[520px] ... rounded-3xl shadow-2xl overflow-hidden"&gt;</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> The main white card. <code>relative</code> is required for the <code>absolute</code> positioned panels inside. <code>overflow-hidden</code> clips the sliding panels at the card edges. Fixed height <code>h-[520px]</code> creates the animation stage.</td></tr>
+      <tr><td class="ln">206–251</td><td><span class="code">Admin Form Panel (left half)</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span>
+          <code>absolute top-0 h-full w-1/2</code> — positioned in left half.<br>
+          <code>${isEditor ? '-translate-x-full opacity-0' : 'translate-x-0 opacity-100'}</code> — when Editor mode is on, this slides completely off-screen to the left and fades out. When off, it's visible at full opacity.</td></tr>
+      <tr><td class="ln">253–299</td><td><span class="code">Editor Form Panel (right half)</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span>
+          <code>absolute top-0 right-0 h-full w-1/2</code> — positioned in right half.<br>
+          <code>${isEditor ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}</code> — slides in from the right when Editor mode is active.</td></tr>
+      <tr><td class="ln">302–349</td><td><span class="code">Slider Panel (the orange "switch" panel)</span></td>
+        <td class="explain"><span class="tag tag-render">RENDER</span> The decorative orange gradient panel that slides over to reveal the other form:<br>
+          <code>${isEditor ? 'translate-x-0' : 'translate-x-full'}</code> — when NOT in editor mode, this panel is pushed completely to the right (hiding). When in editor mode it slides to center (covering the right side).<br>
+          Contains: icon (shield for admin, graduation cap for editor), title, description text, and the "Switch to Admin / Switch to Editor" button.<br>
+          Three decorative circles use <code>bg-white/10</code> (white at 10% opacity) for the glassmorphism depth effect.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="text-align:center;padding:40px 0 20px;color:var(--muted);font-size:12px;">
+  Language Lab Admin Panel — Code Explained &nbsp;|&nbsp; 19 Files · Line by Line &nbsp;|&nbsp; 2026-06-27
+</div>
+
+</main>
+
+<script>
+  const links = document.querySelectorAll('#nav a');
+  const ids = [...links].map(l => l.getAttribute('href').slice(1));
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('on'));
+        const a = [...links].find(l => l.getAttribute('href') === '#' + e.target.id);
+        if (a) a.classList.add('on');
+      }
+    });
+  }, { threshold: 0.2 });
+  ids.forEach(id => { const el = document.getElementById(id); if (el) io.observe(el); });
+</script>
+</body>
+</html>

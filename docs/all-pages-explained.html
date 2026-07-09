@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>All Pages Explained — Language Lab Admin Panel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--or:#f97316;--ord:#ea580c;--orl:#fff7ed;--br:#3C1E0A;--bd:#e5e7eb;--mu:#6b7280;--sw:260px}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f9fafb;display:flex;min-height:100vh}
+
+/* sidebar */
+#nav{width:var(--sw);background:var(--br);position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:100;padding-bottom:40px}
+#nav .brand{padding:18px 16px 12px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:4px}
+#nav .brand h2{color:#fff;font-size:13px;font-weight:800}
+#nav .brand p{color:rgba(255,255,255,.4);font-size:10px;margin-top:2px}
+#nav .grp{padding:10px 16px 3px;font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.3)}
+#nav a{display:flex;align-items:center;gap:7px;padding:7px 16px;color:rgba(255,255,255,.65);text-decoration:none;font-size:11.5px;font-weight:600;border-left:3px solid transparent;transition:.15s}
+#nav a:hover,#nav a.on{color:#fff;background:rgba(249,115,22,.2);border-left-color:var(--or)}
+#nav a .d{width:5px;height:5px;border-radius:50%;background:var(--or);flex-shrink:0}
+
+/* main */
+#main{margin-left:var(--sw);flex:1;padding:32px 40px}
+
+/* hero */
+.hero{background:linear-gradient(135deg,var(--br),#7c3a1a);border-radius:16px;padding:32px 40px;margin-bottom:40px;overflow:hidden;position:relative}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(249,115,22,.15)}
+.hero h1{font-size:24px;font-weight:900;color:#fff;position:relative}
+.hero p{color:rgba(255,255,255,.6);font-size:13px;margin-top:6px;position:relative}
+
+/* page block */
+.page-block{margin-bottom:56px;scroll-margin-top:24px}
+
+/* page header */
+.ph{display:flex;align-items:center;gap:16px;margin-bottom:22px;padding-bottom:16px;border-bottom:2px solid var(--bd)}
+.ph .num{width:36px;height:36px;border-radius:10px;background:var(--or);color:#fff;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ph h2{font-size:18px;font-weight:800;color:var(--br)}
+.ph .route{font-family:monospace;font-size:11px;color:var(--mu);background:#f3f4f6;padding:3px 8px;border-radius:5px;border:1px solid var(--bd)}
+.ph .who{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;background:var(--orl);color:var(--ord);border:1px solid rgba(249,115,22,.25)}
+
+/* summary box */
+.summary{background:var(--orl);border:1px solid rgba(249,115,22,.25);border-left:4px solid var(--or);border-radius:10px;padding:13px 16px;font-size:13px;color:var(--br);margin-bottom:18px;line-height:1.65}
+.summary b{font-weight:800}
+
+/* state grid */
+.state-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.state-card{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 16px}
+.state-card .sc-title{font-size:10px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.state-card ul{list-style:none;display:flex;flex-direction:column;gap:4px}
+.state-card li{font-size:12px;color:#374151;display:flex;align-items:flex-start;gap:7px}
+.state-card li::before{content:'▸';color:var(--or);font-size:10px;margin-top:1px;flex-shrink:0}
+
+/* section title */
+.sec{font-size:12px;font-weight:800;color:var(--br);text-transform:uppercase;letter-spacing:.6px;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
+
+/* explain rows */
+.rows{background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.row{display:grid;grid-template-columns:140px 1fr;border-bottom:1px solid var(--bd)}
+.row:last-child{border-bottom:none}
+.row:hover{background:#fafafa}
+.row .label{padding:11px 14px;font-family:monospace;font-size:11px;font-weight:700;color:var(--ord);background:var(--orl);border-right:1px solid rgba(249,115,22,.2);display:flex;align-items:flex-start;word-break:break-all}
+.row .desc{padding:11px 14px;font-size:12.5px;color:#374151;line-height:1.65}
+.row .desc b{color:var(--br);font-weight:800}
+.row .desc code{font-family:monospace;font-size:11px;background:#f3f4f6;padding:1px 5px;border-radius:3px;color:var(--ord)}
+.row .desc .tag{display:inline-block;padding:1px 7px;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:.3px;margin-right:4px}
+.tag-state{background:#dbeafe;color:#1d4ed8}
+.tag-fn{background:#ede9fe;color:#7c3aed}
+.tag-api{background:#d1fae5;color:#059669}
+.tag-ui{background:#fef3c7;color:#92400e}
+.tag-modal{background:#fce7f3;color:#be185d}
+
+/* modal section */
+.modal-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.modal-card{background:#fff;border:1px solid var(--bd);border-radius:10px;padding:12px 14px}
+.modal-card .mc-name{font-size:12px;font-weight:800;color:var(--br);margin-bottom:4px}
+.modal-card p{font-size:12px;color:#374151;line-height:1.6}
+.modal-card p code{font-family:monospace;font-size:11px;background:#f3f4f6;padding:1px 5px;border-radius:3px;color:var(--ord)}
+
+/* divider */
+.div{height:1px;background:var(--bd);margin:48px 0}
+
+/* tags group header */
+.panel-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:24px}
+.admin-badge{background:#fff3e0;color:#e65100;border:1px solid #ffcc80}
+.editor-badge{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
+
+@media(max-width:900px){#nav{display:none}#main{margin-left:0;padding:20px}.state-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR NAV -->
+<nav id="nav">
+  <div class="brand"><h2>All Pages Explained</h2><p>Language Lab Admin Panel</p></div>
+
+  <div class="grp">Admin Panel</div>
+  <a href="#p-login"><span class="d"></span> Login Page</a>
+  <a href="#p-dashboard"><span class="d"></span> Dashboard</a>
+  <a href="#p-institutes"><span class="d"></span> Institutes</a>
+  <a href="#p-institutes-new"><span class="d"></span> New Institute</a>
+  <a href="#p-editors"><span class="d"></span> Editors</a>
+  <a href="#p-editors-new"><span class="d"></span> New Editor</a>
+  <a href="#p-students"><span class="d"></span> Students</a>
+  <a href="#p-licenses"><span class="d"></span> Licenses</a>
+  <a href="#p-courses"><span class="d"></span> Courses</a>
+  <a href="#p-analytics"><span class="d"></span> Analytics</a>
+  <a href="#p-sessions"><span class="d"></span> Sessions</a>
+  <a href="#p-profile"><span class="d"></span> Admin Profile</a>
+
+  <div class="grp">Editor Panel</div>
+  <a href="#p-editor-dash"><span class="d"></span> Editor Dashboard</a>
+  <a href="#p-editor-courses"><span class="d"></span> Editor Courses</a>
+  <a href="#p-curriculum"><span class="d"></span> Curriculum</a>
+  <a href="#p-modules"><span class="d"></span> Modules (All Types)</a>
+  <a href="#p-editor-profile"><span class="d"></span> Editor Profile</a>
+</nav>
+
+<!-- MAIN -->
+<main id="main">
+
+<div class="hero">
+  <h1>All Pages — Explained</h1>
+  <p>Every page in the Language Lab Admin Panel — what it does, what state it holds, what functions run, and what the user sees.</p>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<span class="panel-badge admin-badge">🛡️ Admin Panel Pages</span>
+
+<!-- ───────────────────────────── LOGIN ───────────────────────────── -->
+<div id="p-login" class="page-block">
+  <div class="ph">
+    <div class="num">1</div>
+    <div>
+      <h2>Login Page</h2>
+      <span class="route">/admin-login</span>
+      <span class="who">Public · No auth required</span>
+    </div>
+  </div>
+
+  <div class="summary">
+    <b>Purpose:</b> Single entry point for both Admin and Editor users. One page with two sliding login forms — Admin on the left, Editor on the right. An orange animated panel slides across to switch between them.
+  </div>
+
+  <div class="sec">State Variables</div>
+  <div class="state-grid">
+    <div class="state-card">
+      <div class="sc-title">Form Data</div>
+      <ul>
+        <li><code>adminData</code> — { email, password } for admin form</li>
+        <li><code>editorData</code> — { email, password } for editor form</li>
+        <li><code>errors</code> — Yup validation errors per field</li>
+      </ul>
+    </div>
+    <div class="state-card">
+      <div class="sc-title">UI State</div>
+      <ul>
+        <li><code>isEditor</code> — false=admin panel, true=editor panel</li>
+        <li><code>showAdminPassword</code> — show/hide admin password</li>
+        <li><code>showEditorPassword</code> — show/hide editor password</li>
+        <li><code>loading</code> — disables submit during API call</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sec">Functions</div>
+  <div class="rows">
+    <div class="row"><div class="label">setCookie()</div><div class="desc"><span class="tag tag-fn">HELPER</span> Manually writes a cookie with a calculated expiry. Used to save <code>token</code> and <code>admin</code>/<code>editor</code> data after login.</div></div>
+    <div class="row"><div class="label">handleAdminChange()</div><div class="desc"><span class="tag tag-fn">HANDLER</span> Updates <code>adminData</code> when user types in the admin form. Uses computed property key <code>[e.target.name]</code> to update the right field.</div></div>
+    <div class="row"><div class="label">handleEditorChange()</div><div class="desc"><span class="tag tag-fn">HANDLER</span> Same as above for editor form.</div></div>
+    <div class="row"><div class="label">handleAdminLogin()</div><div class="desc"><span class="tag tag-api">API</span> (1) Clear errors. (2) Validate form with <code>adminSchema</code> — if invalid, show inline field errors and stop. (3) Call <code>loginAdmin()</code> API. (4) On success: save token cookie, show SweetAlert success, redirect to <code>/</code> after 1 second. (5) On API error: show SweetAlert error popup.</div></div>
+    <div class="row"><div class="label">handleEditorLogin()</div><div class="desc"><span class="tag tag-api">API</span> Same flow as admin login but uses <code>editorSchema</code>, calls <code>loginEditor()</code>, and redirects to <code>/editor</code>.</div></div>
+  </div>
+
+  <div class="sec">What the User Sees</div>
+  <div class="rows">
+    <div class="row"><div class="label">Admin form panel</div><div class="desc">Left half of the card. Email input + password input with eye toggle + Login button. Slides off-screen when switching to Editor.</div></div>
+    <div class="row"><div class="label">Editor form panel</div><div class="desc">Right half — same structure but for editor credentials. Slides in from right when switching.</div></div>
+    <div class="row"><div class="label">Orange slider panel</div><div class="desc">The decorative panel with icon (🛡️ or 🎓), title, description, and the "Switch to Editor/Admin" button. Covers whichever form is NOT active. Slides left/right with a 700ms CSS transition.</div></div>
+    <div class="row"><div class="label">Inline errors</div><div class="desc">Red error messages appear directly below each input field when Yup validation fails.</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ───────────────────────── DASHBOARD ───────────────────────────── -->
+<div id="p-dashboard" class="page-block">
+  <div class="ph">
+    <div class="num">2</div>
+    <div>
+      <h2>Admin Dashboard</h2>
+      <span class="route">/</span>
+      <span class="who">Admin only</span>
+    </div>
+  </div>
+
+  <div class="summary">
+    <b>Purpose:</b> The main home page after admin login. A read-only overview with static placeholder data showing system stats, expiring licenses, institute activity, quick-action links, audit log, and user engagement chart.
+  </div>
+
+  <div class="sec">Sections on Screen</div>
+  <div class="rows">
+    <div class="row"><div class="label">Stats Grid</div><div class="desc"><span class="tag tag-ui">UI</span> 5 StatCards: Total Institutes (25), Total Students (12,450), Active Licenses (22), Published Courses (35), Assessments Taken (8,950). Each card has a colored top border stripe and a green growth text below the number.</div></div>
+    <div class="row"><div class="label">License Monitor</div><div class="desc"><span class="tag tag-ui">UI</span> Shows 3 licenses expiring soon with urgency badges: red (7 days), orange (12 days), amber (19 days). A "View All License Ledgers" button sits at the bottom.</div></div>
+    <div class="row"><div class="label">Institute Activity</div><div class="desc"><span class="tag tag-ui">UI</span> A "Live Feed" of institutes onboarding students — shows name, student count, and timestamp. Each entry separated by a thin border.</div></div>
+    <div class="row"><div class="label">Quick Management</div><div class="desc"><span class="tag tag-ui">UI</span> 6 ActionCards linking to Add Institute, Issue License, Register Editor, Upload Material, Manage Curriculum, Configure Testing. On hover: orange gradient background + white text.</div></div>
+    <div class="row"><div class="label">Audit Log</div><div class="desc"><span class="tag tag-ui">UI</span> 4 recent system events (new institute, license renewal, curriculum update, staff added) with emoji icons and relative timestamps.</div></div>
+    <div class="row"><div class="label">User Engagement</div><div class="desc"><span class="tag tag-ui">UI</span> Shows total platform students (12,450), a mini bar chart of 7 bars at varying heights, and 3 metric labels: Units (1.2k), Curators (48), Tests (320).</div></div>
+  </div>
+
+  <div class="sec">Sub-Components (defined inside the file)</div>
+  <div class="rows">
+    <div class="row"><div class="label">StatCard</div><div class="desc">Props: icon, title, value, sub, color. Renders a white card with a gradient stripe at top.</div></div>
+    <div class="row"><div class="label">LicenseItem</div><div class="desc">Props: name, plan, days, date, urgency. Urgency determines badge color via a ternary chain.</div></div>
+    <div class="row"><div class="label">ActivityItem</div><div class="desc">Props: name, sub, time. A simple row with name, subtitle, and timestamp badge.</div></div>
+    <div class="row"><div class="label">ActionCard</div><div class="desc">Props: icon, label, link. Uses <code>&lt;a href&gt;</code>. Hover applies orange gradient via Tailwind group utilities.</div></div>
+    <div class="row"><div class="label">AuditItem</div><div class="desc">Props: type, title, desc, time. Picks emoji from type string. Shows emoji in orange rounded box on the left.</div></div>
+    <div class="row"><div class="label">Bar</div><div class="desc">Props: h (height string like "70%"). One bar in the engagement chart. Orange-to-amber gradient, hover fades opacity.</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ────────────────────────── INSTITUTES ─────────────────────────── -->
+<div id="p-institutes" class="page-block">
+  <div class="ph">
+    <div class="num">3</div>
+    <div>
+      <h2>Institutes Page</h2>
+      <span class="route">/institutes</span>
+      <span class="who">Admin only</span>
+    </div>
+  </div>
+
+  <div class="summary">
+    <b>Purpose:</b> Full CRUD for educational institutes. Lists all institutes in a table. The same page handles create, edit, and view in different <code>activeTab</code> states — no separate routes needed for edit.
+  </div>
+
+  <div class="sec">State Variables</div>
+  <div class="state-grid">
+    <div class="state-card">
+      <div class="sc-title">Data</div>
+      <ul>
+        <li><code>institutes</code> — array of all institute objects</li>
+        <li><code>courses</code> — list of courses (for the form dropdown)</li>
+        <li><code>loading</code> — table loading spinner</li>
+        <li><code>generatedLicenses</code> — result from generate API (shown once)</li>
+      </ul>
+    </div>
+    <div class="state-card">
+      <div class="sc-title">UI / Modal State</div>
+      <ul>
+        <li><code>activeTab</code> — "manage" / "create" / "edit"</li>
+        <li><code>editingInstitute</code> — institute object being edited</li>
+        <li><code>viewingInstitute</code> — institute being viewed in modal</li>
+        <li><code>showGenerateModal</code> — show/hide license gen modal</li>
+        <li><code>selectedInstitute</code> — institute to generate licenses for</li>
+        <li><code>licenseCount</code>, <code>startDate</code>, <code>endDate</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sec">Functions</div>
+  <div class="rows">
+    <div class="row"><div class="label">loadInstitutes()</div><div class="desc"><span class="tag tag-api">API</span> Calls <code>getInstitutes()</code>. Handles response shapes — tries <code>res.data.data</code> first, then <code>res.data</code>. Sets array or empty array.</div></div>
+    <div class="row"><div class="label">loadCourses()</div><div class="desc"><span class="tag tag-api">API</span> Non-blocking (errors silently ignored). Fetches courses for the InstituteForm dropdown.</div></div>
+    <div class="row"><div class="label">handleCreateSubmit()</div><div class="desc"><span class="tag tag-api">API</span> Calls <code>createInstitute(data)</code>. On success: appends new institute to state array (no re-fetch needed), switches tab to "manage", shows success alert.</div></div>
+    <div class="row"><div class="label">handleEditSubmit()</div><div class="desc"><span class="tag tag-api">API</span> Calls <code>updateInstitute(id, data)</code>. On success: updates only the edited item in the array using <code>prev.map()</code>, switches tab back to "manage".</div></div>
+    <div class="row"><div class="label">handleDelete()</div><div class="desc"><span class="tag tag-api">API</span> Shows SweetAlert confirm dialog first. If confirmed: calls <code>deleteInstitute(id)</code>, removes item from array with <code>prev.filter()</code>.</div></div>
+    <div class="row"><div class="label">handleToggleActive()</div><div class="desc"><span class="tag tag-api">API</span> Calls <code>toggleInstituteStatus(id)</code>. On success: flips <code>is_active</code> for that item in the array. Clicking the status badge in the table triggers this.</div></div>
+    <div class="row"><div class="label">openGenerateModal()</div><div class="desc"><span class="tag tag-fn">HANDLER</span> Sets the selected institute and resets modal fields, then shows the modal.</div></div>
+    <div class="row"><div class="label">handleGenerateLicense()</div><div class="desc"><span class="tag tag-api">API</span> Validates that count ≥ 1 and both dates are set. Calls <code>generateLicense()</code>. On success: closes modal, stores result in <code>generatedLicenses</code> (which shows a one-time modal), then reloads institutes.</div></div>
+  </div>
+
+  <div class="sec">Table Columns</div>
+  <div class="rows">
+    <div class="row"><div class="label">Institute Name & Code</div><div class="desc">Shows logo image (or 2-letter initials fallback), institute name in bold, and institute code in orange monospace.</div></div>
+    <div class="row"><div class="label">Contact</div><div class="desc">Email and phone stacked vertically.</div></div>
+    <div class="row"><div class="label">Website</div><div class="desc">Clickable link opening in new tab, or "—" if empty.</div></div>
+    <div class="row"><div class="label">Max Students</div><div class="desc">Bold number.</div></div>
+    <div class="row"><div class="label">Status</div><div class="desc">Clickable badge — green "Active" or grey "Inactive". Clicking calls <code>handleToggleActive()</code>.</div></div>
+    <div class="row"><div class="label">Actions</div><div class="desc">License button (amber) → opens generate modal. ActionButton → View (blue modal), Edit (switches to edit tab), Delete (confirm dialog).</div></div>
+  </div>
+
+  <div class="sec">Modals (3 total)</div>
+  <div class="modal-list">
+    <div class="modal-card"><div class="mc-name">View Institute Modal</div><p>Shows all institute details in a 2-column grid. Logo or initials at top. Fields: email, phone, website (clickable), max students, address, status badge. Close button dismisses.</p></div>
+    <div class="modal-card"><div class="mc-name">Generate License Modal</div><p>Number picker (+/− buttons or direct input) for license count. Start date and expiry date pickers. Warning: "Passwords are shown ONCE". Submit calls <code>handleGenerateLicense()</code>.</p></div>
+    <div class="modal-card"><div class="mc-name">License Result Modal (shown once)</div><p>Displays generated license keys in a table grid with key_index, license_code, user_id, password, and status columns. Warning banner: "CRITICAL — Passwords shown ONCE only." Below: full license keys list. Close button clears <code>generatedLicenses</code> state.</p></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ───────────────────── NEW INSTITUTE ───────────────────────────── -->
+<div id="p-institutes-new" class="page-block">
+  <div class="ph">
+    <div class="num">4</div>
+    <div>
+      <h2>New Institute Page</h2>
+      <span class="route">/institutes/new</span>
+      <span class="who">Admin only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Standalone form page to create a new institute. Very thin page — fetches the course list on mount and delegates all form rendering to <code>InstituteForm</code>. On success: shows alert and navigates back to <code>/institutes</code>.
+  </div>
+  <div class="rows">
+    <div class="row"><div class="label">useEffect</div><div class="desc"><span class="tag tag-api">API</span> Calls <code>getCourses()</code> on mount using promise chaining (<code>.then().catch()</code>). Errors silently ignored — form still works without courses.</div></div>
+    <div class="row"><div class="label">handleSubmit()</div><div class="desc"><span class="tag tag-api">API</span> Calls <code>createInstitute(data)</code>. On success: shows SweetAlert with 2s timer, then <code>router.push('/institutes')</code>. On error: shows error alert with API message.</div></div>
+    <div class="row"><div class="label">InstituteForm</div><div class="desc"><span class="tag tag-ui">RENDER</span> Receives <code>courses</code>, <code>onSubmit</code>, <code>onCancel</code>. Cancel button calls <code>router.push('/institutes')</code>.</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ────────────────────────── EDITORS ─────────────────────────────── -->
+<div id="p-editors" class="page-block">
+  <div class="ph">
+    <div class="num">5</div>
+    <div>
+      <h2>Editors Page</h2>
+      <span class="route">/editors</span>
+      <span class="who">Admin only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Manage all editor accounts. Lists editors in a table with toggle-status, edit, delete, and view actions. Also has an "Assign Institutes" modal to link editors to specific institutes.
+  </div>
+  <div class="sec">State Variables</div>
+  <div class="state-grid">
+    <div class="state-card">
+      <div class="sc-title">Data</div>
+      <ul>
+        <li><code>editors</code> — array of editor objects</li>
+        <li><code>institutes</code> — for the assign modal dropdown</li>
+        <li><code>loading</code> — table loading state</li>
+      </ul>
+    </div>
+    <div class="state-card">
+      <div class="sc-title">Modal / Edit State</div>
+      <ul>
+        <li><code>activeTab</code> — "manage" / "edit"</li>
+        <li><code>editingEditor</code> — editor object for edit form</li>
+        <li><code>viewingEditor</code> — editor object for view modal</li>
+        <li><code>assignEditor</code> — editor being assigned institutes</li>
+        <li><code>selectedInstituteIds</code> — checked institute IDs in assign modal</li>
+        <li><code>assigning</code> — loading state for assign submit</li>
+      </ul>
+    </div>
+  </div>
+  <div class="sec">Functions</div>
+  <div class="rows">
+    <div class="row"><div class="label">loadEditors()</div><div class="desc"><span class="tag tag-api">API</span> Fetches all editors, sets them in state.</div></div>
+    <div class="row"><div class="label">loadInstitutes()</div><div class="desc"><span class="tag tag-api">API</span> Non-blocking. Fetches institutes for the assign modal checkboxes.</div></div>
+    <div class="row"><div class="label">handleEditSubmit()</div><div class="desc"><span class="tag tag-fn">HANDLER</span> Clears editing state and reloads editors from API.</div></div>
+    <div class="row"><div class="label">handleToggleStatus()</div><div class="desc"><span class="tag tag-api">API</span> Calls <code>toggleEditorStatus(id)</code>. On success: flips both <code>is_active</code> and <code>status</code> fields in the local array.</div></div>
+    <div class="row"><div class="label">handleDelete()</div><div class="desc"><span class="tag tag-api">API</span> Confirm dialog → <code>deleteEditor(id)</code> → removes from array.</div></div>
+    <div class="row"><div class="label">toggleInstituteSelect()</div><div class="desc"><span class="tag tag-fn">HANDLER</span> Adds or removes an institute ID from <code>selectedInstituteIds</code> array based on whether it's already included.</div></div>
+    <div class="row"><div class="label">handleAssignSubmit()</div><div class="desc"><span class="tag tag-api">API</span> Calls <code>assignEditorInstitutes(editorId, ids)</code>. Updates <code>assigned_institutes</code> in local state. Closes modal on success.</div></div>
+  </div>
+  <div class="sec">Modals (2)</div>
+  <div class="modal-list">
+    <div class="modal-card"><div class="mc-name">View Editor Modal</div><p>Shows editor photo/initials, full_name, email, phone, status badge, and assigned institutes count. Read-only.</p></div>
+    <div class="modal-card"><div class="mc-name">Assign Institutes Modal</div><p>Scrollable checkbox list of all institutes. Each item is a <code>&lt;label&gt;</code> wrapping a checkbox — clicking anywhere on the row toggles the selection. Shows count of selected at the bottom. Save calls <code>handleAssignSubmit()</code>.</p></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ─────────────────────── NEW EDITOR ───────────────────────────── -->
+<div id="p-editors-new" class="page-block">
+  <div class="ph">
+    <div class="num">6</div>
+    <div>
+      <h2>New Editor Page</h2>
+      <span class="route">/editors/new</span>
+      <span class="who">Admin only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Minimal page — just wraps <code>EditorForm</code> in AdminLayout. On success shows alert and redirects to <code>/editors</code>. Cancel also goes back to <code>/editors</code>.
+  </div>
+  <div class="rows">
+    <div class="row"><div class="label">handleSuccess()</div><div class="desc"><span class="tag tag-fn">HANDLER</span> Shows success SweetAlert with 1.5s timer, then navigates to <code>/editors</code>.</div></div>
+    <div class="row"><div class="label">EditorForm</div><div class="desc"><span class="tag tag-ui">RENDER</span> The form component that handles all field rendering and API submission internally. Receives <code>onSuccess</code> and <code>onCancel</code> callbacks.</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ─────────────────────── STUDENTS ─────────────────────────────── -->
+<div id="p-students" class="page-block">
+  <div class="ph">
+    <div class="num">7</div>
+    <div>
+      <h2>Students Page</h2>
+      <span class="route">/students</span>
+      <span class="who">Admin only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> View and manage all enrolled students. Has a "Register Student" button that switches to the create form inline. After creation, if a generated_password is returned from the API, shows it in a one-time modal.
+  </div>
+  <div class="sec">Key State</div>
+  <div class="state-grid">
+    <div class="state-card">
+      <div class="sc-title">Data</div>
+      <ul>
+        <li><code>students</code> — array of student objects</li>
+        <li><code>institutes</code> — for name lookup in table</li>
+        <li><code>createdStudent</code> — newly created student with generated_password</li>
+      </ul>
+    </div>
+    <div class="state-card">
+      <div class="sc-title">UI</div>
+      <ul>
+        <li><code>activeTab</code> — "manage" / "create"</li>
+        <li><code>loading</code> — table loading spinner</li>
+      </ul>
+    </div>
+  </div>
+  <div class="sec">Functions</div>
+  <div class="rows">
+    <div class="row"><div class="label">handleCreateSubmit()</div><div class="desc"><span class="tag tag-api">API</span> Calls <code>createStudent(data)</code>. Switches tab back to "manage" and reloads list. If API returns a <code>generated_password</code>, stores the student in <code>createdStudent</code> to trigger the password modal. Otherwise shows a success alert.</div></div>
+    <div class="row"><div class="label">handleToggleStatus()</div><div class="desc"><span class="tag tag-api">API</span> Flips <code>is_active</code> and <code>status</code> in local array. Clicking status badge triggers this.</div></div>
+    <div class="row"><div class="label">handleDelete()</div><div class="desc"><span class="tag tag-api">API</span> Confirm dialog → delete → filter from array.</div></div>
+    <div class="row"><div class="label">getInstituteName()</div><div class="desc"><span class="tag tag-fn">HELPER</span> Looks up institute name by ID from the <code>institutes</code> array. Returns name or the raw ID as fallback.</div></div>
+  </div>
+  <div class="sec">Special: Generated Password Modal</div>
+  <div class="rows">
+    <div class="row"><div class="label">Trigger</div><div class="desc">Appears when <code>createdStudent</code> state is not null — i.e., when API returns a <code>generated_password</code> field.</div></div>
+    <div class="row"><div class="label">Content</div><div class="desc">Student name + enrollment number, red warning box "Password shown ONCE — save it now", large orange monospace password display.</div></div>
+    <div class="row"><div class="label">Close</div><div class="desc">Clicking "I have saved the password — Close" sets <code>createdStudent</code> to <code>null</code>. No other way to close (intentional — forces acknowledgement).</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ─────────────────────── LICENSES ─────────────────────────────── -->
+<div id="p-licenses" class="page-block">
+  <div class="ph">
+    <div class="num">8</div>
+    <div>
+      <h2>Licenses Page</h2>
+      <span class="route">/licenses</span>
+      <span class="who">Admin only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Accordion-style view of license keys grouped by institute. Click any institute row to expand it and load its license keys. Each key shows usage bar, expiry, and action buttons (Suspend / Activate / Expire). Clicking "View" opens a detailed modal.
+  </div>
+  <div class="sec">Key State</div>
+  <div class="state-grid">
+    <div class="state-card">
+      <div class="sc-title">Data</div>
+      <ul>
+        <li><code>institutes</code> — list of all institutes</li>
+        <li><code>licenseMap</code> — { instituteId: [licenses] } — lazy loaded</li>
+        <li><code>expandedId</code> — currently open institute row</li>
+        <li><code>viewingLicense</code> — license object for detail modal</li>
+      </ul>
+    </div>
+    <div class="state-card">
+      <div class="sc-title">Loading</div>
+      <ul>
+        <li><code>loading</code> — institute list loading</li>
+        <li><code>licenseLoading</code> — license ID currently processing an action</li>
+      </ul>
+    </div>
+  </div>
+  <div class="sec">Functions</div>
+  <div class="rows">
+    <div class="row"><div class="label">loadLicenses(id)</div><div class="desc"><span class="tag tag-api">API</span> Lazy loading: if licenses for this institute are already in <code>licenseMap</code>, just toggle the expand state. Otherwise fetch, store in map, then expand. Prevents re-fetching on every click.</div></div>
+    <div class="row"><div class="label">handleAction()</div><div class="desc"><span class="tag tag-api">API</span> Generic handler for suspend/activate/expire. Uses an <code>actionMap</code> object to pick the right API function and labels. Shows confirm dialog with color-coded button (green for activate, red for others). After action: re-fetches all licenses for that institute.</div></div>
+    <div class="row"><div class="label">statusColor(status)</div><div class="desc"><span class="tag tag-fn">HELPER</span> Switch statement returning Tailwind badge classes based on license status string.</div></div>
+    <div class="row"><div class="label">daysLeft(expiry)</div><div class="desc"><span class="tag tag-fn">HELPER</span> Calculates days between today and expiry date: <code>Math.ceil((new Date(expiry) - new Date()) / 86400000)</code>. Returns 0 if negative.</div></div>
+  </div>
+  <div class="sec">License Detail Modal</div>
+  <div class="rows">
+    <div class="row"><div class="label">Header</div><div class="desc">Orange gradient. Shows key_index badge, license_code, user_id, status badge, and validity badge.</div></div>
+    <div class="row"><div class="label">Credentials</div><div class="desc">User ID and derived seat password (extracted from user_id using regex <code>/^(.+)-U(\d+)$/</code>).</div></div>
+    <div class="row"><div class="label">Dates</div><div class="desc">Start, Expiry, and Duration in a 3-column grid.</div></div>
+    <div class="row"><div class="label">Progress Bars</div><div class="desc">Time Remaining bar (green/amber/red based on days left) and Active Sessions bar (red when full).</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ─────────────────────── COURSES (ADMIN) ──────────────────────── -->
+<div id="p-courses" class="page-block">
+  <div class="ph">
+    <div class="num">9</div>
+    <div>
+      <h2>Courses Page (Admin)</h2>
+      <span class="route">/courses</span>
+      <span class="who">Admin only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Extremely thin page — just wraps <code>CoursesContent</code> inside <code>AdminLayout</code>. All logic lives in the shared <code>CoursesContent</code> component so the same UI can be reused in both admin and editor contexts.
+  </div>
+  <div class="rows">
+    <div class="row"><div class="label">CoursesContent</div><div class="desc"><span class="tag tag-ui">RENDER</span> The entire courses list UI — fetches, displays, and handles CRUD for courses. No props needed — it determines context internally.</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ─────────────────────── ANALYTICS ─────────────────────────────── -->
+<div id="p-analytics" class="page-block">
+  <div class="ph">
+    <div class="num">10</div>
+    <div>
+      <h2>Analytics Page</h2>
+      <span class="route">/analytics</span>
+      <span class="who">Admin only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Activity log analytics dashboard. Displays a table of student activity records from static seed data (<code>initialActivityLogs</code> from dbService). Shows timestamps, student names, module type, action logged, time spent, score, and progress bar.
+  </div>
+  <div class="sec">State & Helpers</div>
+  <div class="rows">
+    <div class="row"><div class="label">logs state</div><div class="desc"><span class="tag tag-state">STATE</span> Initialized directly from <code>initialActivityLogs</code> — no API call. Static seed data only.</div></div>
+    <div class="row"><div class="label">getStudentName(id)</div><div class="desc"><span class="tag tag-fn">HELPER</span> Looks up student full_name from <code>initialStudents</code> by ID. Returns "Student User" fallback.</div></div>
+    <div class="row"><div class="label">getInstituteName(id)</div><div class="desc"><span class="tag tag-fn">HELPER</span> Looks up institute name from <code>initialInstitutes</code> by ID. Returns "Affiliated Institute" fallback.</div></div>
+  </div>
+  <div class="sec">Table Columns</div>
+  <div class="rows">
+    <div class="row"><div class="label">Timestamp</div><div class="desc">Formats <code>logged_at</code> date using <code>toLocaleString()</code>.</div></div>
+    <div class="row"><div class="label">Student & Institute</div><div class="desc">Student name (bold) + institute name (smaller grey text).</div></div>
+    <div class="row"><div class="label">Module Context</div><div class="desc">Orange badge showing module_type (e.g. "video", "audio").</div></div>
+    <div class="row"><div class="label">Action Logged</div><div class="desc">Monospace text of the activity_type field.</div></div>
+    <div class="row"><div class="label">Time Spent / Score</div><div class="desc">Conditionally shows time_spent_sec and score/max_score/accuracy only if those fields exist.</div></div>
+    <div class="row"><div class="label">Module Progress</div><div class="desc">A 40px wide orange progress bar + percentage text.</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ─────────────────────── SESSIONS ─────────────────────────────── -->
+<div id="p-sessions" class="page-block">
+  <div class="ph">
+    <div class="num">11</div>
+    <div>
+      <h2>Sessions Page</h2>
+      <span class="route">/sessions</span>
+      <span class="who">Admin only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Real-time seat usage monitoring. Shows all institutes with their active session counts, total licensed seats, and a seat usage bar. Admins can force-reset all sessions for an institute (emergency action that kicks all logged-in students out).
+  </div>
+  <div class="sec">State Variables</div>
+  <div class="state-grid">
+    <div class="state-card">
+      <div class="sc-title">Data</div>
+      <ul>
+        <li><code>institutes</code> — list of institutes</li>
+        <li><code>statsMap</code> — { id: { active, total, keys } } — computed from licenses</li>
+      </ul>
+    </div>
+    <div class="state-card">
+      <div class="sc-title">Loading</div>
+      <ul>
+        <li><code>loading</code> — initial data loading</li>
+        <li><code>resetting</code> — institute ID currently being reset</li>
+      </ul>
+    </div>
+  </div>
+  <div class="sec">Functions</div>
+  <div class="rows">
+    <div class="row"><div class="label">loadData()</div><div class="desc"><span class="tag tag-api">API</span> (1) Fetches all institutes. (2) Uses <code>Promise.allSettled()</code> to fetch licenses for ALL institutes in parallel — if one fails, others still succeed. (3) Aggregates active sessions and total seats per institute into <code>statsMap</code>.</div></div>
+    <div class="row"><div class="label">handleResetSeats()</div><div class="desc"><span class="tag tag-api">API</span> Shows confirm dialog with current active count. Calls <code>resetInstituteSeats(id)</code>. Refreshes license data for that institute and recalculates its stats in <code>statsMap</code>.</div></div>
+    <div class="row"><div class="label">totalActive / totalSeats</div><div class="desc"><span class="tag tag-fn">COMPUTED</span> Derived by summing all values in <code>statsMap</code>. Shown in the 3 summary cards at the top.</div></div>
+  </div>
+  <div class="sec">Table</div>
+  <div class="rows">
+    <div class="row"><div class="label">Usage Bar</div><div class="desc">Green (0-59%), amber (60-89%), red (90-100%). <code>isFull</code> shows "All seats in use" text below.</div></div>
+    <div class="row"><div class="label">Reset Button</div><div class="desc">Disabled (grey) when active=0. Otherwise red style. Shows "Resetting…" spinner while API call runs.</div></div>
+    <div class="row"><div class="label">Warning Banner</div><div class="desc">Bottom amber warning box explaining what Reset does and that a cron job frees expired seats every 5 minutes.</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ─────────────────────── PROFILE (ADMIN) ──────────────────────── -->
+<div id="p-profile" class="page-block">
+  <div class="ph">
+    <div class="num">12</div>
+    <div>
+      <h2>Admin Profile Page</h2>
+      <span class="route">/profile</span>
+      <span class="who">Admin only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Admin account management. Left column: read-only profile card. Right column: two forms — Edit Profile (name, phone, photo) and Change Password.
+  </div>
+  <div class="sec">Local Sub-Component</div>
+  <div class="rows">
+    <div class="row"><div class="label">FormInput</div><div class="desc"><span class="tag tag-ui">COMPONENT</span> A reusable input with optional icon on the left, and optional show/hide toggle for password fields. Uses <code>useState(show)</code> internally. Accepts all standard input props via <code>{...props}</code> spread.</div></div>
+  </div>
+  <div class="sec">State & Functions</div>
+  <div class="rows">
+    <div class="row"><div class="label">loadProfile()</div><div class="desc"><span class="tag tag-api">API</span> Calls <code>getProfile()</code>. Populates <code>profile</code>, <code>form</code>, and <code>profileImage</code> state from the response.</div></div>
+    <div class="row"><div class="label">handleUpdateProfile()</div><div class="desc"><span class="tag tag-api">API</span> Validates name is not empty. Calls <code>updateProfile({ full_name, phone, profileImage })</code>. On success: merges updated fields into <code>profile</code> state using <code>prev => ({ ...prev, ...form })</code>.</div></div>
+    <div class="row"><div class="label">handleChangePassword()</div><div class="desc"><span class="tag tag-fn">HANDLER</span> Client-side validation: all fields required, new=confirm match, min 6 chars. Then calls <code>changePassword()</code> API. Clears form on success.</div></div>
+    <div class="row"><div class="label">Loading state</div><div class="desc">If <code>loading</code> is true, renders a centered spinner inside AdminLayout before returning the full profile UI.</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<span class="panel-badge editor-badge">🎓 Editor Panel Pages</span>
+
+<!-- ────────────────── EDITOR DASHBOARD ─────────────────────────── -->
+<div id="p-editor-dash" class="page-block">
+  <div class="ph">
+    <div class="num">13</div>
+    <div>
+      <h2>Editor Dashboard</h2>
+      <span class="route">/editor</span>
+      <span class="who">Editor only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Editor home page. Fetches course and topic counts, shows 2 stat cards, and 4 quick-action links. Clean, minimal dashboard.
+  </div>
+  <div class="rows">
+    <div class="row"><div class="label">useEffect → load()</div><div class="desc"><span class="tag tag-api">API</span> Uses <code>Promise.allSettled([getEditorCourses(), getTopics()])</code> to fetch both in parallel. If either fails, the other still works. Counts are derived from array lengths.</div></div>
+    <div class="row"><div class="label">StatCard (local)</div><div class="desc"><span class="tag tag-ui">COMPONENT</span> Shows "—" while loading, then the count. Props: icon, label, value, sub, color.</div></div>
+    <div class="row"><div class="label">QuickLink (local)</div><div class="desc"><span class="tag tag-ui">COMPONENT</span> An icon + label + description link card. Hover: icon background flips to orange-500, text stays dark.</div></div>
+    <div class="row"><div class="label">Quick Actions</div><div class="desc">4 links: Manage Courses, Add New Course, Topics & SubTopics, My Profile.</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ─────────────────── EDITOR COURSES ───────────────────────────── -->
+<div id="p-editor-courses" class="page-block">
+  <div class="ph">
+    <div class="num">14</div>
+    <div>
+      <h2>Editor Courses Page</h2>
+      <span class="route">/editor/courses</span>
+      <span class="who">Editor only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Full CRUD for courses in the editor panel. Also has a "Topics" assign feature — clicking the topics count badge opens a modal to assign/unassign topics to a course.
+  </div>
+  <div class="sec">State</div>
+  <div class="state-grid">
+    <div class="state-card">
+      <div class="sc-title">Data</div>
+      <ul>
+        <li><code>courses</code> — editor's courses (filtered: must have _id)</li>
+        <li><code>allTopics</code> — all available topics for assignment</li>
+      </ul>
+    </div>
+    <div class="state-card">
+      <div class="sc-title">Modals / Edit</div>
+      <ul>
+        <li><code>activeTab</code> — "manage" / "create" / "edit"</li>
+        <li><code>editingCourse</code>, <code>viewingCourse</code></li>
+        <li><code>assigningCourse</code> — for topics modal</li>
+        <li><code>selectedTopicIds</code> — checked topics in modal</li>
+        <li><code>savingTopics</code> — modal submit loading</li>
+      </ul>
+    </div>
+  </div>
+  <div class="sec">Functions</div>
+  <div class="rows">
+    <div class="row"><div class="label">loadCourses()</div><div class="desc"><span class="tag tag-api">API</span> Fetches editor courses. Filters result with <code>.filter((c) => c && c._id)</code> to remove any null/malformed entries.</div></div>
+    <div class="row"><div class="label">openTopicsModal()</div><div class="desc"><span class="tag tag-fn">HANDLER</span> Extracts current topic IDs from course (handles both object and string ID formats), sets them as pre-selected, opens the modal.</div></div>
+    <div class="row"><div class="label">toggleTopic()</div><div class="desc"><span class="tag tag-fn">HANDLER</span> Adds/removes ID from <code>selectedTopicIds</code>.</div></div>
+    <div class="row"><div class="label">handleSaveTopics()</div><div class="desc"><span class="tag tag-api">API</span> Calls <code>updateEditorCourse(id, { topic_ids })</code>. Updates local state to reflect new topic count.</div></div>
+    <div class="row"><div class="label">handleCreateSubmit()</div><div class="desc"><span class="tag tag-api">API</span> Handles 409 (duplicate course code) specifically — shows a tailored error message.</div></div>
+    <div class="row"><div class="label">handleStatusToggle()</div><div class="desc"><span class="tag tag-api">API</span> Clicking the Active/Inactive badge calls <code>updateEditorCourse(id, { is_active: !current })</code>.</div></div>
+    <div class="row"><div class="label">levelBadge()</div><div class="desc"><span class="tag tag-fn">HELPER</span> Returns Tailwind badge classes for beginner (green), intermediate (amber), advanced (red).</div></div>
+  </div>
+  <div class="sec">Tab-based rendering</div>
+  <div class="rows">
+    <div class="row"><div class="label">create tab</div><div class="desc">Returns early — full page replaced with CourseForm in EditorLayout. No table shown.</div></div>
+    <div class="row"><div class="label">edit tab</div><div class="desc">Returns early — full page replaced with CourseForm pre-filled with <code>editingCourse</code>.</div></div>
+    <div class="row"><div class="label">manage tab</div><div class="desc">Shows the custom grid table (not ScrollableTable — a manually built grid layout for this page).</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ─────────────────── CURRICULUM ───────────────────────────────── -->
+<div id="p-curriculum" class="page-block">
+  <div class="ph">
+    <div class="num">15</div>
+    <div>
+      <h2>Curriculum Page</h2>
+      <span class="route">/editor/curriculum</span>
+      <span class="who">Editor only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Two-tab page for managing Topics and SubTopics. Tab is controlled by URL query param <code>?tab=topics</code> or <code>?tab=subtopics</code>. SubTopics require selecting a parent topic first. Both have search filtering and full CRUD via modals.
+  </div>
+  <div class="sec">State</div>
+  <div class="state-grid">
+    <div class="state-card">
+      <div class="sc-title">Topics</div>
+      <ul>
+        <li><code>topics</code> — all topics array</li>
+        <li><code>topicLoading</code> — loading state</li>
+        <li><code>topicSearch</code> — search input string</li>
+        <li><code>filteredTopics</code> — memoized filtered list</li>
+      </ul>
+    </div>
+    <div class="state-card">
+      <div class="sc-title">SubTopics</div>
+      <ul>
+        <li><code>selectedTopicId</code> — parent topic for subtopics</li>
+        <li><code>subtopics</code> — subtopics for selected topic</li>
+        <li><code>subLoading</code>, <code>subSearch</code></li>
+        <li><code>filteredSubs</code> — memoized filtered list</li>
+      </ul>
+    </div>
+    <div class="state-card">
+      <div class="sc-title">Modals</div>
+      <ul>
+        <li><code>modal</code> — "addTopic"/"editTopic"/"viewTopic"/"addSub"/"editSub"/"viewSub"</li>
+        <li><code>target</code> — item being edited/viewed</li>
+        <li><code>topicForm</code>, <code>subForm</code> — { title, description, order }</li>
+        <li><code>saving</code> — modal submit loading</li>
+      </ul>
+    </div>
+    <div class="state-card">
+      <div class="sc-title">Tab</div>
+      <ul>
+        <li><code>tab</code> — synced with URL param via useSearchParams</li>
+      </ul>
+    </div>
+  </div>
+  <div class="sec">Functions</div>
+  <div class="rows">
+    <div class="row"><div class="label">loadSubs(id)</div><div class="desc"><span class="tag tag-api">API</span> Resets subtopics and search, then fetches subtopics for the selected topic. Called on topic dropdown change.</div></div>
+    <div class="row"><div class="label">openModal(type, item)</div><div class="desc"><span class="tag tag-fn">HANDLER</span> Sets modal type and target. Pre-fills form if editing. Clears form if adding.</div></div>
+    <div class="row"><div class="label">saveTopic()</div><div class="desc"><span class="tag tag-api">API</span> If <code>target</code> exists → update (PATCH). Otherwise → create (POST). Updates local state without re-fetching all.</div></div>
+    <div class="row"><div class="label">saveSub()</div><div class="desc"><span class="tag tag-api">API</span> Same pattern. Appends <code>topic_id: selectedTopicId</code> to the payload so backend knows the parent.</div></div>
+    <div class="row"><div class="label">handleDeleteTopic()</div><div class="desc"><span class="tag tag-api">API</span> Confirms → deletes → removes from array. Also clears <code>selectedTopicId</code> and <code>subtopics</code> if the deleted topic was selected.</div></div>
+  </div>
+  <div class="sec">Local Sub-Components</div>
+  <div class="rows">
+    <div class="row"><div class="label">FormModal</div><div class="desc">A shared modal for add/edit of both topics and subtopics. Fields: title (required), description, order. The save button text changes between "Create" and "Update" based on modal title prefix.</div></div>
+    <div class="row"><div class="label">ViewModal</div><div class="desc">Read-only modal showing order, title, description in slate cards with orange gradient header.</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ─────────────────── MODULES ──────────────────────────────────── -->
+<div id="p-modules" class="page-block">
+  <div class="ph">
+    <div class="num">16</div>
+    <div>
+      <h2>Module Pages (5 Types)</h2>
+      <span class="route">/editor/modules/[text|video|audio|exercise|vocabulary]</span>
+      <span class="who">Editor only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Each module type page is a 1-line file that renders the generic <code>ModuleTypePage</code> component with a <code>type</code> prop. All logic (fetch, list, create, edit, delete) lives in that shared component.
+  </div>
+  <div class="rows">
+    <div class="row"><div class="label">text/page.js</div><div class="desc"><code>&lt;ModuleTypePage type="text" addUrl="/editor/modules/text/new" /&gt;</code> — Text-based reading/learning content.</div></div>
+    <div class="row"><div class="label">video/page.js</div><div class="desc"><code>type="video"</code> — Video lesson content with upload and transcript.</div></div>
+    <div class="row"><div class="label">audio/page.js</div><div class="desc"><code>type="audio"</code> — Audio/listening content with file upload.</div></div>
+    <div class="row"><div class="label">exercise/page.js</div><div class="desc"><code>type="exercise"</code> — Interactive exercises: MCQ, fill-in-blank, matching.</div></div>
+    <div class="row"><div class="label">vocabulary/page.js</div><div class="desc"><code>type="vocabulary"</code> — Vocabulary flashcards with word, definition, pronunciation.</div></div>
+  </div>
+  <div class="rows">
+    <div class="row"><div class="label">ModuleTypePage</div><div class="desc"><span class="tag tag-ui">SHARED COMPONENT</span> Generic page wrapper at <code>app/components/pages/ModuleTypePage.jsx</code>. Receives <code>type</code> and <code>addUrl</code>. Fetches modules of that type, displays them in a table, and links to the add page.</div></div>
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ─────────────────── EDITOR PROFILE ──────────────────────────── -->
+<div id="p-editor-profile" class="page-block">
+  <div class="ph">
+    <div class="num">17</div>
+    <div>
+      <h2>Editor Profile Page</h2>
+      <span class="route">/editor/profile</span>
+      <span class="who">Editor only</span>
+    </div>
+  </div>
+  <div class="summary">
+    <b>Purpose:</b> Mirror of the admin profile page but for editors. Same layout: left card (read-only) + right forms (edit profile & change password). Key difference: photo upload uses <code>FormData</code> with a base64→Blob conversion for multipart upload.
+  </div>
+  <div class="sec">Key Differences from Admin Profile</div>
+  <div class="rows">
+    <div class="row"><div class="label">Photo upload method</div><div class="desc"><span class="tag tag-api">API</span> Admin uses JSON body with base64 string. Editor uses <code>FormData</code>: if <code>profilePhoto</code> starts with <code>"data:"</code> (base64), imports <code>base64ToBlob()</code> util and appends the blob to FormData. This is a multipart/form-data upload, not JSON.</div></div>
+    <div class="row"><div class="label">Profile card data</div><div class="desc"><span class="tag tag-ui">UI</span> Uses a <code>.map()</code> loop over a data array to render profile rows — more concise than Admin Profile's individual JSX blocks.</div></div>
+    <div class="row"><div class="label">API functions</div><div class="desc"><span class="tag tag-api">API</span> Uses <code>getEditorProfile()</code>, <code>updateEditorProfile()</code>, <code>changeEditorPassword()</code> from <code>editorPanel.js</code> service — separate endpoints from the admin ones.</div></div>
+    <div class="row"><div class="label">FormInput (local)</div><div class="desc"><span class="tag tag-ui">COMPONENT</span> Identical to the one in admin profile — a copy of the same local sub-component pattern for password toggle.</div></div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:40px 0 20px;color:var(--mu);font-size:12px;">
+  Language Lab Admin Panel — All Pages Explained &nbsp;|&nbsp; 17 Pages · Admin + Editor &nbsp;|&nbsp; 2026-06-27
+</div>
+
+</main>
+
+<script>
+const links=[...document.querySelectorAll('#nav a')];
+const io=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){links.forEach(l=>l.classList.remove('on'));const a=links.find(l=>l.getAttribute('href')==='#'+x.target.id);if(a)a.classList.add('on')}})},{threshold:.15});
+document.querySelectorAll('.page-block').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
