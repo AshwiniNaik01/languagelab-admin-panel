@@ -15,11 +15,16 @@ function err(show, msg) {
   return show ? <p className={errTxt}>{msg}</p> : null;
 }
 
-export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false, initialData = null, isEdit = false }) {
+export default function ExerciseModuleForm({
+  onSubmit, onCancel, saving = false, initialData = null, isEdit = false,
+  lockTopicSubtopic = false, contentModuleId = null, contentModuleLabel = null,
+}) {
   const [submitted, setSubmitted] = useState(false);
 
   /* ── Topic / SubTopic ──────────────────────────────────────────────────── */
-  const ts = useTopicSubtopic(initialData, isEdit);
+  // When attached to a parent content module, topic/subtopic are inherited
+  // from it and shown read-only (same rendering as edit mode).
+  const ts = useTopicSubtopic(initialData, isEdit || lockTopicSubtopic);
 
   /* ── Module fields ─────────────────────────────────────────────────────── */
   const [f, setF] = useState({
@@ -41,10 +46,10 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
 
   /* ── Questions ─────────────────────────────────────────────────────────── */
   const [questions, setQuestions] = useState(
-    initialData?.questions?.map(q => ({ question_text: q.question_text||"", question_type: q.question_type||"mcq", options: q.options?.length ? q.options : ["",""], correct_answer: q.correct_answer||"", explanation: q.explanation||"", hint: q.hint||"", marks: q.marks??1, negative_marks: q.negative_marks??0 }))
-    ?? [{ question_text: "", question_type: "mcq", options: ["", ""], correct_answer: "", explanation: "", hint: "", marks: 1, negative_marks: 0 }]
+    initialData?.questions?.map(q => ({ question_text: q.question_text||"", question_type: q.question_type||"mcq", options: q.options?.length ? q.options : ["",""], match_pairs: q.match_pairs?.length ? q.match_pairs : [], correct_answer: q.correct_answer||"", explanation: q.explanation||"", hint: q.hint||"", marks: q.marks??1, negative_marks: q.negative_marks??0 }))
+    ?? [{ question_text: "", question_type: "mcq", options: ["", ""], match_pairs: [], correct_answer: "", explanation: "", hint: "", marks: 1, negative_marks: 0 }]
   );
-  const blankQ  = ()          => ({ question_text: "", question_type: f.exercise_type, options: ["", ""], correct_answer: "", explanation: "", hint: "", marks: 1, negative_marks: 0 });
+  const blankQ  = ()          => ({ question_text: "", question_type: f.exercise_type, options: ["", ""], match_pairs: [], correct_answer: "", explanation: "", hint: "", marks: 1, negative_marks: 0 });
   const addQ    = ()          => setQuestions(p => [...p, blankQ()]);
   const rmQ     = (i)         => setQuestions(p => p.filter((_, idx) => idx !== i));
   const updQ    = (i, k, v)   => setQuestions(p => p.map((q, idx) => idx === i ? { ...q, [k]: v } : q));
@@ -107,6 +112,7 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
       show_explanation:  f.show_explanation,
       ...(f.total_marks    && { total_marks:    +f.total_marks }),
       ...(f.time_limit_sec && { time_limit_sec: +f.time_limit_sec }),
+      ...(contentModuleId  && { content_module_id: contentModuleId }),
       questions: questions.filter(q => q.question_text.trim() && q.correct_answer.trim()),
     });
   };
@@ -120,10 +126,16 @@ export default function ExerciseModuleForm({ onSubmit, onCancel, saving = false,
         {isEdit ? "Edit Exercise Module" : "Create Exercise Module"}
       </h3>
 
+      {contentModuleLabel && (
+        <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-xs font-bold text-orange-700">
+          <span className="text-orange-400">Attached to</span> {contentModuleLabel}
+        </div>
+      )}
+
       {/* ── Topic & SubTopic ─────────────────────────────────────────────── */}
       <SectionDivider title="Topic & SubTopic" />
       <TopicSubtopicSection
-        isEdit={isEdit}
+        isEdit={isEdit || lockTopicSubtopic}
         initialData={initialData}
         topics={ts.topics}
         subtopics={ts.subtopics}

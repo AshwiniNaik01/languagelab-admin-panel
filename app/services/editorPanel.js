@@ -30,6 +30,7 @@ export const deleteSubTopic  = (id)            => api.delete(`/api/subtopic/${id
 // ── Modules ───────────────────────────────────────────────────────────────────
 export const getModules    = (type, subtopicId) => api.get(`/api/module/${type}?subtopic_id=${subtopicId}`);
 export const getModule     = (type, id)         => api.get(`/api/module/${type}/${id}`);
+export const getModuleExercises = (contentModuleId) => api.get(`/api/module/exercise?content_module_id=${contentModuleId}`);
 export const createVideoModule      = (data)    => api.post("/api/module/video", data, { headers: { "Content-Type": undefined } });
 export const createAudioModule      = (data)    => api.post("/api/module/audio", data, { headers: { "Content-Type": undefined } });
 export const createTextModule       = (data)    => api.post("/api/module/text", data);

@@ -217,6 +217,19 @@ export function QuestionsEditor({
 }) {
   const extraCols = (withNegativeMarks || withParagraphRef) ? "grid-cols-3" : "grid-cols-2";
 
+  const updPair = (qi, pi, side, v) => {
+    const pairs = (questions[qi].match_pairs?.length ? questions[qi].match_pairs : [{ left: "", right: "" }])
+      .map((p, idx) => idx === pi ? { ...p, [side]: v } : p);
+    updQ(qi, "match_pairs", pairs);
+    updQ(qi, "correct_answer", pairs.map(p => `${p.left}:${p.right}`).join("|"));
+  };
+  const addPair = (qi) => updQ(qi, "match_pairs", [...(questions[qi].match_pairs || []), { left: "", right: "" }]);
+  const rmPair  = (qi, pi) => {
+    const pairs = (questions[qi].match_pairs || []).filter((_, idx) => idx !== pi);
+    updQ(qi, "match_pairs", pairs);
+    updQ(qi, "correct_answer", pairs.map(p => `${p.left}:${p.right}`).join("|"));
+  };
+
   return (
     <>
       <SectionDivider title={title} />
@@ -285,9 +298,13 @@ export function QuestionsEditor({
                     </div>
                   )}
                 </div>
-                {["mcq", "fill_blank","true_false"].includes(q.question_type) && (
+                {["mcq", "fill_blank", "true_false", "reorder", "spell_word"].includes(q.question_type) && (
                   <div>
-                    <label className={lbl}>Options</label>
+                    <label className={lbl}>
+                      Options
+                      {q.question_type === "reorder" && <span className="text-gray-400 font-normal"> (shuffled items — enter the correct sequence below, comma-separated)</span>}
+                      {q.question_type === "spell_word" && <span className="text-gray-400 font-normal"> (scrambled letters, optional)</span>}
+                    </label>
                     {optionsErr && <p className={errTxt}>{errMessage(optionsErr, "At least 2 options are required")}</p>}
                     <div className="space-y-2 mt-1">
                       {q.options.map((o, oi) => (
@@ -303,9 +320,34 @@ export function QuestionsEditor({
                     </div>
                   </div>
                 )}
+                {q.question_type === "match" && (
+                  <div>
+                    <label className={lbl}>Match Pairs</label>
+                    <div className="space-y-2 mt-1">
+                      {(q.match_pairs?.length ? q.match_pairs : [{ left: "", right: "" }]).map((p, pi) => (
+                        <div key={pi} className="flex items-center gap-2">
+                          <input className={inp} placeholder="Left (e.g. India)" value={p.left} onChange={e => updPair(i, pi, "left", e.target.value)} />
+                          <span className="text-orange-400 font-black shrink-0">→</span>
+                          <input className={inp} placeholder="Right (e.g. Delhi)" value={p.right} onChange={e => updPair(i, pi, "right", e.target.value)} />
+                          {(q.match_pairs?.length || 0) > 1 && (
+                            <button type="button" onClick={() => rmPair(i, pi)} className="text-red-400 hover:text-red-600 cursor-pointer shrink-0"><X size={14} /></button>
+                          )}
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => addPair(i)} className="text-xs text-orange-500 font-semibold cursor-pointer hover:text-orange-700 mt-1">+ Add Pair</button>
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className={lbl}>Correct Answer <span className="text-orange-500">*</span></label>
-                  <input className={answerErr ? inpErr : inp} placeholder="Enter correct answer" value={q.correct_answer} onChange={e => updQ(i, "correct_answer", e.target.value)} />
+                  <input
+                    className={answerErr ? inpErr : inp}
+                    placeholder="Enter correct answer"
+                    value={q.correct_answer}
+                    readOnly={q.question_type === "match"}
+                    onChange={e => updQ(i, "correct_answer", e.target.value)}
+                  />
+                  {q.question_type === "match" && <p className="mt-1 text-xs text-gray-400">Auto-generated from Match Pairs above</p>}
                   {answerErr && <p className={errTxt}>{errMessage(answerErr, "Correct answer is required")}</p>}
                 </div>
                 <div className={withHint ? "grid grid-cols-2 gap-4" : ""}>

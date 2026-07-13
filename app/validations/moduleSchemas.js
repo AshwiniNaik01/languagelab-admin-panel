@@ -31,12 +31,16 @@ const mediaQuestionSchema = Yup.object({
 
 const exerciseQuestionSchema = Yup.object({
   question_text:   Yup.string().trim().required("Question text is required"),
-  question_type:   Yup.string().oneOf(["mcq", "fill_blank", "true_false", "match", "reorder"]),
+  question_type:   Yup.string().oneOf(["mcq", "fill_blank", "true_false", "short_answer", "match", "reorder", "spell_word"]),
   options:         Yup.array().of(Yup.string()).when("question_type", {
     is: "mcq",
     then: (s) => s.min(2, "At least 2 options are required"),
     otherwise: (s) => s,
   }),
+  match_pairs:     Yup.array().of(Yup.object({
+    left:  Yup.string(),
+    right: Yup.string(),
+  })),
   correct_answer:  Yup.string().trim().required("Correct answer is required"),
   explanation:     Yup.string(),
   hint:            Yup.string(),
@@ -125,7 +129,7 @@ export const exerciseModuleSchema = Yup.object({
   description:  Yup.string().max(500, "Description too long"),
   order:        Yup.number().integer().min(0, "Order must be 0 or greater"),
   exercise_type: Yup.string()
-    .oneOf(["mcq", "fill_blank", "true_false", "match", "reorder"])
+    .oneOf(["mcq", "fill_blank", "true_false", "short_answer", "match", "reorder", "spell_word"])
     .required("Exercise type is required"),
   difficulty:        Yup.string().oneOf(["easy", "medium", "hard"]),
   shuffle_questions: Yup.boolean(),

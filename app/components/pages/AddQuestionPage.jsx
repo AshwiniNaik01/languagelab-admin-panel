@@ -178,6 +178,7 @@ export default function AddQuestionPage({ type }) {
     question_text: "",
     question_type: qtypes[0],
     options: ["", ""],
+    match_pairs: [],
     correct_answer: "",
     explanation: "",
     hint: "",
@@ -227,6 +228,29 @@ export default function AddQuestionPage({ type }) {
           ? { ...q, options: q.options.map((o, odx) => (odx === oi ? v : o)) }
           : q,
       ),
+    );
+  const updPair = (qi, pi, side, v) =>
+    setQuestions((p) =>
+      p.map((q, idx) => {
+        if (idx !== qi) return q;
+        const pairs = (q.match_pairs?.length ? q.match_pairs : [{ left: "", right: "" }])
+          .map((pr, pdx) => (pdx === pi ? { ...pr, [side]: v } : pr));
+        return { ...q, match_pairs: pairs, correct_answer: pairs.map((pr) => `${pr.left}:${pr.right}`).join("|") };
+      }),
+    );
+  const addPair = (qi) =>
+    setQuestions((p) =>
+      p.map((q, idx) =>
+        idx === qi ? { ...q, match_pairs: [...(q.match_pairs || []), { left: "", right: "" }] } : q,
+      ),
+    );
+  const removePair = (qi, pi) =>
+    setQuestions((p) =>
+      p.map((q, idx) => {
+        if (idx !== qi) return q;
+        const pairs = (q.match_pairs || []).filter((_, pdx) => pdx !== pi);
+        return { ...q, match_pairs: pairs, correct_answer: pairs.map((pr) => `${pr.left}:${pr.right}`).join("|") };
+      }),
     );
 
   const handleSubmit = async (e) => {
@@ -387,11 +411,17 @@ export default function AddQuestionPage({ type }) {
                   </div>
                 </div>
 
-                {/* MCQ Options */}
-                {q.question_type === "mcq" && (
+                {/* Options — MCQ / reorder / spell_word */}
+                {["mcq", "fill_blank", "true_false", "reorder", "spell_word"].includes(q.question_type) && (
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">
                       Options
+                      {q.question_type === "reorder" && (
+                        <span className="font-normal text-slate-400"> (shuffled items — enter the correct sequence below, comma-separated)</span>
+                      )}
+                      {q.question_type === "spell_word" && (
+                        <span className="font-normal text-slate-400"> (scrambled letters, optional)</span>
+                      )}
                     </label>
                     <div className="space-y-2">
                       {q.options.map((o, oi) => (
@@ -427,6 +457,50 @@ export default function AddQuestionPage({ type }) {
                   </div>
                 )}
 
+                {/* Match Pairs */}
+                {q.question_type === "match" && (
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">
+                      Match Pairs
+                    </label>
+                    <div className="space-y-2">
+                      {(q.match_pairs?.length ? q.match_pairs : [{ left: "", right: "" }]).map((p, pi) => (
+                        <div key={pi} className="flex items-center gap-2">
+                          <input
+                            className={inp}
+                            placeholder="Left (e.g. India)"
+                            value={p.left}
+                            onChange={(e) => updPair(i, pi, "left", e.target.value)}
+                          />
+                          <span className="text-orange-500 font-black shrink-0">→</span>
+                          <input
+                            className={inp}
+                            placeholder="Right (e.g. Delhi)"
+                            value={p.right}
+                            onChange={(e) => updPair(i, pi, "right", e.target.value)}
+                          />
+                          {(q.match_pairs?.length || 0) > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removePair(i, pi)}
+                              className="text-red-400 hover:text-red-600 shrink-0"
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => addPair(i)}
+                      className="mt-2 text-xs text-orange-600 font-bold hover:underline"
+                    >
+                      + Add Pair
+                    </button>
+                  </div>
+                )}
+
                 {/* Correct answer */}
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">
@@ -436,8 +510,12 @@ export default function AddQuestionPage({ type }) {
                     className={inp}
                     placeholder="Correct answer"
                     value={q.correct_answer}
+                    readOnly={q.question_type === "match"}
                     onChange={(e) => updQ(i, "correct_answer", e.target.value)}
                   />
+                  {q.question_type === "match" && (
+                    <p className="mt-1 text-xs text-slate-400">Auto-generated from Match Pairs above</p>
+                  )}
                 </div>
 
                 {/* Hint */}

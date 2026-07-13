@@ -17,6 +17,7 @@ import {
   getSubTopics,
   getModule,
   getModules,
+  getModuleExercises,
   deleteModule,
   updateModule,
   createTextModule,
@@ -1513,18 +1514,31 @@ export default function ModuleTypePage({ type, addUrl }) {
   const searchParams = useSearchParams();
   const urlTopicId = searchParams.get("topicId");
 const urlSubtopicId = searchParams.get("subtopicId");
+  const isExerciseMode = searchParams.get("mode") === "exercise";
+  const contentModuleId = searchParams.get("content_module_id");
+  const parentType = searchParams.get("parent_type");
+  // "exercise" list page scoped to exercises attached to one specific
+  // Text/Video/Audio/Vocabulary module, via ?content_module_id=&parent_type=
+  const isLinkedExerciseView = type === "exercise" && Boolean(contentModuleId);
+  const sectionLabel = isLinkedExerciseView
+    ? `Exercises`
+    : `${meta.label} ${isExerciseMode ? "Exercises" : "Modules"}`;
+  const effectiveAddUrl = isLinkedExerciseView
+    ? `/editor/modules/exercise/new?content_module_id=${contentModuleId}&parent_type=${parentType}`
+    : addUrl;
 
   const [topics, setTopics] = useState([]);
   const [subtopics, setSubtopics] = useState([]);
   const [modules, setModules] = useState([]);
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedSubtopic, setSelectedSubtopic] = useState("");
-  const [loadingTopics, setLoadingTopics] = useState(true);
+  const [loadingTopics, setLoadingTopics] = useState(!isLinkedExerciseView);
   const [loadingMods, setLoadingMods] = useState(false);
   const [showForm, setShowForm] = useState(searchParams.get("add") === "1");
   const [showAddTopic, setShowAddTopic] = useState(false);
   const [showAddSub, setShowAddSub] = useState(false);
   const [quickAddRow, setQuickAddRow] = useState(null);
+  const [parentModule, setParentModule] = useState(null);
   const canQuickAddQuestion = true;
 
   const handleView = useCallback(
@@ -1542,6 +1556,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
   );
 
   useEffect(() => {
+    if (isLinkedExerciseView) return;
     (async () => {
       try {
         const r = await getTopics();
@@ -1553,10 +1568,31 @@ const urlSubtopicId = searchParams.get("subtopicId");
         setLoadingTopics(false);
       }
     })();
-  }, []);
+  }, [isLinkedExerciseView]);
 
   useEffect(() => {
-  if (!urlTopicId || !urlSubtopicId || topics.length === 0) return;
+    if (!isLinkedExerciseView) return;
+    (async () => {
+      setLoadingMods(true);
+      try {
+        const [parentRes, exRes] = await Promise.all([
+          getModule(parentType, contentModuleId),
+          getModuleExercises(contentModuleId),
+        ]);
+        setParentModule(parentRes.data?.data || parentRes.data);
+        const list = exRes.data?.data || exRes.data;
+        setModules(Array.isArray(list) ? list : []);
+      } catch (error) {
+        console.log(error);
+        setModules([]);
+      } finally {
+        setLoadingMods(false);
+      }
+    })();
+  }, [isLinkedExerciseView, parentType, contentModuleId]);
+
+  useEffect(() => {
+  if (isLinkedExerciseView || !urlTopicId || !urlSubtopicId || topics.length === 0) return;
 
   const loadFromUrl = async () => {
     try {
@@ -1591,6 +1627,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
   loadFromUrl();
 
 }, [
+  isLinkedExerciseView,
   topics,
   urlTopicId,
   urlSubtopicId,
@@ -1829,30 +1866,57 @@ const urlSubtopicId = searchParams.get("subtopicId");
         ),
       },
       {
-        header: "Questions",
-        accessor: (row) => (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handleView(row)}
-              title="View questions"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
-            >
-              {row.questions?.length || 0} View Q
-            </button>
-            {canQuickAddQuestion && (
+        header: isExerciseMode ? "Exercises" : "Questions",
+        accessor: (row) =>
+          isExerciseMode && type !== "exercise" ? (
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() =>
-                  router.push(`/editor/modules/${type}/${row._id}/add-question`)
+                  router.push(
+                    `/editor/modules/exercise?content_module_id=${row._id}&parent_type=${type}`,
+                  )
+                }
+                title="View exercises"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
+              >
+                View Exercises
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(
+                    `/editor/modules/exercise/new?content_module_id=${row._id}&parent_type=${type}`,
+                  )
                 }
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
               >
-                + Add Q
+                + Add Exercise
               </button>
-            )}
-          </div>
-        ),
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleView(row)}
+                title="View questions"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
+              >
+                {row.questions?.length || 0} View Q
+              </button>
+              {canQuickAddQuestion && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    router.push(`/editor/modules/${type}/${row._id}/add-question`)
+                  }
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition-all w-fit cursor-pointer bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500"
+                >
+                  + Add Q
+                </button>
+              )}
+            </div>
+          ),
       },
       {
         header: "Actions",
@@ -1865,7 +1929,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
         ),
       },
     ],
-    [meta, handleView, handleEdit, handleDelete, canQuickAddQuestion],
+    [meta, handleView, handleEdit, handleDelete, canQuickAddQuestion, isExerciseMode, router, type],
   );
 
   const handleQuestionAdded = useCallback(async () => {
@@ -1896,11 +1960,24 @@ const urlSubtopicId = searchParams.get("subtopicId");
     <EditorLayout>
       <div className="space-y-5">
         <Breadcrumb
-          items={[
-            { label: "Editor", href: "/editor" },
-            { label: "Modules" },
-            { label: `${meta.label} Modules` },
-          ]}
+          items={
+            isLinkedExerciseView
+              ? [
+                  { label: "Editor", href: "/editor" },
+                  { label: "Modules" },
+                  {
+                    label: `${TYPE_META[parentType]?.label || parentType} Modules`,
+                    href: `/editor/modules/${parentType}`,
+                  },
+                  { label: parentModule?.title || "…", href: `/editor/modules/${parentType}/${contentModuleId}` },
+                  { label: "Exercises" },
+                ]
+              : [
+                  { label: "Editor", href: "/editor" },
+                  { label: "Modules" },
+                  { label: sectionLabel },
+                ]
+          }
         />
         {/* <div className="flex items-center gap-3">
           <div
@@ -1918,6 +1995,26 @@ const urlSubtopicId = searchParams.get("subtopicId");
           </div>
         </div> */}
 
+        {isLinkedExerciseView ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3">
+            <span
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shrink-0 ${TYPE_META[parentType]?.color || "bg-slate-500"}`}
+            >
+              {(() => {
+                const ParentIcon = TYPE_META[parentType]?.icon;
+                return ParentIcon ? <ParentIcon size={18} /> : null;
+              })()}
+            </span>
+            <div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                {TYPE_META[parentType]?.label || parentType} Module
+              </p>
+              <p className="text-sm font-bold text-slate-800">
+                {parentModule?.title || "Loading…"}
+              </p>
+            </div>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border border-slate-200 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-2">
@@ -1993,23 +2090,37 @@ const urlSubtopicId = searchParams.get("subtopicId");
             </div>
           </div>
         </div>
+        )}
 
         <div className="flex items-center justify-between">
           <p className="text-sm font-black text-slate-800">
-            {meta.label} Modules{" "}
+            {sectionLabel}{" "}
             <span className="ml-2 text-slate-400 font-normal">
               ({modules.length})
             </span>
           </p>
-          <Button
-            onClick={() => (addUrl ? router.push(addUrl) : setShowForm(true))}
-            disabled={!addUrl && !selectedSubtopic}
-            title={
-              !addUrl && !selectedSubtopic ? "Select a subtopic first" : ""
-            }
-          >
-            <Plus size={14} className="mr-1" /> Add {meta.label} Module
-          </Button>
+          {isExerciseMode ? (
+            <p className="text-xs text-slate-400">
+              Pick a module below, then use{" "}
+              <span className="font-bold text-orange-600">+ Add Q</span> to
+              add exercise questions to it.
+            </p>
+          ) : (
+            <Button
+              onClick={() =>
+                effectiveAddUrl ? router.push(effectiveAddUrl) : setShowForm(true)
+              }
+              disabled={!isLinkedExerciseView && !effectiveAddUrl && !selectedSubtopic}
+              title={
+                !isLinkedExerciseView && !effectiveAddUrl && !selectedSubtopic
+                  ? "Select a subtopic first"
+                  : ""
+              }
+            >
+              <Plus size={14} className="mr-1" />{" "}
+              {isLinkedExerciseView ? "Add Exercise" : `Add ${meta.label} Module`}
+            </Button>
+          )}
         </div>
 
         {loadingMods ? (
@@ -2017,7 +2128,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
         ) : modules.length === 0 ? (
           <EmptyState
             icon={
-              selectedSubtopic ? (
+              selectedSubtopic || isLinkedExerciseView ? (
                 <Inbox size={48} className="text-slate-300" strokeWidth={1.5} />
               ) : (
                 <Search
@@ -2028,23 +2139,31 @@ const urlSubtopicId = searchParams.get("subtopicId");
               )
             }
             title={
-              selectedSubtopic
-                ? `No ${meta.label} modules yet`
-                : "Select a topic and subtopic"
+              isLinkedExerciseView
+                ? "No exercises yet"
+                : selectedSubtopic
+                  ? `No ${meta.label} modules yet`
+                  : "Select a topic and subtopic"
             }
             description={
-              selectedSubtopic
-                ? `Click 'Add ${meta.label} Module' above to create the first one.`
-                : "Choose a topic and subtopic above to view modules."
+              isLinkedExerciseView
+                ? `Click 'Add Exercise' above to create the first exercise for this ${TYPE_META[parentType]?.label || parentType} module.`
+                : selectedSubtopic
+                  ? isExerciseMode
+                    ? `Create a ${meta.label} module first, then come back here to add exercise questions to it.`
+                    : `Click 'Add ${meta.label} Module' above to create the first one.`
+                  : "Choose a topic and subtopic above to view modules."
             }
             action={
-              selectedSubtopic
-                ? {
-                    label: `Add ${meta.label} Module`,
-                    onClick: () =>
-                      addUrl ? router.push(addUrl) : setShowForm(true),
-                  }
-                : null
+              isLinkedExerciseView
+                ? { label: "Add Exercise", onClick: () => router.push(effectiveAddUrl) }
+                : selectedSubtopic && !isExerciseMode
+                  ? {
+                      label: `Add ${meta.label} Module`,
+                      onClick: () =>
+                        effectiveAddUrl ? router.push(effectiveAddUrl) : setShowForm(true),
+                    }
+                  : null
             }
           />
         ) : (

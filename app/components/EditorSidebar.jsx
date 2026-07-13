@@ -24,11 +24,11 @@ import {
 } from "lucide-react";
 
 const MODULE_TYPES = [
-  { key: "text", label: "Text", icon: FileText },
-  { key: "video", label: "Video", icon: Video },
-  { key: "audio", label: "Audio", icon: Music },
-  { key: "exercise", label: "Exercise", icon: Dumbbell },
-  { key: "vocabulary", label: "Vocabulary", icon: BookMarked },
+  { key: "text", label: "Text", icon: FileText, hasExercise: true },
+  { key: "video", label: "Video", icon: Video, hasExercise: true },
+  { key: "audio", label: "Audio", icon: Music, hasExercise: true },
+  { key: "exercise", label: "Exercise", icon: Dumbbell, hasExercise: false },
+  { key: "vocabulary", label: "Vocabulary", icon: BookMarked, hasExercise: true },
 ];
 
 export default function EditorSidebar() {
@@ -55,16 +55,38 @@ export default function EditorSidebar() {
     });
   };
 
+  const urlModuleType = useMemo(() => {
+    if (isCollapsed || !pathname.startsWith("/editor/modules/")) return "";
+    const seg = pathname.split("/")[3];
+    return MODULE_TYPES.some((m) => m.key === seg) ? seg : "";
+  }, [pathname, isCollapsed]);
+
+  const [manualModuleType, setManualModuleType] = useState(null);
+  const openModuleType = manualModuleType ?? urlModuleType;
+
+  const toggleModuleType = (key) => {
+    if (isCollapsed) return;
+    setManualModuleType((prev) => {
+      const current = prev ?? urlModuleType;
+      return current === key ? "" : key;
+    });
+  };
+
   const isActive = (href) => {
     const [hPath, hQuery] = href.split("?");
     if (hQuery) {
       const params = new URLSearchParams(hQuery);
       const tab = params.get("tab");
       const add = params.get("add");
+      const mode = params.get("mode");
       if (tab) return pathname === hPath && searchParams.get("tab") === tab;
       if (add) return pathname === hPath && searchParams.get("add") === add;
+      if (mode) return pathname === hPath && searchParams.get("mode") === mode;
     }
     if (href === "/editor") return pathname === href;
+    if (pathname.startsWith("/editor/modules") && !hQuery) {
+      return pathname === hPath && searchParams.get("mode") !== "exercise";
+    }
     if (
       pathname.startsWith("/editor/curriculum") ||
       pathname.startsWith("/editor/modules")
@@ -210,15 +232,51 @@ export default function EditorSidebar() {
               ))}
           </button>
           {!isCollapsed && openSection === "modules" && (
-            <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
-              {MODULE_TYPES.map(({ key, label, icon: Icon }) => (
-                <Link
+            <div className="p-1.5 space-y-1.5 bg-[#2A1204] border-t border-orange-500/10">
+              {MODULE_TYPES.map(({ key, label, icon: Icon, hasExercise }) => (
+                <div
                   key={key}
-                  href={`/editor/modules/${key}`}
-                  className={linkCls(`/editor/modules/${key}`)}
+                  className="rounded-xl overflow-hidden border border-orange-500/10 bg-white/5"
                 >
-                  <Icon size={13} /> {label} Modules
-                </Link>
+                  <button
+                    type="button"
+                    onClick={() => toggleModuleType(key)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-orange-200/90 hover:bg-white/5 transition-all duration-300 cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Icon size={13} /> {label} Modules
+                    </span>
+                    {openModuleType === key ? (
+                      <ChevronUp size={12} />
+                    ) : (
+                      <ChevronDown size={12} />
+                    )}
+                  </button>
+                  {openModuleType === key && (
+                    <div className="p-1.5 space-y-1 bg-[#2A1204]/70 border-t border-orange-500/10">
+                      <Link
+                        href={`/editor/modules/${key}`}
+                        className={linkCls(`/editor/modules/${key}`)}
+                      >
+                        <ListCollapse size={12} /> Manage {label}
+                      </Link>
+                      <Link
+                        href={`/editor/modules/${key}/new`}
+                        className={linkCls(`/editor/modules/${key}/new`)}
+                      >
+                        <PlusCircle size={12} /> Add {label} Module
+                      </Link>
+                      {hasExercise && (
+                        <Link
+                          href={`/editor/modules/${key}?mode=exercise`}
+                          className={linkCls(`/editor/modules/${key}?mode=exercise`)}
+                        >
+                          <Dumbbell size={12} /> Add {label} Exercise
+                        </Link>
+                      )}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}
