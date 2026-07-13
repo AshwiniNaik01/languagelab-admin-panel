@@ -1511,6 +1511,8 @@ export default function ModuleTypePage({ type, addUrl }) {
   const meta = TYPE_META[type];
   const router = useRouter();
   const searchParams = useSearchParams();
+  const urlTopicId = searchParams.get("topicId");
+const urlSubtopicId = searchParams.get("subtopicId");
 
   const [topics, setTopics] = useState([]);
   const [subtopics, setSubtopics] = useState([]);
@@ -1552,6 +1554,48 @@ export default function ModuleTypePage({ type, addUrl }) {
       }
     })();
   }, []);
+
+  useEffect(() => {
+  if (!urlTopicId || !urlSubtopicId || topics.length === 0) return;
+
+  const loadFromUrl = async () => {
+    try {
+      setSelectedTopic(urlTopicId);
+
+      const subRes = await getSubTopics(urlTopicId);
+
+      const subs = subRes.data?.data || subRes.data || [];
+
+      setSubtopics(subs);
+
+      setSelectedSubtopic(urlSubtopicId);
+
+      setLoadingMods(true);
+
+      const modRes = await getModules(type, urlSubtopicId);
+
+      setModules(
+        Array.isArray(modRes.data?.data || modRes.data)
+          ? modRes.data?.data || modRes.data
+          : []
+      );
+
+    } catch (error) {
+      console.log(error);
+      setModules([]);
+    } finally {
+      setLoadingMods(false);
+    }
+  };
+
+  loadFromUrl();
+
+}, [
+  topics,
+  urlTopicId,
+  urlSubtopicId,
+  type
+]);
 
   const onTopicChange = async (id) => {
     setSelectedTopic(id);

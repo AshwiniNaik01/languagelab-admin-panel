@@ -326,6 +326,25 @@ export default function CurriculumPage() {
       ),
     },
     {
+  header: "Modules",
+  accessor: (row) => (
+    <button
+      onClick={() => {
+  console.log("Topic:", selectedTopicId);
+  console.log("SubTopic:", row._id);
+
+  router.push(
+    `/editor/modules/overview?topicId=${selectedTopicId}&subtopicId=${row._id}`
+  );
+}}
+      className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-violet-50 text-violet-700 border border-violet-200 text-xs font-bold hover:bg-violet-600 hover:text-white hover:border-violet-600 transition-all cursor-pointer"
+    >
+      <ListTree size={12} />
+      View Modules
+    </button>
+  ),
+},
+    {
       header: "Actions",
       accessor: (row) => (
         <ActionButton
