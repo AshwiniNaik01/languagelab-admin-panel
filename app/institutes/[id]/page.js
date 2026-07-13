@@ -10,7 +10,6 @@ import {
   getInstituteById,
   toggleInstituteStatus,
   generateLicense,
-  resendInstituteCredentials,
 } from "../../services/institute";
 import {
   getInstituteLicenses,
@@ -19,7 +18,7 @@ import {
   expireLicense,
   renewLicense,
 } from "../../services/superadmin";
-import { KeyRound, ArrowLeft, RotateCcw, Mail, MailCheck } from "lucide-react";
+import { KeyRound, ArrowLeft, RotateCcw } from "lucide-react";
 
 const licenseStatusColor = (status) => {
   switch (status) {
@@ -64,10 +63,6 @@ export default function InstituteViewPage() {
   const [licenseLoading, setLicenseLoading] = useState(false);
   const [generatedLicenses, setGeneratedLicenses] = useState(null);
 
-  // Resend credentials
-  const [resendLoading, setResendLoading] = useState(false);
-  const [resentCredentials, setResentCredentials] = useState(null);
-
   const loadInstitute = async () => {
     setLoading(true);
     try {
@@ -111,34 +106,6 @@ export default function InstituteViewPage() {
         title: "Toggle Failed",
         text: err?.response?.data?.message || err.message,
       });
-    }
-  };
-
-  const handleResendCredentials = async () => {
-    const result = await Swal.fire({
-      title: "Reset & resend credentials?",
-      text: "This generates a brand-new password for the institute and emails it. The current password stops working immediately.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, reset & send",
-      confirmButtonColor: "#ea580c",
-    });
-    if (!result.isConfirmed) return;
-
-    setResendLoading(true);
-    try {
-      const res = await resendInstituteCredentials(id);
-      const payload = res.data?.data || res.data;
-      setResentCredentials(payload);
-      await loadInstitute();
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Resend Failed",
-        text: err?.response?.data?.message || err.message,
-      });
-    } finally {
-      setResendLoading(false);
     }
   };
 
@@ -296,33 +263,33 @@ export default function InstituteViewPage() {
 
         {/* Page header */}
         <div className="flex items-center gap-5">
-            <button
-              onClick={() => router.push("/institutes")}
-              className="w-9 h-9 flex items-center justify-center rounded-xl border border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors shrink-0"
-            >
-              <ArrowLeft size={16} strokeWidth={2.5} />
-            </button>
+          <button
+            onClick={() => router.push("/institutes")}
+            className="w-9 h-9 flex items-center justify-center rounded-xl border border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors shrink-0"
+          >
+            <ArrowLeft size={16} strokeWidth={2.5} />
+          </button>
 
-            {institute.logo ? (
-              <img
-                src={institute.logo}
-                alt={institute.institute_name}
-                className="w-16 h-16 object-cover rounded-2xl border border-orange-200 bg-white shrink-0"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center font-black text-orange-700 text-xl shrink-0">
-                {institute.institute_name.substring(0, 2).toUpperCase()}
-              </div>
-            )}
-
-            <div>
-              <h2 className="text-2xl font-black text-slate-950">
-                {institute.institute_name}
-              </h2>
-              <p className="text-sm text-orange-600 font-mono font-extrabold">
-                {institute.institute_code}
-              </p>
+          {institute.logo ? (
+            <img
+              src={institute.logo}
+              alt={institute.institute_name}
+              className="w-16 h-16 object-cover rounded-2xl border border-orange-200 bg-white shrink-0"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center font-black text-orange-700 text-xl shrink-0">
+              {institute.institute_name.substring(0, 2).toUpperCase()}
             </div>
+          )}
+
+          <div>
+            <h2 className="text-2xl font-black text-slate-950">
+              {institute.institute_name}
+            </h2>
+            <p className="text-sm text-orange-600 font-mono font-extrabold">
+              {institute.institute_code}
+            </p>
+          </div>
         </div>
 
         {/* Institute detail cards */}
@@ -383,8 +350,7 @@ export default function InstituteViewPage() {
                       ["Line 2", institute.address.line2],
                       ["Pincode", institute.address.pincode],
                       ["State", institute.address.state],
-                      ["District", institute.address.dist],
-                      ["Taluka", institute.address.taluka],
+                      ["City", institute.address.city],
                       ["Authorized Name", institute.address.autorizedName],
                       ["Authorized Phone", institute.address.autorizedPhono],
                     ]
@@ -412,43 +378,16 @@ export default function InstituteViewPage() {
                 </p>
                 <span
                   onClick={handleToggleActive}
-                  className={`inline-flex items-center px-3 py-1 text-xs font-bold rounded-full cursor-pointer select-none transition-all ${
-                    institute.is_active
-                      ? "bg-green-50 text-green-700 border border-green-300 hover:bg-green-100"
-                      : "bg-slate-100 text-slate-500 border border-slate-300 hover:bg-slate-200"
-                  }`}
+                  className={`inline-flex items-center px-3 py-1 text-xs font-bold rounded-full cursor-pointer select-none transition-all ${institute.is_active
+                    ? "bg-green-50 text-green-700 border border-green-300 hover:bg-green-100"
+                    : "bg-slate-100 text-slate-500 border border-slate-300 hover:bg-slate-200"
+                    }`}
                 >
                   <span
                     className={`w-1.5 h-1.5 rounded-full mr-1.5 ${institute.is_active ? "bg-green-500" : "bg-slate-400"}`}
                   />
                   {institute.is_active ? "Active" : "Inactive"}
                 </span>
-              </div>
-              <div className="col-span-2 flex items-center justify-between gap-3 pt-1">
-                <div>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1">
-                    Credentials Email
-                  </p>
-                  {institute.credentials_email_sent_at ? (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-green-50 text-green-700 border border-green-300">
-                      <MailCheck size={12} strokeWidth={2.5} />
-                      Sent {new Date(institute.credentials_email_sent_at).toLocaleString()}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-500 border border-slate-300">
-                      <Mail size={12} strokeWidth={2.5} />
-                      Not sent
-                    </span>
-                  )}
-                </div>
-                <button
-                  onClick={handleResendCredentials}
-                  disabled={resendLoading}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-black rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all disabled:opacity-50 whitespace-nowrap"
-                >
-                  <RotateCcw size={11} strokeWidth={2.5} />
-                  {resendLoading ? "Sending…" : "Reset & Resend"}
-                </button>
               </div>
             </div>
           </div>
@@ -547,11 +486,10 @@ export default function InstituteViewPage() {
                   )}
                   <div className="min-w-0">
                     <p className="font-bold text-slate-900 text-sm truncate">{course.course_name}</p>
-                    <span className={`inline-flex items-center mt-1 px-2 py-0.5 text-[10px] font-bold rounded-full capitalize ${
-                      course.level === 'beginner' ? 'bg-green-50 text-green-700 border border-green-200' :
+                    <span className={`inline-flex items-center mt-1 px-2 py-0.5 text-[10px] font-bold rounded-full capitalize ${course.level === 'beginner' ? 'bg-green-50 text-green-700 border border-green-200' :
                       course.level === 'intermediate' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                      'bg-red-50 text-red-700 border border-red-200'
-                    }`}>
+                        'bg-red-50 text-red-700 border border-red-200'
+                      }`}>
                       {course.level || 'N/A'}
                     </span>
                   </div>
@@ -887,11 +825,10 @@ export default function InstituteViewPage() {
             </div>
 
             <div
-              className={`mb-4 flex items-center gap-2 p-3 rounded-xl border text-xs font-bold ${
-                generatedLicenses.email_sent
-                  ? "bg-green-50 border-green-300 text-green-700"
-                  : "bg-amber-50 border-amber-300 text-amber-700"
-              }`}
+              className={`mb-4 flex items-center gap-2 p-3 rounded-xl border text-xs font-bold ${generatedLicenses.email_sent
+                ? "bg-green-50 border-green-300 text-green-700"
+                : "bg-amber-50 border-amber-300 text-amber-700"
+                }`}
             >
               {generatedLicenses.email_sent ? (
                 <MailCheck size={14} strokeWidth={2.5} />
@@ -958,54 +895,7 @@ export default function InstituteViewPage() {
         </div>
       )}
 
-      {/* ── RESENT CREDENTIALS MODAL (shown ONCE) ──────────────────────────── */}
-      {resentCredentials && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
-            <h3 className="text-xl font-black text-green-700 mb-1">
-              Credentials Reset ✓
-            </h3>
-            <p className="text-xs text-slate-500 mb-4">{resentCredentials.email}</p>
 
-            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-300 text-xs text-red-700 font-bold">
-              ⚠ CRITICAL — This password is shown ONCE only. Copy and save now.
-              Cannot be retrieved again.
-            </div>
-
-            <div className="mb-4 p-4 rounded-xl bg-orange-50 border border-orange-200 text-center">
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1">
-                New Password
-              </p>
-              <p className="font-mono font-black text-orange-700 text-lg">
-                {resentCredentials.password}
-              </p>
-            </div>
-
-            <div
-              className={`mb-4 flex items-center gap-2 p-3 rounded-xl border text-xs font-bold ${
-                resentCredentials.email_sent
-                  ? "bg-green-50 border-green-300 text-green-700"
-                  : "bg-amber-50 border-amber-300 text-amber-700"
-              }`}
-            >
-              {resentCredentials.email_sent ? (
-                <MailCheck size={14} strokeWidth={2.5} />
-              ) : (
-                <Mail size={14} strokeWidth={2.5} />
-              )}
-              {resentCredentials.email_sent
-                ? "New credentials emailed to the institute."
-                : "Email not sent (Zoho not configured or delivery failed) — share this password manually."}
-            </div>
-
-            <div className="flex justify-end">
-              <Button onClick={() => setResentCredentials(null)}>
-                I have saved the password — Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </AdminLayout>
   );
 }

@@ -388,22 +388,12 @@ export default function InstituteForm({
     />
 
     <InputField
-      label="District"
-      name="_addr_dist"
+      label="City"
+      name="_addr_city"
       placeholder="e.g. Pune"
-      value={addressData.dist || ""}
-      onChange={(e) => setAddr("dist", e.target.value)}
-      error={errors["address.dist"]}
-      icon="MapPin"
-    />
-
-    <InputField
-      label="Taluka"
-      name="_addr_taluka"
-      placeholder="e.g. Haveli"
-      value={addressData.taluka || ""}
-      onChange={(e) => setAddr("taluka", e.target.value)}
-      error={errors["address.taluka"]}
+      value={addressData.city || ""}
+      onChange={(e) => setAddr("city", e.target.value)}
+      error={errors["address.city"]}
       icon="MapPin"
     />
 

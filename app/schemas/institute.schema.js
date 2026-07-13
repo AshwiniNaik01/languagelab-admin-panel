@@ -54,14 +54,9 @@ export const instituteSchema = Yup.object({
       .required("State is required")
       .matches(/^[A-Za-z\s]+$/, "Only alphabets are allowed"),
 
-    dist: Yup.string()
+    city: Yup.string()
       .trim()
-      .required("District is required")
-      .matches(/^[A-Za-z\s]+$/, "Only alphabets are allowed"),
-
-    taluka: Yup.string()
-      .trim()
-      .required("Taluka is required")
+      .required("City is required")
       .matches(/^[A-Za-z\s]+$/, "Only alphabets are allowed"),
 
     autorizedName: Yup.string()

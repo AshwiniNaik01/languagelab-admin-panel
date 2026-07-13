@@ -9,6 +9,7 @@ import {
   SectionDivider, useTopicSubtopic, TopicSubtopicSection, WordsEditor, QuestionsEditor,
 } from "./shared/ModuleFormShared";
 import RichTextEditor from "./shared/RichTextEditor";
+import ChunkedFileUpload from "./shared/ChunkedFileUpload";
 
 export default function VideoModuleForm({ onSubmit, onCancel, saving = false, initialData = null, isEdit = false }) {
   const [errors, setErrors] = useState({});
@@ -33,7 +34,8 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
     time_limit_sec: initialData?.time_limit_sec    ?? "",
     max_attempts:  initialData?.max_attempts       ?? 3,
   });
-  const [videoFile, setVideoFile] = useState(null);
+  const [videoUrl, setVideoUrl] = useState(initialData?.video?.url ?? "");
+  const [videoUploading, setVideoUploading] = useState(false);
   const set = (k) => (e) => { setF(p => ({ ...p, [k]: e.target.value })); clr(k); };
   const setDescription = (html) => { setF(p => ({ ...p, description: html })); clr("description"); };
 
@@ -70,13 +72,15 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
   const handleSubmit = async (evt) => {
     evt.preventDefault();
 
+    if (videoUploading) return; // video is still chunk-uploading — nothing to submit yet
+
     const data = {
       topic_id:     ts.selectedTopic,
       sub_topic_id: ts.selectedSub,
       title:        f.title,
       description:  f.description,
       order:        f.order === "" ? 0 : +f.order,
-      videoFile,
+      videoFile:    videoUrl,
       ...(f.total_marks    !== "" && { total_marks:    +f.total_marks }),
       ...(f.time_limit_sec !== "" && { time_limit_sec: +f.time_limit_sec }),
       max_attempts: +f.max_attempts || 3,
@@ -108,6 +112,7 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
     fd.append("video", JSON.stringify({
       format: f.format,
       speed:  f.speed,
+      url:    videoUrl,
       ...(f.duration_sec && { duration_sec: +f.duration_sec }),
       ...(f.transcript   && { transcript:    f.transcript }),
     }));
@@ -118,7 +123,6 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
     const validQs    = questions.filter(q => q.question_text.trim() && q.correct_answer.trim());
     if (validWords.length > 0) fd.append("words",     JSON.stringify(validWords));
     if (validQs.length    > 0) fd.append("questions", JSON.stringify(validQs));
-    fd.append("videoFile", videoFile);
     onSubmit(fd);
   };
 
@@ -203,11 +207,17 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
         />
       </div>
       <div>
-        <label className={lbl}>Video File <span className="text-orange-500">*</span> <span className="text-gray-400 font-normal text-xs">(.mp4, .webm)</span></label>
-        <input
-          type="file" accept="video/*"
-          onChange={e => { setVideoFile(e.target.files[0]); clr("videoFile"); }}
-          className={`w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 rounded-xl px-3 py-2 ${e("videoFile") ? "border-2 border-red-500" : "border border-orange-300"}`}
+        <ChunkedFileUpload
+          fieldname="videoFile"
+          accept="video/*"
+          label={<>Video File <span className="text-orange-500">*</span> <span className="text-gray-400 font-normal text-xs">(.mp4, .webm)</span></>}
+          currentUrl={videoUrl}
+          error={!!e("videoFile")}
+          onUploaded={(res) => {
+            setVideoUrl(res?.cdnUrl || res?.fullS3URL || "");
+            clr("videoFile");
+          }}
+          onBusyChange={setVideoUploading}
         />
         {errMsg("videoFile")}
       </div>
@@ -251,7 +261,13 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
       {/* ── Actions ──────────────────────────────────────────────────────── */}
       <div className="flex justify-end gap-4 pt-4 border-t border-orange-500/10">
         <Button variant="secondary" type="button" onClick={onCancel}>Cancel</Button>
-        <Button type="submit" disabled={saving}>{saving ? (isEdit ? "Saving…" : "Creating…") : (isEdit ? "Update Video Module" : "Create Video Module")}</Button>
+        <Button type="submit" disabled={saving || videoUploading}>
+          {videoUploading
+            ? "Uploading video…"
+            : saving
+              ? (isEdit ? "Saving…" : "Creating…")
+              : (isEdit ? "Update Video Module" : "Create Video Module")}
+        </Button>
       </div>
     </form>
   );
