@@ -22,7 +22,7 @@ export const POS_OPTIONS  = ["noun", "verb", "adjective", "adverb", "phrase"];
 export const DIFF_OPTIONS = ["easy", "medium", "hard"];
 
 /* Common question types shared across Text/Audio/Video/Exercise/Vocabulary modules */
-export const Q_TYPES = ["mcq", "fill_blank", "true_false", "short_answer", "match", "reorder", "match_meaning", "spell_word"];
+export const Q_TYPES = ["mcq", "fill_blank", "true_false", "short_answer", "match", "reorder", "spell_word"];
 
 function errMessage(err, fallback) {
   if (!err) return null;
@@ -285,7 +285,7 @@ export function QuestionsEditor({
                     </div>
                   )}
                 </div>
-                {q.question_type === "mcq" && (
+                {["mcq", "fill_blank","true_false"].includes(q.question_type) && (
                   <div>
                     <label className={lbl}>Options</label>
                     {optionsErr && <p className={errTxt}>{errMessage(optionsErr, "At least 2 options are required")}</p>}

@@ -8,7 +8,7 @@ import {
 } from "./shared/ModuleFormShared";
 import RichTextEditor from "./shared/RichTextEditor";
 
-const EXERCISE_TYPES = ["mcq", "fill_blank", "true_false", "match", "reorder"];
+const EXERCISE_TYPES = ["mcq", "fill_blank", "true_false", "short_answer", "match", "reorder",  "spell_word"];
 const DIFF_OPTIONS   = ["easy", "medium", "hard"];
 
 function err(show, msg) {
