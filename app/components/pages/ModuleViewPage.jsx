@@ -522,7 +522,8 @@ export default function ModuleViewPage({ type }) {
                   <p className="text-sm font-semibold text-slate-800">
                     {q.question_text}
                   </p>
-                  {q.question_type === "mcq" && q.options?.some((o) => o) && (
+                  {["mcq", "true_false","fill_blank"].includes(q.question_type) &&
+  q.options?.some((o) => o) && (
                     <div className="mt-1.5 space-y-0.5">
                       {q.options.map((o, oi) => {
                         const isLetter = /^[A-Da-d]$/.test(
