@@ -50,8 +50,17 @@ export default function TextModuleForm({ onSubmit, onCancel, saving = false, ini
       marks:         q.marks ?? 1,
     })) ?? []
   );
-  const blankQ  = ()          => ({ question_text: "", question_type: "mcq", options: ["", ""], correct_answer: "", explanation: "", paragraph_ref: "", marks: 1 });
-  const addQ    = ()          => setQuestions(p => [...p, blankQ()]);
+const blankQ = () => ({
+  question_text: "",
+  question_type: "mcq",
+  options: ["", ""],
+  correct_answer: "",
+  pairs: [],
+  items: [],
+  explanation: "",
+  paragraph_ref: "",
+  marks: 1,
+});  const addQ    = ()          => setQuestions(p => [...p, blankQ()]);
   const rmQ     = (i)         => setQuestions(p => p.filter((_, idx) => idx !== i));
   const updQ    = (i, k, v)   => { setQuestions(p => p.map((q, idx) => idx === i ? { ...q, [k]: v } : q)); clearErr(`questions[${i}].${k}`); };
   const updOpt  = (qi, oi, v) => setQuestions(p => p.map((q, idx) => idx === qi ? { ...q, options: q.options.map((o, odx) => odx === oi ? v : o) } : q));
@@ -66,51 +75,113 @@ export default function TextModuleForm({ onSubmit, onCancel, saving = false, ini
   const errMsg   = (path) => e(path) ? <p className={errTxt}>{e(path)}</p> : null;
 
   /* ── Submit ────────────────────────────────────────────────────────────── */
-  const handleSubmit = async (evt) => {
-    evt.preventDefault();
+ const handleSubmit = async (evt) => {
+  evt.preventDefault();
 
-    const data = {
-      topic_id:     ts.selectedTopic,
-      sub_topic_id: ts.selectedSub,
-      title:        f.title,
-      description:  f.description,
-      order:        f.order === "" ? 0 : +f.order,
-      content: {
-        body:          f.body,
-        level:         f.level,
-        ...(f.word_count    !== "" && { word_count:    +f.word_count }),
-        ...(f.read_time_min !== "" && { read_time_min: +f.read_time_min }),
-        ...(f.source.trim()        && { source:         f.source.trim() }),
-      },
-      ...(f.total_marks    !== "" && { total_marks:    +f.total_marks }),
-      ...(f.time_limit_sec !== "" && { time_limit_sec: +f.time_limit_sec }),
-      max_attempts: +f.max_attempts || 3,
-      questions: questions.map(q => ({
-        question_text:  q.question_text,
-        question_type:  q.question_type,
+  const data = {
+    topic_id: ts.selectedTopic,
+    sub_topic_id: ts.selectedSub,
+    title: f.title,
+    description: f.description,
+    order: f.order === "" ? 0 : +f.order,
+
+    content: {
+      body: f.body,
+      level: f.level,
+      ...(f.word_count !== "" && {
+        word_count: +f.word_count,
+      }),
+      ...(f.read_time_min !== "" && {
+        read_time_min: +f.read_time_min,
+      }),
+      ...(f.source.trim() && {
+        source: f.source.trim(),
+      }),
+    },
+
+    ...(f.total_marks !== "" && {
+      total_marks: +f.total_marks,
+    }),
+
+    ...(f.time_limit_sec !== "" && {
+      time_limit_sec: +f.time_limit_sec,
+    }),
+
+    max_attempts: +f.max_attempts || 3,
+
+    questions: questions.map(q => ({
+      question_text: q.question_text,
+      question_type: q.question_type,
+
+      ...(q.correct_answer && {
         correct_answer: q.correct_answer,
-        marks:          +q.marks || 1,
-        options:        q.options,
-        ...(q.explanation  && { explanation:   q.explanation }),
-        ...(q.paragraph_ref && { paragraph_ref: +q.paragraph_ref }),
-      })),
-    };
+      }),
 
-    try {
-      await textModuleSchema.validate(data, { abortEarly: false, stripUnknown: true });
-      setErrors({});
-    } catch (yupErr) {
-      setErrors(parseYupErrors(yupErr));
-      return;
-    }
+      ...(q.options?.length && {
+        options: q.options,
+      }),
 
-    onSubmit({
-      ...data,
-      title:       data.title.trim(),
-      description: data.description?.trim() || undefined,
-      questions:   data.questions.filter(q => q.question_text?.trim() && q.correct_answer?.trim()),
+      ...(q.pairs?.length && {
+        pairs: q.pairs,
+      }),
+
+      ...(q.items?.length && {
+        items: q.items,
+      }),
+
+      marks: Number(q.marks) || 1,
+
+      ...(q.explanation && {
+        explanation: q.explanation,
+      }),
+
+      ...(q.paragraph_ref && {
+        paragraph_ref: Number(q.paragraph_ref),
+      }),
+    })),
+  }; // ✅ close data object here
+
+
+  try {
+    await textModuleSchema.validate(data, {
+      abortEarly: false,
+      stripUnknown: true,
     });
-  };
+
+    setErrors({});
+  } catch (yupErr) {
+    setErrors(parseYupErrors(yupErr));
+    return;
+  }
+
+
+  onSubmit({
+    ...data,
+
+    title: data.title.trim(),
+
+    description: data.description?.trim() || undefined,
+
+    questions: data.questions.filter(q => {
+      if (!q.question_text?.trim()) return false;
+
+      switch (q.question_type) {
+
+        case "match":
+          return q.pairs?.length > 0;
+
+        case "reorder":
+          return q.items?.length > 0;
+
+        case "spell_word_check":
+          return Boolean(q.correct_answer?.trim());
+
+        default:
+          return Boolean(q.correct_answer?.trim());
+      }
+    }),
+  });
+};
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 w-full bg-white p-8 rounded-3xl border border-orange-500/20 shadow-xl">
