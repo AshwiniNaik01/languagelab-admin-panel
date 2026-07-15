@@ -3,17 +3,50 @@ import * as Yup from "yup";
 /* ── Shared sub-schemas ──────────────────────────────────────────────────── */
 
 const textQuestionSchema = Yup.object({
-  question_text:  Yup.string().trim().required("Question text is required"),
-  question_type:  Yup.string().oneOf(["mcq", "fill_blank", "true_false", "short_answer"]),
-  options:        Yup.array().of(Yup.string()).when("question_type", {
-    is: "mcq",
-    then: (s) => s.min(2, "At least 2 options are required"),
-    otherwise: (s) => s,
-  }),
-  correct_answer: Yup.string().trim().required("Correct answer is required"),
-  explanation:    Yup.string(),
-  paragraph_ref:  Yup.number().integer().positive().nullable(),
-  marks:          Yup.number().min(0, "Marks must be 0 or greater"),
+  question_text: Yup.string()
+    .trim()
+    .required("Question text is required"),
+
+  question_type: Yup.string()
+    .oneOf([
+      "mcq",
+      "fill_blank",
+      "true_false",
+      "short_answer",
+      "match",
+      "reorder",
+      "spell_word"
+    ])
+    .required(),
+
+  options: Yup.array()
+    .of(Yup.string()),
+
+  // for match
+  pairs: Yup.array()
+    .of(
+      Yup.object({
+        left: Yup.string().required(),
+        right: Yup.string().required(),
+      })
+    ),
+
+  // for reorder
+  items: Yup.array()
+    .of(Yup.string()),
+
+  correct_answer: Yup.string()
+    .nullable(),
+
+  explanation: Yup.string(),
+
+  paragraph_ref: Yup.number()
+    .integer()
+    .positive()
+    .nullable(),
+
+  marks: Yup.number()
+    .min(0, "Marks must be 0 or greater"),
 });
 
 const mediaQuestionSchema = Yup.object({
