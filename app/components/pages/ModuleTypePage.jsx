@@ -1540,13 +1540,18 @@ const urlSubtopicId = searchParams.get("subtopicId");
   const [quickAddRow, setQuickAddRow] = useState(null);
   const [parentModule, setParentModule] = useState(null);
   const canQuickAddQuestion = true;
+  
+
+  
 
   const handleView = useCallback(
-    (row) => {
-      router.push(`/editor/modules/${type}/${row._id}`);
-    },
-    [router, type],
-  );
+  (row) => {
+    router.push(
+      `/editor/modules/${type}/${row._id}?topicId=${selectedTopic}&subtopicId=${selectedSubtopic}`
+    );
+  },
+  [router, type, selectedTopic, selectedSubtopic],
+);
 
   const handleEdit = useCallback(
     (row) => {
@@ -1959,26 +1964,36 @@ const urlSubtopicId = searchParams.get("subtopicId");
   return (
     <EditorLayout>
       <div className="space-y-5">
-        <Breadcrumb
-          items={
-            isLinkedExerciseView
-              ? [
-                  { label: "Editor", href: "/editor" },
-                  { label: "Modules" },
-                  {
-                    label: `${TYPE_META[parentType]?.label || parentType} Modules`,
-                    href: `/editor/modules/${parentType}`,
-                  },
-                  { label: parentModule?.title || "…", href: `/editor/modules/${parentType}/${contentModuleId}` },
-                  { label: "Exercises" },
-                ]
-              : [
-                  { label: "Editor", href: "/editor" },
-                  { label: "Modules" },
-                  { label: sectionLabel },
-                ]
-          }
-        />
+       <Breadcrumb
+  items={
+    isLinkedExerciseView
+      ? [
+          { label: "Editor", href: "/editor" },
+          {
+            label: "SubTopics",
+            href: `/editor/curriculum?tab=subtopics&topicId=${parentModule?.topic_id}&subtopicId=${parentModule?.sub_topic_id}`,
+          },
+          {
+            label: `${TYPE_META[parentType]?.label || parentType} Modules`,
+            href: `/editor/modules/${parentType}`,
+          },
+          {
+            label: parentModule?.title || "…",
+            href: `/editor/modules/${parentType}/${contentModuleId}`,
+          },
+          { label: "Exercises" },
+        ]
+      : [
+          { label: "Editor", href: "/editor" },
+          {
+            label: "SubTopics",
+            href: `/editor/curriculum?tab=subtopics&topicId=${urlTopicId}&subtopicId=${urlSubtopicId}`,
+          },
+          { label: sectionLabel },
+        ]
+  }
+/>
+        
         {/* <div className="flex items-center gap-3">
           <div
             className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shrink-0 ${meta.color}`}
