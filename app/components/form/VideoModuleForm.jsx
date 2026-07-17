@@ -51,7 +51,7 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
 
   /* ── Questions ─────────────────────────────────────────────────────────── */
   const [questions, setQuestions] = useState(
-    initialData?.questions?.map(q => ({ question_text: q.question_text||"", question_type: q.question_type||"mcq", options: q.options?.length ? q.options : ["",""], correct_answer: q.correct_answer||"", explanation: q.explanation||"", marks: q.marks??1 })) ?? []
+    initialData?.questions?.map(q => ({ question_text: q.question_text||"", question_type: q.question_type||"mcq", options: q.options?.length ? q.options : ["",""], match_pairs: q.match_pairs||[], correct_answer: q.correct_answer||"", explanation: q.explanation||"", marks: q.marks??1 })) ?? []
   );
   const blankQ  = ()          => ({ question_text: "", question_type: "mcq", options: ["", ""], correct_answer: "", explanation: "", marks: 1 });
   const addQ    = ()          => setQuestions(p => [...p, blankQ()]);
@@ -91,6 +91,7 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
         correct_answer: q.correct_answer,
         marks:          +q.marks || 1,
         options:        q.options,
+        ...(q.match_pairs?.length && { match_pairs: q.match_pairs }),
         ...(q.explanation && { explanation: q.explanation }),
       })),
     };
@@ -116,13 +117,13 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
       ...(f.duration_sec && { duration_sec: +f.duration_sec }),
       ...(f.transcript   && { transcript:    f.transcript }),
     }));
-    if (f.total_marks)    fd.append("total_marks",    +f.total_marks);
-    if (f.time_limit_sec) fd.append("time_limit_sec", +f.time_limit_sec);
+    if (f.total_marks    !== "") fd.append("total_marks",    +f.total_marks);
+    if (f.time_limit_sec !== "") fd.append("time_limit_sec", +f.time_limit_sec);
     fd.append("max_attempts", +f.max_attempts || 3);
     const validWords = words.filter(w => w.word && w.meaning);
     const validQs    = questions.filter(q => q.question_text.trim() && q.correct_answer.trim());
-    if (validWords.length > 0) fd.append("words",     JSON.stringify(validWords));
-    if (validQs.length    > 0) fd.append("questions", JSON.stringify(validQs));
+    fd.append("words",     JSON.stringify(validWords));
+    fd.append("questions", JSON.stringify(validQs));
     onSubmit(fd);
   };
 

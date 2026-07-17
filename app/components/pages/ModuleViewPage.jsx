@@ -522,14 +522,18 @@ export default function ModuleViewPage({ type }) {
                   <p className="text-sm font-semibold text-slate-800">
                     {q.question_text}
                   </p>
-                  {["mcq", "true_false","fill_blank"].includes(q.question_type) &&
+                  {["mcq", "true_false", "fill_blank", "recorder", "spell_word"].includes(q.question_type) &&
   q.options?.some((o) => o) && (
                     <div className="mt-1.5 space-y-0.5">
+                      {q.question_type === "recorder" && (
+                        <p className="text-[10px] text-slate-400 italic">Shuffled items (order shown below is the correct sequence)</p>
+                      )}
                       {q.options.map((o, oi) => {
                         const isLetter = /^[A-Da-d]$/.test(
                           q.correct_answer?.trim(),
                         );
                         const correctByLetter =
+                          ["mcq", "true_false", "fill_blank"].includes(q.question_type) &&
                           isLetter &&
                           oi ===
                             q.correct_answer.toUpperCase().charCodeAt(0) - 65;
@@ -545,12 +549,28 @@ export default function ModuleViewPage({ type }) {
                       })}
                     </div>
                   )}
-                  <p className="text-[11px] text-green-600 font-semibold mt-1">
-                    {q.question_type === "mcq" &&
-                    /^[A-Da-d]$/.test(q.correct_answer?.trim())
-                      ? `✓ ${q.correct_answer.toUpperCase()}. ${q.options?.[q.correct_answer.toUpperCase().charCodeAt(0) - 65] || ""}`
-                      : `✓ ${q.correct_answer}`}
-                  </p>
+                  {q.question_type === "match" && q.match_pairs?.length > 0 && (
+                    <div className="mt-1.5 space-y-0.5">
+                      {q.match_pairs.map((p, pi) => (
+                        <p key={pi} className="text-xs px-2 py-1 rounded bg-green-100 text-green-700 font-bold">
+                          {p.left} → {p.right}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  {q.question_type !== "match" && (
+                    <p className="text-[11px] text-green-600 font-semibold mt-1">
+                      {q.question_type === "mcq" &&
+                      /^[A-Da-d]$/.test(q.correct_answer?.trim())
+                        ? `✓ ${q.correct_answer.toUpperCase()}. ${q.options?.[q.correct_answer.toUpperCase().charCodeAt(0) - 65] || ""}`
+                        : `✓ ${q.correct_answer}`}
+                    </p>
+                  )}
+                  {q.hint && (
+                    <p className="text-[11px] text-orange-500 mt-0.5">
+                      <span className="font-semibold">Hint:</span> {q.hint}
+                    </p>
+                  )}
                   {q.explanation && (
                     <p className="text-[11px] text-slate-400 mt-0.5">
                       <span className="font-semibold">Explanation:</span>{" "}
