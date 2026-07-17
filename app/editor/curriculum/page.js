@@ -113,7 +113,10 @@ function ViewModal({ item, onClose, label = "Topic" }) {
 export default function CurriculumPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const urlTopicId = searchParams.get("topicId");
+const urlSubtopicId = searchParams.get("subtopicId");
   const [tab, setTab] = useState(searchParams.get("tab") || "topics");
+  
 
   useEffect(() => {
     const t = searchParams.get("tab");
@@ -152,20 +155,55 @@ export default function CurriculumPage() {
     })();
   }, []);
 
-  /* load subtopics */
-  const loadSubs = async (id) => {
-    setSelectedTopicId(id);
+ const loadSubs = async (id) => {
+  if (!id || id === "undefined" || id === "null") {
+    console.error("Invalid topic ID:", id);
+    return;
+  }
+
+  setSelectedTopicId(id);
+  setSubtopics([]);
+  setSubSearch("");
+  setSubLoading(true);
+
+  try {
+    const r = await getSubTopics(id);
+
+    const l = r.data?.data || r.data || [];
+    const subtopicList = Array.isArray(l) ? l : [];
+
+    setSubtopics(subtopicList);
+
+   
+    if (urlSubtopicId) {
+      const exists = subtopicList.some(
+        (sub) => sub._id === urlSubtopicId
+      );
+
+      if (exists) {
+        // The subtopic is now remembered from the URL
+        console.log("Remembered SubTopic:", urlSubtopicId);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load subtopics:", error);
     setSubtopics([]);
-    setSubSearch("");
-    if (!id) return;
-    setSubLoading(true);
-    try {
-      const r = await getSubTopics(id);
-      const l = r.data?.data || r.data || [];
-      setSubtopics(Array.isArray(l) ? l : []);
-    } catch { /* non-blocking */ }
-    finally { setSubLoading(false); }
-  };
+  } finally {
+    setSubLoading(false);
+  }
+};
+useEffect(() => {
+  if (
+    tab !== "subtopics" ||
+    !urlTopicId ||
+    urlTopicId === "undefined" ||
+    topics.length === 0
+  ) {
+    return;
+  }
+
+  loadSubs(urlTopicId);
+}, [tab, urlTopicId, topics.length]);
 
   /* filtered */
   const filteredTopics = useMemo(() => {
@@ -388,7 +426,13 @@ export default function CurriculumPage() {
                   </button>
                 )}
               </div>
-              <Button onClick={() => router.push("/editor/topics/new")}>
+              <Button onClick={() => {
+  router.push(
+    `/editor/curriculum?tab=subtopics&topicId=${row._id}`
+  );
+
+  loadSubs(row._id);
+}}>
                 <Plus size={15} className="mr-1" /> Add Topic
               </Button>
             </div>
