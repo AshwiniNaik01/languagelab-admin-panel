@@ -117,12 +117,16 @@ const textQuestionSchema = Yup.object({
 
 const mediaQuestionSchema = Yup.object({
   question_text:  Yup.string().trim().required("Question text is required"),
-  question_type:  Yup.string().oneOf(["mcq", "fill_blank", "true_false", "short_answer"]),
+  question_type:  Yup.string().oneOf(["mcq", "fill_blank", "true_false", "short_answer", "match", "recorder", "spell_word"]),
   options:        Yup.array().of(Yup.string()).when("question_type", {
     is: "mcq",
     then: (s) => s.min(2, "At least 2 options are required"),
     otherwise: (s) => s,
   }),
+  match_pairs:    Yup.array().of(Yup.object({
+    left:  Yup.string(),
+    right: Yup.string(),
+  })),
   correct_answer: Yup.string().trim().required("Correct answer is required"),
   explanation:    Yup.string(),
   marks:          Yup.number().min(0, "Marks must be 0 or greater"),
@@ -149,12 +153,16 @@ const exerciseQuestionSchema = Yup.object({
 
 const vocabQuestionSchema = Yup.object({
   question_text:  Yup.string().trim().required("Question text is required"),
-  question_type:  Yup.string().oneOf(["mcq", "fill_blank", "match_meaning", "spell_word"]),
+  question_type:  Yup.string().oneOf(["mcq", "fill_blank", "true_false", "short_answer", "match", "recorder", "spell_word"]),
   options:        Yup.array().of(Yup.string()).when("question_type", {
     is: "mcq",
     then: (s) => s.min(2, "At least 2 options are required"),
     otherwise: (s) => s,
   }),
+  match_pairs:    Yup.array().of(Yup.object({
+    left:  Yup.string(),
+    right: Yup.string(),
+  })),
   correct_answer: Yup.string().trim().required("Correct answer is required"),
   marks:          Yup.number().min(0, "Marks must be 0 or greater"),
 });

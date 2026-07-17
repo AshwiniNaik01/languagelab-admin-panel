@@ -156,7 +156,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
   }, []);
 
  const loadSubs = async (id) => {
-  if (!id || id === "undefined" || id === "null") {
+  if (!id || !/^[0-9a-fA-F]{24}$/.test(id)) {
     console.error("Invalid topic ID:", id);
     return;
   }
