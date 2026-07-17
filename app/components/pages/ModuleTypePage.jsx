@@ -82,18 +82,12 @@ const TYPE_META = {
 };
 
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
-const Q_TYPES_TEXT = ["mcq", "fill_blank", "true_false", "short_answer"];
-const Q_TYPES_EXERCISE = [
-  "mcq",
-  "fill_blank",
-  "true_false",
-  "match",
-  "reorder",
-];
-const Q_TYPES_VOCAB = ["mcq", "fill_blank", "match_meaning", "spell_word"];
-const Q_TYPES_MEDIA = ["mcq", "fill_blank", "true_false", "short_answer"];
-const POS_OPTIONS = ["noun", "verb", "adjective", "adverb", "phrase"];
-const DIFF_OPTIONS = ["easy", "medium", "hard"];
+const Q_TYPES_TEXT = ["mcq", "fill_blank","true_false","short_answer", "match","recorder", "spell_word"]
+const Q_TYPES_EXERCISE = ["mcq", "fill_blank","true_false","short_answer", "match","recorder", "spell_word"]
+const Q_TYPES_VOCAB = ["mcq", "fill_blank","true_false","short_answer", "match","recorder", "spell_word"]
+const Q_TYPES_MEDIA = ["mcq", "fill_blank","true_false","short_answer", "match","recorder", "spell_word"]
+const POS_OPTIONS =  ["mcq", "fill_blank","true_false","short_answer", "match","recorder", "spell_word"]
+const DIFF_OPTIONS = ["mcq", "fill_blank","true_false","short_answer", "match","recorder", "spell_word"]
 
 const inp =
   "w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-gray-800 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 placeholder:text-slate-400 transition-all";
@@ -1087,7 +1081,7 @@ function ExerciseForm({ topicId, subtopicId, onDone, onCancel }) {
               setF((p) => ({ ...p, exercise_type: e.target.value }))
             }
           >
-            {["mcq", "fill_blank", "true_false", "match", "reorder"].map(
+            {["mcq", "fill_blank", "true_false", "match", "recorder"].map(
               (t) => (
                 <option key={t} value={t}>
                   {t}

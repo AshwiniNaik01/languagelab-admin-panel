@@ -170,10 +170,10 @@ const blankQ = () => ({
         case "match":
           return q.pairs?.length > 0;
 
-        case "reorder":
+        case "recorder":
           return q.items?.length > 0;
 
-        case "spell_word_check":
+        case "spell_word":
           return Boolean(q.correct_answer?.trim());
 
         default:

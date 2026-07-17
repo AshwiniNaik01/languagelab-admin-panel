@@ -63,17 +63,7 @@ const TYPE_META = {
   },
 };
 
-const ALL_Q_TYPES = [
-  "mcq",
-  "fill_blank",
-  "true_false",
-  "short_answer",
-  "match",
-  "reorder",
-  "match_meaning",
-  "spell_word",
-];
-
+const ALL_Q_TYPES =    ["mcq", "fill_blank","true_false","short_answer", "match","recorder", "spell_word"]
 const inp =
   "w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-gray-800 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 placeholder:text-slate-400 transition-all";
 
@@ -411,12 +401,12 @@ export default function AddQuestionPage({ type }) {
                   </div>
                 </div>
 
-                {/* Options — MCQ / reorder / spell_word */}
-                {["mcq", "fill_blank", "true_false", "reorder", "spell_word"].includes(q.question_type) && (
+                {/* Options — MCQ / recorder / spell_word */}
+                {   ["mcq", "fill_blank","true_false","short_answer", "match","recorder", "spell_word"].includes(q.question_type) && (
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">
                       Options
-                      {q.question_type === "reorder" && (
+                      {q.question_type === "recorder" && (
                         <span className="font-normal text-slate-400"> (shuffled items — enter the correct sequence below, comma-separated)</span>
                       )}
                       {q.question_type === "spell_word" && (
