@@ -39,28 +39,30 @@ export default function TextModuleForm({ onSubmit, onCancel, saving = false, ini
   const setDescription = (html) => { setF(p => ({ ...p, description: html })); clearErr("description"); };
 
   /* ── Questions ─────────────────────────────────────────────────────────── */
-  const [questions, setQuestions] = useState(
-    initialData?.questions?.map(q => ({
-      question_text: q.question_text || "",
-      question_type: q.question_type || "mcq",
-      options:       q.options?.length ? q.options : ["", ""],
-      correct_answer: q.correct_answer || "",
-      explanation:   q.explanation || "",
-      paragraph_ref: q.paragraph_ref || "",
-      marks:         q.marks ?? 1,
-    })) ?? []
-  );
+ const [questions, setQuestions] = useState(
+  initialData?.questions?.map(q => ({
+    question_text: q.question_text || "",
+    question_type: q.question_type || "mcq",
+    options: q.options?.length ? q.options : ["", ""],
+    match_pairs: q.match_pairs || [],
+    correct_answer: q.correct_answer || "",
+    explanation: q.explanation || "",
+    paragraph_ref: q.paragraph_ref || "",
+    marks: q.marks ?? 1,
+  })) ?? []
+);
 const blankQ = () => ({
   question_text: "",
   question_type: "mcq",
   options: ["", ""],
+  match_pairs: [],
   correct_answer: "",
-  pairs: [],
-  items: [],
   explanation: "",
   paragraph_ref: "",
   marks: 1,
-});  const addQ    = ()          => setQuestions(p => [...p, blankQ()]);
+});
+
+const addQ    = ()          => setQuestions(p => [...p, blankQ()]);
   const rmQ     = (i)         => setQuestions(p => p.filter((_, idx) => idx !== i));
   const updQ    = (i, k, v)   => { setQuestions(p => p.map((q, idx) => idx === i ? { ...q, [k]: v } : q)); clearErr(`questions[${i}].${k}`); };
   const updOpt  = (qi, oi, v) => setQuestions(p => p.map((q, idx) => idx === qi ? { ...q, options: q.options.map((o, odx) => odx === oi ? v : o) } : q));
@@ -121,14 +123,9 @@ const blankQ = () => ({
         options: q.options,
       }),
 
-      ...(q.pairs?.length && {
-        pairs: q.pairs,
-      }),
-
-      ...(q.items?.length && {
-        items: q.items,
-      }),
-
+     ...(q.match_pairs?.length && {
+  match_pairs: q.match_pairs,
+}),
       marks: Number(q.marks) || 1,
 
       ...(q.explanation && {
@@ -165,20 +162,26 @@ const blankQ = () => ({
     questions: data.questions.filter(q => {
       if (!q.question_text?.trim()) return false;
 
-      switch (q.question_type) {
+    switch (q.question_type) {
 
-        case "match":
-          return q.pairs?.length > 0;
+  case "match":
+    return (
+      q.match_pairs?.length > 0 &&
+      q.correct_answer?.trim()
+    );
 
-        case "recorder":
-          return q.items?.length > 0;
+  case "recorder":
+    return (
+      q.options?.length >= 2 &&
+      q.correct_answer?.trim()
+    );
 
-        case "spell_word":
-          return Boolean(q.correct_answer?.trim());
+  case "spell_word":
+    return Boolean(q.correct_answer?.trim());
 
-        default:
-          return Boolean(q.correct_answer?.trim());
-      }
+  default:
+    return Boolean(q.correct_answer?.trim());
+}
     }),
   });
 };

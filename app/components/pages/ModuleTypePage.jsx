@@ -1521,6 +1521,11 @@ const urlSubtopicId = searchParams.get("subtopicId");
     ? `/editor/modules/exercise/new?content_module_id=${contentModuleId}&parent_type=${parentType}`
     : addUrl;
 
+  const buildSubtopicsHref = (topicId, subtopicId) => {
+    if (!topicId || !subtopicId) return "/editor/curriculum?tab=topics";
+    return `/editor/curriculum?tab=subtopics&topicId=${topicId}&subtopicId=${subtopicId}`;
+  };
+
   const [topics, setTopics] = useState([]);
   const [subtopics, setSubtopics] = useState([]);
   const [modules, setModules] = useState([]);
@@ -1965,7 +1970,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
           { label: "Editor", href: "/editor" },
           {
             label: "SubTopics",
-            href: `/editor/curriculum?tab=subtopics&topicId=${parentModule?.topic_id}&subtopicId=${parentModule?.sub_topic_id}`,
+            href: buildSubtopicsHref(parentModule?.topic_id, parentModule?.sub_topic_id),
           },
           {
             label: `${TYPE_META[parentType]?.label || parentType} Modules`,
@@ -1981,7 +1986,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
           { label: "Editor", href: "/editor" },
           {
             label: "SubTopics",
-            href: `/editor/curriculum?tab=subtopics&topicId=${urlTopicId}&subtopicId=${urlSubtopicId}`,
+            href: buildSubtopicsHref(urlTopicId || selectedTopic, urlSubtopicId || selectedSubtopic),
           },
           { label: sectionLabel },
         ]
