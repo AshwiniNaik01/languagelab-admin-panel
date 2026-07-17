@@ -61,7 +61,7 @@ export default function TextModulePage() {
 
   return (
     <EditorLayout>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <Suspense fallback={<div className="animate-pulse h-96 bg-slate-100 rounded-3xl" />}>
           <TextModuleForm
             initialData={initialData}

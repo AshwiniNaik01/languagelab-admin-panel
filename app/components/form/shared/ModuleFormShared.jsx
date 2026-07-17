@@ -22,7 +22,8 @@ export const POS_OPTIONS  = ["noun", "verb", "adjective", "adverb", "phrase"];
 export const DIFF_OPTIONS = ["easy", "medium", "hard"];
 
 /* Common question types shared across Text/Audio/Video/Exercise/Vocabulary modules */
-export const Q_TYPES = ["mcq", "fill_blank", "true_false", "short_answer", "match", "reorder", "spell_word"];
+export const Q_TYPES =  ["mcq", "fill_blank","true_false","short_answer", "match","recorder", "spell_word"]
+
 
 function errMessage(err, fallback) {
   if (!err) return null;
@@ -298,11 +299,11 @@ export function QuestionsEditor({
                     </div>
                   )}
                 </div>
-                {["mcq", "fill_blank", "true_false", "reorder", "spell_word"].includes(q.question_type) && (
+                {["mcq", "fill_blank", "true_false", "recorder", "spell_word"].includes(q.question_type) && (
                   <div>
                     <label className={lbl}>
                       Options
-                      {q.question_type === "reorder" && <span className="text-gray-400 font-normal"> (shuffled items — enter the correct sequence below, comma-separated)</span>}
+                      {q.question_type === "recorder" && <span className="text-gray-400 font-normal"> (shuffled items — enter the correct sequence below, comma-separated)</span>}
                       {q.question_type === "spell_word" && <span className="text-gray-400 font-normal"> (scrambled letters, optional)</span>}
                     </label>
                     {optionsErr && <p className={errTxt}>{errMessage(optionsErr, "At least 2 options are required")}</p>}
@@ -350,7 +351,6 @@ export function QuestionsEditor({
                   {q.question_type === "match" && <p className="mt-1 text-xs text-gray-400">Auto-generated from Match Pairs above</p>}
                   {answerErr && <p className={errTxt}>{errMessage(answerErr, "Correct answer is required")}</p>}
                 </div>
-                <div className={withHint ? "grid grid-cols-2 gap-4" : ""}>
                   {withHint && (
                     <div>
                       <label className={lbl}>Hint <span className="text-gray-400 font-normal">(optional)</span></label>
@@ -362,7 +362,7 @@ export function QuestionsEditor({
                     <RichTextEditor value={q.explanation || ""} onChange={(html) => updQ(i, "explanation", html)} placeholder="Why is this correct?" minHeight={100} />
                   </div>
                 </div>
-              </div>
+              
             );
           })}
         </div>

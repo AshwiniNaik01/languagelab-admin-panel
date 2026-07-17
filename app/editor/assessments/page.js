@@ -85,7 +85,7 @@ export default function EditorAssessmentsPage() {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-gray-800">Assessments Builder</h2>
-            <p className="text-sm text-gray-500">Design multiple-choice questions (MCQs), fill in the blanks, matches, and reorder assignments with strict limits.</p>
+            <p className="text-sm text-gray-500">Design multiple-choice questions (MCQs), fill in the blanks, matches, and recorder assignments with strict limits.</p>
           </div>
           <Button onClick={() => setIsFormOpen(true)}>
             + Create New Assessment

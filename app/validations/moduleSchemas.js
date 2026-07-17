@@ -14,13 +14,13 @@ const textQuestionSchema = Yup.object({
       "true_false",
       "short_answer",
       "match",
-      "reorder",
+      "recorder",
       "spell_word"
     ])
     .required(),
 
-  options: Yup.array()
-    .of(Yup.string()),
+ options: Yup.array()
+  .of(Yup.string().trim()),
 
   // for match
   pairs: Yup.array()
@@ -31,12 +31,78 @@ const textQuestionSchema = Yup.object({
       })
     ),
 
-  // for reorder
+  // for recorder
   items: Yup.array()
     .of(Yup.string()),
 
-  correct_answer: Yup.string()
-    .nullable(),
+ correct_answer: Yup.string()
+  .nullable()
+  .test(
+    "correct-answer-validation",
+    "Correct answer is invalid",
+    function (value) {
+
+      const {
+        question_type,
+        options,
+      } = this.parent;
+
+
+      // MCQ / Fill Blank / True False
+      // Correct answer must exist in options
+      if (
+        ["mcq", "fill_blank", "true_false"]
+          .includes(question_type)
+      ) {
+
+        if (!value?.trim()) {
+          return this.createError({
+            message: "Correct answer is required",
+          });
+        }
+
+
+        const matched = (options || []).some(
+          (option) =>
+            option?.trim().toLowerCase() ===
+            value.trim().toLowerCase()
+        );
+
+
+        if (!matched) {
+          return this.createError({
+            message:
+              "Correct answer must match one of the options",
+          });
+        }
+
+
+        return true;
+      }
+
+
+      // Short Answer / Spell Word
+      // Free text input answer
+      if (
+        ["short_answer", "spell_word"]
+          .includes(question_type)
+      ) {
+
+        if (!value?.trim()) {
+          return this.createError({
+            message: "Correct answer is required",
+          });
+        }
+
+        return true;
+      }
+
+
+      // Match / Recorder
+      // They use pairs/items instead
+      return true;
+    }
+  ),
 
   explanation: Yup.string(),
 
@@ -64,7 +130,7 @@ const mediaQuestionSchema = Yup.object({
 
 const exerciseQuestionSchema = Yup.object({
   question_text:   Yup.string().trim().required("Question text is required"),
-  question_type:   Yup.string().oneOf(["mcq", "fill_blank", "true_false", "short_answer", "match", "reorder", "spell_word"]),
+  question_type:   Yup.string().oneOf(["mcq", "fill_blank", "true_false", "short_answer", "match", "recorder", "spell_word"]),
   options:         Yup.array().of(Yup.string()).when("question_type", {
     is: "mcq",
     then: (s) => s.min(2, "At least 2 options are required"),
@@ -162,7 +228,7 @@ export const exerciseModuleSchema = Yup.object({
   description:  Yup.string().max(500, "Description too long"),
   order:        Yup.number().integer().min(0, "Order must be 0 or greater"),
   exercise_type: Yup.string()
-    .oneOf(["mcq", "fill_blank", "true_false", "short_answer", "match", "reorder", "spell_word"])
+    .oneOf(["mcq", "fill_blank", "true_false", "short_answer", "match", "recorder", "spell_word"])
     .required("Exercise type is required"),
   difficulty:        Yup.string().oneOf(["easy", "medium", "hard"]),
   shuffle_questions: Yup.boolean(),

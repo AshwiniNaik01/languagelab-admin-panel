@@ -11,7 +11,7 @@ export default function MediaModulesForm({ topic_id, sub_topic_id, onSubmit, onC
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
-    
+
     // Structure words & questions lists mock based on type
     data.topic_id = topic_id || "topic1";
     data.sub_topic_id = sub_topic_id || "sub1";
@@ -34,11 +34,10 @@ export default function MediaModulesForm({ topic_id, sub_topic_id, onSubmit, onC
               key={t}
               type="button"
               onClick={() => setModuleType(t)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold capitalize border transition-all ${
-                moduleType === t 
-                  ? "bg-orange-500 text-white border-orange-500 shadow-sm" 
+              className={`px-4 py-2 rounded-xl text-xs font-semibold capitalize border transition-all ${moduleType === t
+                  ? "bg-orange-500 text-white border-orange-500 shadow-sm"
                   : "bg-white text-gray-600 border-orange-100 hover:bg-orange-50"
-              }`}
+                }`}
             >
               {t} Module
             </button>
@@ -150,9 +149,15 @@ export default function MediaModulesForm({ topic_id, sub_topic_id, onSubmit, onC
                 <option value="mcq">Multiple Choice Questions (MCQ)</option>
                 <option value="fill_blank">Fill in the Blanks</option>
                 <option value="true_false">True or False</option>
-                <option value="match">Match Meanings</option>
-                <option value="reorder">Sentence Reordering</option>
+                <option value="short_answer">Short Answer</option>
+                  <option value="match">Match</option>
+                <option value="recorder">Sentence recordering</option>
+                <option value="spell_word">Spell Word</option>
               </select>
+
+              
+
+
             </div>
             <div>
               <label className="block mb-2 text-xs font-semibold text-gray-700">Difficulty</label>
