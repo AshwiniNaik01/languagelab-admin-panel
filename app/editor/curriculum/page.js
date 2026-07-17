@@ -197,6 +197,7 @@ useEffect(() => {
     tab !== "subtopics" ||
     !urlTopicId ||
     urlTopicId === "undefined" ||
+    urlTopicId === "null" ||
     topics.length === 0
   ) {
     return;
@@ -426,13 +427,7 @@ useEffect(() => {
                   </button>
                 )}
               </div>
-              <Button onClick={() => {
-  router.push(
-    `/editor/curriculum?tab=subtopics&topicId=${row._id}`
-  );
-
-  loadSubs(row._id);
-}}>
+              <Button onClick={() => openModal("addTopic")}>
                 <Plus size={15} className="mr-1" /> Add Topic
               </Button>
             </div>
@@ -456,7 +451,16 @@ useEffect(() => {
               <select
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-gray-800 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 cursor-pointer"
                 value={selectedTopicId}
-                onChange={e => loadSubs(e.target.value)}
+                onChange={e => {
+                  const id = e.target.value;
+                  if (!id) {
+                    setSelectedTopicId("");
+                    setSubtopics([]);
+                    setSubSearch("");
+                    return;
+                  }
+                  loadSubs(id);
+                }}
               >
                 <option value="">— choose a topic —</option>
                 {topics.map(t => (
