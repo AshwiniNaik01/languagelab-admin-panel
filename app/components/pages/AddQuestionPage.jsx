@@ -402,7 +402,7 @@ export default function AddQuestionPage({ type }) {
                 </div>
 
                 {/* Options — MCQ / recorder / spell_word */}
-                {   ["mcq", "fill_blank","true_false","short_answer", "match","recorder", "spell_word"].includes(q.question_type) && (
+                {   ["mcq", "fill_blank","true_false","recorder", "spell_word"].includes(q.question_type) && (
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">
                       Options
