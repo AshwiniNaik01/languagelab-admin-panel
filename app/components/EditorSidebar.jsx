@@ -61,6 +61,22 @@ export default function EditorSidebar() {
     return MODULE_TYPES.some((m) => m.key === seg) ? seg : "";
   }, [pathname, isCollapsed]);
 
+  // Carry the topic/subtopic currently selected on a module page into the
+  // other module-type links, so switching e.g. Text -> Exercise Modules via
+  // the sidebar keeps the same topic/subtopic instead of resetting it.
+  const currentTopicId = pathname.startsWith("/editor/modules/")
+    ? searchParams.get("topicId")
+    : null;
+  const currentSubtopicId = pathname.startsWith("/editor/modules/")
+    ? searchParams.get("subtopicId")
+    : null;
+
+  const withModuleContext = (href) => {
+    if (!currentTopicId || !currentSubtopicId) return href;
+    const sep = href.includes("?") ? "&" : "?";
+    return `${href}${sep}topicId=${currentTopicId}&subtopicId=${currentSubtopicId}`;
+  };
+
   const [manualModuleType, setManualModuleType] = useState(null);
   const openModuleType = manualModuleType ?? urlModuleType;
 
@@ -255,20 +271,22 @@ export default function EditorSidebar() {
                   {openModuleType === key && (
                     <div className="p-1.5 space-y-1 bg-[#2A1204]/70 border-t border-orange-500/10">
                       <Link
-                        href={`/editor/modules/${key}`}
+                        href={withModuleContext(`/editor/modules/${key}`)}
                         className={linkCls(`/editor/modules/${key}`)}
                       >
                         <ListCollapse size={12} /> Manage {label}
                       </Link>
                       <Link
-                        href={`/editor/modules/${key}/new`}
+                        href={withModuleContext(`/editor/modules/${key}/new`)}
                         className={linkCls(`/editor/modules/${key}/new`)}
                       >
                         <PlusCircle size={12} /> Add {label} Module
                       </Link>
                       {hasExercise && (
                         <Link
-                          href={`/editor/modules/${key}?mode=exercise`}
+                          href={withModuleContext(
+                            `/editor/modules/${key}?mode=exercise`,
+                          )}
                           className={linkCls(`/editor/modules/${key}?mode=exercise`)}
                         >
                           <Dumbbell size={12} /> Add {label} Exercise
