@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { getTopics, getSubTopics } from "../../../services/editorPanel";
 import { ChevronDown, Trash2, X } from "lucide-react";
 import Button from "../../ui/Button";
@@ -43,10 +44,14 @@ export function SectionDivider({ title }) {
 
 /* ── Topic / SubTopic ─────────────────────────────────────────────────────── */
 export function useTopicSubtopic(initialData, isEdit) {
+  const searchParams = useSearchParams();
+  const presetTopicId = isEdit ? null : searchParams.get("topicId");
+  const presetSubtopicId = isEdit ? null : searchParams.get("subtopicId");
+
   const [topics,        setTopics]        = useState([]);
   const [subtopics,     setSubtopics]     = useState([]);
-  const [selectedTopic, setSelectedTopic] = useState(initialData?.topic_id?._id || initialData?.topic_id || "");
-  const [selectedSub,   setSelectedSub]   = useState(initialData?.sub_topic_id?._id || initialData?.sub_topic_id || "");
+  const [selectedTopic, setSelectedTopic] = useState(initialData?.topic_id?._id || initialData?.topic_id || presetTopicId || "");
+  const [selectedSub,   setSelectedSub]   = useState(initialData?.sub_topic_id?._id || initialData?.sub_topic_id || presetSubtopicId || "");
   const [loadingTopics, setLoadingTopics] = useState(!isEdit);
 
   useEffect(() => {
@@ -54,7 +59,12 @@ export function useTopicSubtopic(initialData, isEdit) {
     (async () => {
       try {
         const r = await getTopics();
-        setTopics(Array.isArray(r.data?.data || r.data) ? (r.data?.data || r.data) : []);
+        const list = Array.isArray(r.data?.data || r.data) ? (r.data?.data || r.data) : [];
+        setTopics(list);
+        if (presetTopicId && list.some((t) => t._id === presetTopicId)) {
+          const subRes = await getSubTopics(presetTopicId);
+          setSubtopics(Array.isArray(subRes.data?.data || subRes.data) ? (subRes.data?.data || subRes.data) : []);
+        }
       } catch {} finally { setLoadingTopics(false); }
     })();
   }, [isEdit]);

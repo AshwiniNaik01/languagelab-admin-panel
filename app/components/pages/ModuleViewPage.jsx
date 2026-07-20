@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
 import EditorLayout from "../../layouts/EditorLayout";
 import Breadcrumb from "../ui/Breadcrumb";
@@ -115,6 +115,7 @@ function RichHtml({ html }) {
 export default function ModuleViewPage({ type }) {
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const meta = TYPE_META[type];
 
   const [mod, setMod] = useState(null);
@@ -133,6 +134,16 @@ export default function ModuleViewPage({ type }) {
       })
       .finally(() => setLoading(false));
   }, [id, type]);
+
+  // Prefer the topic/subtopic carried in the URL (from the list page's
+  // "View" action); fall back to the module's own topic/subtopic so a
+  // bookmarked/shared view link still returns to the right list context.
+  const backTopicId = searchParams.get("topicId") || mod?.topic_id?._id || mod?.topic_id || "";
+  const backSubtopicId = searchParams.get("subtopicId") || mod?.sub_topic_id?._id || mod?.sub_topic_id || "";
+  const modulesListHref =
+    backTopicId && backSubtopicId
+      ? `/editor/modules/${type}?topicId=${backTopicId}&subtopicId=${backSubtopicId}`
+      : `/editor/modules/${type}`;
 
   if (loading) {
     return (
@@ -154,8 +165,8 @@ export default function ModuleViewPage({ type }) {
         {/* Breadcrumb */}
         <Breadcrumb
           items={[
-            { label: "Modules", href: `/editor/modules/${type}` },
-            { label: meta.label, href: `/editor/modules/${type}` },
+            { label: "Modules", href: modulesListHref },
+            { label: meta.label, href: modulesListHref },
             { label: mod.title },
           ]}
         />
@@ -251,6 +262,16 @@ export default function ModuleViewPage({ type }) {
                 {meta.label}
               </p>
             </div>
+            {mod.sub_topic_id?.title && (
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1">
+                  SubTopic
+                </p>
+                <p className="font-bold text-slate-800">
+                  {mod.sub_topic_id.title}
+                </p>
+              </div>
+            )}
             {mod.description && (
               <div className="col-span-2">
                 <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1">

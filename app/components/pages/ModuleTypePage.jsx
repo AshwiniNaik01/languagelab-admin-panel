@@ -1539,7 +1539,13 @@ const urlSubtopicId = searchParams.get("subtopicId");
   const [quickAddRow, setQuickAddRow] = useState(null);
   const [parentModule, setParentModule] = useState(null);
   const canQuickAddQuestion = true;
-  
+
+  // Carry the currently selected topic/subtopic into the "Add Module" form
+  // so it isn't left blank there after already choosing it on this list page.
+  const addUrlWithContext =
+    !isLinkedExerciseView && effectiveAddUrl && selectedTopic && selectedSubtopic
+      ? `${effectiveAddUrl}${effectiveAddUrl.includes("?") ? "&" : "?"}topicId=${selectedTopic}&subtopicId=${selectedSubtopic}`
+      : effectiveAddUrl;
 
   
 
@@ -1597,6 +1603,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
 
   useEffect(() => {
   if (isLinkedExerciseView || !urlTopicId || !urlSubtopicId || topics.length === 0) return;
+  if (urlTopicId === selectedTopic && urlSubtopicId === selectedSubtopic) return;
 
   const loadFromUrl = async () => {
     try {
@@ -1635,13 +1642,34 @@ const urlSubtopicId = searchParams.get("subtopicId");
   topics,
   urlTopicId,
   urlSubtopicId,
-  type
+  type,
+  selectedTopic,
+  selectedSubtopic,
 ]);
+
+  // Keep the current topic/subtopic in the URL so the sidebar (and browser
+  // back/forward, and bookmarks/shared links) can carry them across module
+  // type pages instead of resetting on every navigation.
+  const updateUrlParams = useCallback(
+    (updates) => {
+      if (isLinkedExerciseView) return;
+      const params = new URLSearchParams(searchParams.toString());
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value) params.set(key, value);
+        else params.delete(key);
+      });
+      router.replace(`/editor/modules/${type}?${params.toString()}`, {
+        scroll: false,
+      });
+    },
+    [isLinkedExerciseView, router, searchParams, type],
+  );
 
   const onTopicChange = async (id) => {
     setSelectedTopic(id);
     setSelectedSubtopic("");
     setModules([]);
+    updateUrlParams({ topicId: id, subtopicId: "" });
     if (!id) {
       setSubtopics([]);
       return;
@@ -1659,6 +1687,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
   const onSubtopicChange = async (id) => {
     setSelectedSubtopic(id);
     setModules([]);
+    updateUrlParams({ subtopicId: id });
     if (!id) return;
     setLoadingMods(true);
     try {
@@ -1683,6 +1712,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
       setSubtopics([]);
       setModules([]);
       setSelectedTopic(created._id);
+      updateUrlParams({ topicId: created._id, subtopicId: "" });
       Swal.fire({
         icon: "success",
         title: "Topic Created",
@@ -1696,7 +1726,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
         text: err?.response?.data?.message || err.message,
       });
     }
-  }, []);
+  }, [updateUrlParams]);
 
   const handleAddSubtopic = useCallback(
     async (data) => {
@@ -1707,6 +1737,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
         setShowAddSub(false);
         setModules([]);
         setSelectedSubtopic(created._id);
+        updateUrlParams({ subtopicId: created._id });
         Swal.fire({
           icon: "success",
           title: "SubTopic Created",
@@ -1721,7 +1752,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
         });
       }
     },
-    [selectedTopic],
+    [selectedTopic, updateUrlParams],
   );
 
   const handleDelete = useCallback(
@@ -1834,7 +1865,15 @@ const urlSubtopicId = searchParams.get("subtopicId");
                 </span>
               </p>
             )}
-            {row.difficulty && (
+            {row.sub_topic_id?.title && (
+              <p>
+                SubTopic:{" "}
+                <span className="font-semibold text-slate-700">
+                  {row.sub_topic_id.title}
+                </span>
+              </p>
+            )}
+            {type !== "exercise" && row.difficulty && (
               <p>
                 Difficulty:{" "}
                 <span className="font-semibold text-slate-700 capitalize">
@@ -2122,7 +2161,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
           ) : (
             <Button
               onClick={() =>
-                effectiveAddUrl ? router.push(effectiveAddUrl) : setShowForm(true)
+                effectiveAddUrl ? router.push(addUrlWithContext) : setShowForm(true)
               }
               disabled={!isLinkedExerciseView && !effectiveAddUrl && !selectedSubtopic}
               title={
@@ -2175,7 +2214,7 @@ const urlSubtopicId = searchParams.get("subtopicId");
                   ? {
                       label: `Add ${meta.label} Module`,
                       onClick: () =>
-                        effectiveAddUrl ? router.push(effectiveAddUrl) : setShowForm(true),
+                        effectiveAddUrl ? router.push(addUrlWithContext) : setShowForm(true),
                     }
                   : null
             }
