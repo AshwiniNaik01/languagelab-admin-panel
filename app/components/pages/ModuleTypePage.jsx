@@ -1865,14 +1865,14 @@ const urlSubtopicId = searchParams.get("subtopicId");
                 </span>
               </p>
             )}
-            {row.sub_topic_id?.title && (
+            {/* {row.sub_topic_id?.title && (
               <p>
                 SubTopic:{" "}
                 <span className="font-semibold text-slate-700">
                   {row.sub_topic_id.title}
                 </span>
               </p>
-            )}
+            )} */}
             {type !== "exercise" && row.difficulty && (
               <p>
                 Difficulty:{" "}

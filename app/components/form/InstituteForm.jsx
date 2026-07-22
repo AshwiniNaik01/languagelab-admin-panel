@@ -285,7 +285,7 @@ export default function InstituteForm({
       <h3 className="text-xl font-black text-[#3C1E0A] border-b border-orange-500/10 pb-4">
         {initialData._id
           ? "Edit Institute Information"
-          : "Create New Institute Partner"}
+          : "Create New Institute "}
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

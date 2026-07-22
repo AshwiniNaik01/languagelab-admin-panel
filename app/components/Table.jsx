@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 
+
 export default function ScrollableTable({
   columns = [],
   data = [],
@@ -17,6 +18,8 @@ export default function ScrollableTable({
   }, [data, sortOrder]);
 
   const lastIdx = columns.length - 1;
+
+  
 
   return (
     <div className="w-full max-w-7xl mx-auto bg-white rounded-2xl border border-orange-200 shadow-md overflow-hidden">

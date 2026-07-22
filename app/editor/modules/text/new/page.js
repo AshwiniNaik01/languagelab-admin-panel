@@ -17,7 +17,6 @@ export default function TextModulePage() {
   const searchParams = useSearchParams();
   const editId       = searchParams.get("id");
   const isEdit       = Boolean(editId);
-
   const [saving,      setSaving]      = useState(false);
   const [initialData, setInitialData] = useState(null);
   const [loading,     setLoading]     = useState(isEdit);

@@ -257,7 +257,7 @@ const openRenewModal = (lic) => {
                                                 </div>
 
                                                 {/* Scrollable rows only */}
-                                                <div className="max-h-80 overflow-y-auto overflow-x-hidden space-y-2">
+                                                <div className="max-h-80 overflow-y-auto overflow-x-hidden space-y-2 scrollbar-none">
                                                 {licenses.map((lic) => (
     <div
         key={lic._id}

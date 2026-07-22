@@ -6,6 +6,7 @@ import AdminLayout from '../layouts/AdminLayout';
 import { getInstitutes } from '../services/institute';
 import { getInstituteLicenses, resetInstituteSeats } from '../services/superadmin';
 import { RefreshCw, Zap, Users, KeyRound } from 'lucide-react';
+import ScrollableTable from '../components/Table';
 
 export default function SessionsPage() {
     const [institutes, setInstitutes] = useState([]);
@@ -83,6 +84,135 @@ export default function SessionsPage() {
     const totalActive = Object.values(statsMap).reduce((s, v) => s + (v.active || 0), 0);
     const totalSeats = Object.values(statsMap).reduce((s, v) => s + (v.total || 0), 0);
 
+    const columns = [
+  {
+    header: "Institute",
+    accessor: (row) => (
+      <div className="flex items-center gap-3">
+        {row.logo ? (
+          <img
+            src={row.logo}
+            alt="Logo"
+            className="w-10 h-10 object-cover rounded-xl border border-orange-200 bg-white"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center font-black text-orange-700 text-sm">
+            {(row.institute_name || "??").substring(0, 2).toUpperCase()}
+          </div>
+        )}
+
+        <div>
+          <div className="font-bold text-slate-950">
+            {row.institute_name}
+          </div>
+          <div className="text-xs text-orange-600 font-mono font-extrabold">
+            {row.institute_code}
+          </div>
+        </div>
+      </div>
+    ),
+  },
+
+  {
+    header: "License Keys",
+    accessor: (row) =>
+      statsMap[row._id]?.keys ?? row.license_count ?? 0,
+  },
+
+  {
+    header: "Active / Total",
+    accessor: (row) => {
+      const active = statsMap[row._id]?.active ?? 0;
+      const total = statsMap[row._id]?.total ?? 0;
+      const isFull = total > 0 && active >= total;
+
+      return (
+        <>
+          <span
+            className={`font-black text-lg ${
+              isFull ? "text-red-600" : "text-slate-800"
+            }`}
+          >
+            {active}
+          </span>
+
+          <span className="text-slate-400 font-semibold">
+            {" "}
+            / {total}
+          </span>
+        </>
+      );
+    },
+  },
+
+  {
+    header: "Seat Usage",
+    accessor: (row) => {
+      const active = statsMap[row._id]?.active ?? 0;
+      const total = statsMap[row._id]?.total ?? 0;
+
+      const pct =
+        total > 0
+          ? Math.min(100, Math.round((active / total) * 100))
+          : 0;
+
+      const isFull = total > 0 && active >= total;
+
+      return (
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+              <div
+                className={`h-full rounded-full ${
+                  pct >= 90
+                    ? "bg-red-500"
+                    : pct >= 60
+                    ? "bg-amber-500"
+                    : "bg-green-500"
+                }`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+
+            <span className="text-xs font-bold text-slate-500 w-7 text-right">
+              {pct}%
+            </span>
+          </div>
+
+          {isFull && (
+            <p className="text-[10px] text-red-600 font-bold">
+              All seats in use
+            </p>
+          )}
+        </div>
+      );
+    },
+  },
+
+  {
+    header: "Emergency Reset",
+    accessor: (row) => {
+      const active = statsMap[row._id]?.active ?? 0;
+
+      return (
+        <button
+          disabled={resetting === row._id || active === 0}
+          onClick={() => handleResetSeats(row)}
+          className={`px-3 py-1.5 text-xs font-black rounded-lg border transition cursor-pointer ${
+            active === 0
+              ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed"
+              : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+          } disabled:opacity-60`}
+        >
+          {resetting === row._id
+            ? "Resetting..."
+            : "Reset All Seats"}
+        </button>
+      );
+    },
+  },
+];
+
     return (
         <AdminLayout>
             <div className="space-y-6">
@@ -135,92 +265,14 @@ export default function SessionsPage() {
                     </div>
                 </div>
 
-                {/* Table */}
-                {loading ? (
-                    <div className="flex items-center justify-center h-32">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-orange-500 border-r-2" />
-                    </div>
-                ) : (
-                    <div className="w-full max-w-7xl mx-auto bg-white rounded-2xl border border-orange-200 shadow-md overflow-hidden">
-                        <div className="grid grid-cols-6 gap-4 px-6 py-4 bg-gradient-to-r from-orange-500 to-amber-600">
-                            {['Institute', '', 'License Keys', 'Active / Total', 'Seat Usage', 'Emergency Reset'].map((h, i) => (
-                                <span key={i} className={`text-xs font-black uppercase tracking-wider text-white ${i === 0 ? 'col-span-2' : ''}`}>{h}</span>
-                            ))}
-                        </div>
+                <ScrollableTable
+  columns={columns}
+  data={institutes}
+  loading={loading}
+  emptyMessage="No institutes found."
+/>
 
-                        {institutes.length === 0 ? (
-                            <div className="text-center py-16 text-slate-400 text-sm font-semibold">No institutes found.</div>
-                        ) : (
-                            institutes.map((inst, idx) => {
-                                const stats = statsMap[inst._id];
-                                const active = stats?.active ?? 0;
-                                const total = stats?.total ?? 0;
-                                const pct = total > 0 ? Math.min(100, Math.round((active / total) * 100)) : 0;
-                                const isFull = total > 0 && active >= total;
 
-                                return (
-                                    <div
-                                        key={inst._id}
-                                        className={`grid grid-cols-6 gap-4 px-6 py-4 text-sm items-center border-b border-orange-100 last:border-0 hover:bg-orange-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-[#FFF8F4]/30'}`}
-                                    >
-                                        {/* Institute */}
-                                        <div className="col-span-2 flex items-center gap-3">
-                                            {inst.logo ? (
-                                                <img src={inst.logo} alt="Logo" className="w-10 h-10 object-cover rounded-xl border border-orange-200 bg-white" />
-                                            ) : (
-                                                <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center font-black text-orange-700 text-sm shrink-0">
-                                                    {(inst.institute_name || '??').substring(0, 2).toUpperCase()}
-                                                </div>
-                                            )}
-                                            <div>
-                                                <div className="font-bold text-slate-950">{inst.institute_name}</div>
-                                                <div className="text-xs text-orange-600 font-mono font-extrabold">{inst.institute_code}</div>
-                                            </div>
-                                        </div>
-
-                                        {/* Keys */}
-                                        <div className="font-extrabold text-slate-950">{stats?.keys ?? inst.license_count ?? 0}</div>
-
-                                        {/* Active / Total */}
-                                        <div>
-                                            <span className={`font-black text-lg ${isFull ? 'text-red-600' : 'text-slate-800'}`}>{active}</span>
-                                            <span className="text-slate-400 font-semibold"> / {total}</span>
-                                        </div>
-
-                                        {/* Usage bar */}
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-0.5">
-                                                <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
-                                                    <div
-                                                        className={`h-full rounded-full transition-all ${pct >= 90 ? 'bg-red-500' : pct >= 60 ? 'bg-amber-500' : 'bg-green-500'}`}
-                                                        style={{ width: `${pct}%` }}
-                                                    />
-                                                </div>
-                                                <span className="text-xs font-bold text-slate-500 w-7 text-right">{pct}%</span>
-                                            </div>
-                                            {isFull && <p className="text-[10px] text-red-600 font-bold">All seats in use</p>}
-                                        </div>
-
-                                        {/* Reset */}
-                                        <div>
-                                            <button
-                                                disabled={resetting === inst._id || active === 0}
-                                                onClick={() => handleResetSeats(inst)}
-                                                className={`px-3 py-1.5 text-xs font-black rounded-lg border transition cursor-pointer ${
-                                                    active === 0
-                                                        ? 'bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed'
-                                                        : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                                                } disabled:opacity-60`}
-                                            >
-                                                {resetting === inst._id ? 'Resetting…' : 'Reset All Seats'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-                )}
 
                 <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-800 font-semibold">
                     ⚠ <strong>Reset All Seats</strong> immediately sets all active_sessions to 0 — all logged-in students will be kicked out and must re-login. Use only in emergencies. The cron job frees seats from expired sessions every 5 minutes.
