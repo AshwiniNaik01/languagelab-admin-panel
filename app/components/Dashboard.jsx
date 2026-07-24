@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   FaUniversity,
   FaUserGraduate,
@@ -7,224 +8,261 @@ import {
   FaBookOpen,
   FaChartLine,
   FaPlus,
-  FaUpload,
+  FaUserCircle,
   FaClipboardList,
   FaUserPlus,
+  ArrowRight,
 } from "react-icons/fa";
+import { getDashboard } from "../services/superadmin";
+import DashboardSkeleton from "./DashboardSkeleton";
+
+
+function timeAgo(isoString) {
+  const diff = Date.now() - new Date(isoString).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
+function formatExpiry(isoString) {
+  return new Date(isoString).toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
+
+function licenseUrgency(daysLeft) {
+  if (daysLeft <= 7) return "high";
+  if (daysLeft <= 20) return "medium";
+  return "low";
+}
+
+function auditIconType(type) {
+  if (type === "editor_created") return "staff";
+  if (type === "license_assigned") return "renew";
+  if (type === "curriculum_update") return "publish";
+  return "add";
+}
 
 export default function Dashboard() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getDashboard()
+      .then((res) => setData(res.data.data))
+      .catch(() => { })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const stats = data?.stats;
+  const licenseMonitors = data?.license_monitors ?? [];
+  const instituteActivity = data?.institute_activity ?? [];
+  const auditLog = data?.recent_audit_log ?? [];
+  const engagement = data?.user_engagement;
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
+
   return (
-    <div className="min-h-screen bg-[#fff7f3] px-6 py-6 font-sans">
-      {/* HEADER */}
-      <div className="flex justify-between items-start mb-5">
+    <div className="min-h-screen bg-[#FFF8F4] px-8 py-8 font-sans space-y-8">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-linear-to-r from-orange-500/5 to-amber-500/5 p-6 rounded-3xl border border-orange-500/10 backdrop-blur-sm">
         <div>
-          <h1 className="text-[22px] font-semibold text-[#1f2937] leading-tight">
-            Welcome back 👋
+          <h1 className="text-2xl md:text-3xl font-black text-[#3C1E0A] leading-tight tracking-tight">
+            Welcome back, Super Admin👋
           </h1>
-          <p className="text-[13px] text-gray-500 mt-1">
-            Here’s the complete overview of your platform.
+          <p className="text-xs md:text-sm text-orange-950/70 font-semibold mt-1">
+            System overview and active statistics dashboard is live.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="text-[12px] bg-white border border-[#ffe4d6] px-3 py-2 rounded-xl shadow-sm text-gray-600">
-            May 01, 2024 - May 31, 2024
+          <div className="text-xs font-black text-[#3C1E0A] bg-white border border-orange-500/20 px-4 py-2.5 rounded-2xl shadow-sm">
+            📅 Active Session:{" "}
+            {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}
           </div>
         </div>
       </div>
 
-      {/* STATS ROW */}
-      <div className="grid grid-cols-5 gap-4 mb-5">
+      {/* STATS GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
         <StatCard
-          icon={<FaUniversity />}
-          title="Total Colleges"
-          value="25"
-          sub="+3 this month"
+          icon={<FaUniversity className="text-[#3C1E0A]" />}
+          title="Total Institutes"
+          value={`${stats?.total_institutes?.count || 0} Registered`}
+          sub={`+${stats?.total_institutes?.this_month || 0} institutes this month`}
+          color="from-orange-400 to-amber-400"
         />
         <StatCard
-          icon={<FaUserGraduate />}
+          icon={<FaUserGraduate className="text-[#3C1E0A]" />}
           title="Total Students"
-          value="12,450"
-          sub="+850 this month"
+          value={`${(stats?.total_students?.count || 0).toLocaleString()} Users`}
+          sub={`+${stats?.total_students?.this_month || 0} enrolled this month`}
+          color="from-amber-400 to-yellow-400"
         />
         <StatCard
-          icon={<FaKey />}
+          icon={<FaKey className="text-[#3C1E0A]" />}
           title="Active Licenses"
-          value="22"
-          sub="2 expiring soon"
+          value={`${stats?.active_licenses?.count || 0} Licenses`}
+          sub={`${stats?.active_licenses?.expiring_soon || 0} keys expiring shortly`}
+          color="from-orange-500 to-orange-400"
         />
         <StatCard
-          icon={<FaBookOpen />}
+          icon={<FaBookOpen className="text-[#3C1E0A]" />}
           title="Published Courses"
-          value="35"
-          sub="+4 this month"
+          value={`${stats?.published_courses?.count || 0} Materials`}
+          sub={`+${stats?.published_courses?.topics_this_week || 0} topics added this week`}
+          color="from-amber-500 to-orange-400"
         />
         <StatCard
-          icon={<FaChartLine />}
+          icon={<FaChartLine className="text-[#3C1E0A]" />}
           title="Assessments Taken"
-          value="8,950"
-          sub="+1,280 this month"
+          value={`${(stats?.assessments_taken?.count || 0).toLocaleString()} Tests`}
+          sub={`+${stats?.assessments_taken?.submitted_recently || 0} submitted recently`}
+          color="from-yellow-400 to-orange-400"
         />
       </div>
 
-      {/* MAIN GRID */}
-      <div className="grid grid-cols-12 gap-5">
-        {/* LICENSE EXPIRING */}
-        <div className="col-span-3 bg-white border border-[#ffe4d6] rounded-2xl p-5 shadow-sm">
-          <h2 className="text-[14px] font-semibold mb-4">
-            License Expiring Soon
-          </h2>
-          <button className="text-xs text-[#f97316] hover:text-[#ea580c] hover:underline flex items-center gap-1 transition-all duration-200 font-medium">
-            View All <i className="fas fa-arrow-right text-[10px]"></i>
-          </button>
+      {/* MAIN CONTENT ROW */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-          <LicenseItem
-            name="ABC College of Engineering"
-            plan="Premium Plan"
-            days="7 days left"
-            date="May 08, 2024"
-          />
-          <LicenseItem
-            name="XYZ Institute of Technology"
-            plan="Standard Plan"
-            days="12 days left"
-            date="May 13, 2024"
-          />
-          <LicenseItem
-            name="PQR Group of Colleges"
-            plan="Basic Plan"
-            days="19 days left"
-            date="May 20, 2024"
-          />
-        </div>
+        {/* LICENSE MONITOR */}
+        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm flex flex-col  h-[400px]">
+          <div className="flex flex-col flex-1 min-h-0">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider">
+                License Monitors
+              </h2>
+              <span className="text-[10px] bg-red-100 text-red-700 px-2 py-1 rounded-full font-black uppercase tracking-widest">
+                Action Required
+              </span>
+            </div>
 
-        {/* RECENT ACTIVITY */}
-        <div className="col-span-5 bg-white border border-[#ffe4d6] rounded-2xl p-5 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-[14px] font-semibold text-gray-700">
-              Recent College Activity
-            </h2>
-            <button className="text-xs text-[#f97316] hover:text-[#ea580c] hover:underline flex items-center gap-1 transition-all duration-200 font-medium">
-              View All <i className="fas fa-arrow-right text-[10px]"></i>
-            </button>
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scroll space-y-4">
+              {licenseMonitors.length === 0 ? (
+                <p className="text-xs text-orange-950/50 font-bold">
+                  No expiring licenses.
+                </p>
+              ) : (
+                licenseMonitors.map((lic) => (
+                  <LicenseItem
+                    key={lic._id}
+                    name={lic.institute_name}
+                    plan={lic.license_code}
+                    days={`${lic.days_left} days left`}
+                    date={`Exp: ${formatExpiry(lic.expiry_date)}`}
+                    urgency={licenseUrgency(lic.days_left)}
+                  />
+                ))
+              )}
+            </div>
           </div>
-
-          <ActivityItem
-            name="MMCOE, Pune"
-            sub="120 new students added"
-            time="10:30 AM"
-          />
-          <ActivityItem
-            name="PCCOE, Pune"
-            sub="80 new students added"
-            time="11:15 AM"
-          />
-          <ActivityItem
-            name="VIT, Mumbai"
-            sub="60 new students added"
-            time="01:20 PM"
-          />
-          <ActivityItem
-            name="DY Patil College"
-            sub="45 new students added"
-            time="03:30 PM"
-          />
-          <ActivityItem
-            name="LNCT Group, Bhopal"
-            sub="30 new students added"
-            time="04:45 PM"
-          />
+          {/* <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
+            View All License Ledgers
+          </button>  */}
         </div>
 
-        {/* QUICK ACTIONS */}
-        <div className="col-span-4 bg-white border border-[#ffe4d6] rounded-2xl p-5 shadow-sm">
-          <h2 className="text-[14px] font-semibold mb-4">Quick Actions</h2>
+        {/* INSTITUTE ACTIVITY LEDGER */}
+        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm flex flex-col  h-[420px] ">
+          <div className="flex flex-col flex-1 min-h-0">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider">
+                Institute Activity
+              </h2>
+              <span className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-full font-black uppercase tracking-widest">
+                Live Feed
+              </span>
+            </div>
+
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scroll space-y-4">
+              {instituteActivity.length === 0 ? (
+                <p className="text-xs text-orange-950/50 font-bold">
+                  No recent activity.
+                </p>
+              ) : (
+                instituteActivity.map((act, i) => (
+                  <ActivityItem
+                    key={i}
+                    name={act.institute_name}
+                    sub={`${act.new_students} new students onboarded`}
+                    time={timeAgo(act.time)}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+          {/* <button className="w-full text-center mt-6 py-2.5 rounded-xl border border-orange-500/10 text-xs font-black text-orange-700 hover:bg-orange-50 transition duration-300">
+            Export Live Ledger Log
+          </button> */}
+        </div>
+
+        {/* QUICK MANAGEMENT PANEL */}
+        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm h-[420px]">
+          <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider mb-6">
+            Quick Management
+          </h2>
 
           <div className="grid grid-cols-2 gap-4">
-            <ActionCard icon={<FaPlus />} label="Add College" />
-            <ActionCard icon={<FaKey />} label="Create License" />
-            <ActionCard icon={<FaUserPlus />} label="Add Staff" />
-            <ActionCard icon={<FaUpload />} label="Upload Content" />
-            <ActionCard icon={<FaBookOpen />} label="Create Course" />
-            <ActionCard icon={<FaClipboardList />} label="Create Assessment" />
+            <ActionCard icon={<FaPlus />} label="Add Institute" link="/institutes/new" />
+            <ActionCard icon={<FaKey />} label="Issue License" link="/institutes" />
+            <ActionCard icon={<FaUserPlus />} label="Register Editor" link="/editors/new" />
+            <ActionCard icon={<FaBookOpen />} label="Add Course" link="/courses" />
+            <ActionCard icon={<FaUserCircle />} label="View Profile" link="/profile" />
+            <ActionCard icon={<FaClipboardList />} label="Configure Testing" link="/sessions" />
           </div>
         </div>
+
       </div>
 
-      {/* BOTTOM GRID */}
-      <div className="grid grid-cols-12 gap-5 mt-5">
-        {/* RECENT ACTIVITIES */}
-        <div className="col-span-7 bg-white border border-[#ffe4d6] rounded-2xl p-5 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-[14px] font-semibold">Recent Activities</h2>
-            <button className="text-xs text-[#f97316] hover:text-[#ea580c] hover:underline flex items-center gap-1 transition-all duration-200 font-medium">
-              View All Activities{" "}
-              <i className="fas fa-arrow-right text-[10px]"></i>
-            </button>
-          </div>
+      {/* PLATFORM METRICS ROW */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-          <div className="space-y-3 text-[13px]">
-            <div className="flex justify-between items-center py-2 border-b border-[#f0f4fa]">
-              <div className="flex items-center gap-2">
-                <i className="fas fa-plus-circle text-[#10b981] text-sm"></i>
-                <span>
-                  <strong>New College Added</strong> - MMCOE, Pune has been
-                  added to the platform
-                </span>
-              </div>
-            </div>
+        {/* RECENT AUDIT LOG */}
+        <div className="lg:col-span-8 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm h-[450px] flex flex-col">
+          <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider mb-6">
+            Recent Audit Log
+          </h2>
 
-            <div className="flex justify-between items-center py-2 border-b border-[#f0f4fa]">
-              <div className="flex items-center gap-2">
-                <i className="fas fa-sync-alt text-[#f59e0b] text-sm"></i>
-                <span>
-                  <strong>License Renewed</strong> - ABC College of Engineering
-                  license renewed
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center py-2 border-b border-[#f0f4fa]">
-              <div className="flex items-center gap-2">
-                <i className="fas fa-graduation-cap text-[#8b5cf6] text-sm"></i>
-                <span>
-                  <strong>New Course Published</strong> - Business English
-                  Communication course published
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center py-2 border-b border-[#f0f4fa]">
-              <div className="flex items-center gap-2">
-                <i className="fas fa-user-plus text-[#3b82f6] text-sm"></i>
-                <span>
-                  <strong>New Staff Added</strong> - Rahul Sharma joined as
-                  College Staff
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center py-2 border-b border-[#f0f4fa]">
-              <div className="flex items-center gap-2">
-                <i className="fas fa-trophy text-[#ef4444] text-sm"></i>
-                <span>
-                  <strong>1000 Students Completed Course</strong> - Business
-                  English Communication course completed
-                </span>
-              </div>
-            </div>
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scroll">
+            {auditLog.length === 0 ? (
+              <p className="text-xs text-orange-950/50 font-bold">
+                No recent audit events.
+              </p>
+            ) : (
+              auditLog.map((log, i) => (
+                <AuditItem
+                  key={i}
+                  type={auditIconType(log.type)}
+                  title={log.title}
+                  desc={log.description}
+                  time={timeAgo(log.time)}
+                />
+              ))
+            )}
           </div>
         </div>
 
-        {/* PLATFORM OVERVIEW */}
-        <div className="col-span-5 bg-white border border-[#ffe4d6] rounded-2xl p-5 shadow-sm">
-          <h2 className="text-[14px] font-semibold mb-3">Platform Overview</h2>
+        {/* USER ENGAGEMENT */}
+        <div className="lg:col-span-4 bg-white border border-orange-500/20 rounded-3xl p-6 shadow-sm">
+          <h2 className="text-base font-black text-[#3C1E0A] uppercase tracking-wider mb-4">
+            User Engagement
+          </h2>
 
-          <div className="text-[28px] font-bold text-gray-800">12,450</div>
-          <p className="text-[12px] text-gray-500 mb-4">Total Students</p>
+          <div className="mb-4">
+            <div className="text-3xl font-black text-[#3C1E0A]">
+              {loading ? "—" : (engagement?.active_students || 0).toLocaleString()}
+            </div>
+            <p className="text-xs text-orange-950/60 font-bold">Total Platform Active Students</p>
+          </div>
 
-          {/* CHART (MATCHED HEIGHT STYLE FROM IMAGE) */}
-          <div className="h-36 flex items-end gap-2 p-3 rounded-xl bg-gradient-to-r from-orange-100 to-orange-50">
+          {/* DECORATIVE MINI BAR CHART */}
+          <div className="h-32 flex items-end gap-2.5 p-4 rounded-2xl bg-orange-500/5 border border-orange-500/10 mb-4">
             <Bar h="35%" />
             <Bar h="55%" />
             <Bar h="45%" />
@@ -234,45 +272,73 @@ export default function Dashboard() {
             <Bar h="78%" />
           </div>
 
-          {/* MINI STATS */}
-          <div className="grid grid-cols-3 gap-3 mt-4 text-[12px]">
-            <MiniStat label="Total Content" value="1,250" />
-            <MiniStat label="Total Staff" value="48" />
-            <MiniStat label="Assessments" value="320" />
+          {/* KEY METRIC LABELS */}
+          <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-orange-500/10">
+            <div>
+              <p className="font-black text-sm text-[#3C1E0A]">
+                {(engagement?.active_students || 0).toLocaleString()}
+              </p>
+              <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Students</p>
+            </div>
+            <div>
+              <p className="font-black text-sm text-[#3C1E0A]">
+                {engagement?.curators || 0}
+              </p>
+              <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Curators</p>
+            </div>
+            <div>
+              <p className="font-black text-sm text-[#3C1E0A]">
+                {engagement?.tests || 0}
+              </p>
+              <p className="text-[10px] text-orange-950/60 font-bold uppercase tracking-tight">Tests</p>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   );
 }
 
-/* ---------------- COMPONENTS ---------------- */
+/* ---------------- CHILD COMPONENTS ---------------- */
 
-function StatCard({ icon, title, value, sub }) {
+function StatCard({ icon, title, value, sub, color }) {
   return (
-    <div className="bg-white border border-[#ffe4d6] rounded-xl p-4 flex items-center gap-3 shadow-sm h-24">
-      <div className="text-orange-500 text-[18px] bg-orange-50 p-2 rounded-lg">
-        {icon}
+    <div className="bg-white border border-orange-500/20 rounded-2xl p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:border-orange-500/40 transition duration-300 h-32">
+      <div className={`absolute top-0 left-0 w-full h-0.75 bg-linear-to-r ${color}`} />
+
+      <div className="flex justify-between items-start">
+        <span className="text-xs font-black text-orange-950/60 uppercase tracking-widest">{title}</span>
+        <div className="bg-orange-500/10 p-2 rounded-xl">
+          {icon}
+        </div>
       </div>
-      <div>
-        <p className="text-[12px] text-gray-500">{title}</p>
-        <p className="text-[18px] font-semibold text-gray-800">{value}</p>
-        <p className="text-[11px] text-green-600">{sub}</p>
+
+      <div className="mt-2">
+        <p className="text-lg font-black text-[#3C1E0A] tracking-tight">{value}</p>
+        <p className="text-[10px] font-bold text-green-600 mt-0.5">{sub}</p>
       </div>
     </div>
   );
 }
 
-function LicenseItem({ name, plan, days, date }) {
+function LicenseItem({ name, plan, days, date, urgency }) {
+  const badgeColor =
+    urgency === "high" ? "text-red-600 bg-red-50 border-red-200" :
+      urgency === "medium" ? "text-orange-600 bg-orange-50 border-orange-200" :
+        "text-amber-600 bg-amber-50 border-amber-200";
+
   return (
-    <div className="flex justify-between items-center py-3 border-b border-[#f3e0d6]">
+    <div className="flex justify-between items-center py-3 border-b border-orange-500/10">
       <div>
-        <p className="text-[13px] font-medium">{name}</p>
-        <p className="text-[11px] text-gray-500">{plan}</p>
+        <p className="text-xs font-black text-[#3C1E0A]">{name}</p>
+        <p className="text-[10px] text-orange-950/60 font-bold mt-0.5">{plan}</p>
       </div>
       <div className="text-right">
-        <p className="text-[11px] text-orange-500 font-semibold">{days}</p>
-        <p className="text-[11px] text-gray-400">{date}</p>
+        <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${badgeColor}`}>
+          {days}
+        </span>
+        <p className="text-[9px] font-bold text-orange-950/50 mt-1 uppercase tracking-wider">{date}</p>
       </div>
     </div>
   );
@@ -280,43 +346,58 @@ function LicenseItem({ name, plan, days, date }) {
 
 function ActivityItem({ name, sub, time }) {
   return (
-    <div className="flex justify-between py-3 border-b border-[#f3e0d6] text-[13px]">
+    <div className="flex justify-between items-center py-3 border-b border-orange-500/10">
       <div>
-        <p className="font-medium">{name}</p>
-        <p className="text-[11px] text-gray-500">{sub}</p>
+        <p className="text-xs font-black text-[#3C1E0A]">{name}</p>
+        <p className="text-[10px] text-orange-950/60 font-bold mt-0.5">{sub}</p>
       </div>
-      <p className="text-[11px] text-gray-400">{time}</p>
+      <span className="text-[10px] font-black text-[#3C1E0A]/60 bg-orange-500/5 px-2 py-0.5 rounded-lg border border-orange-500/10">
+        {time}
+      </span>
     </div>
   );
 }
 
-function Row({ text, time }) {
+function ActionCard({ icon, label, link }) {
   return (
-    <div className="flex justify-between border-b border-[#f3e0d6] pb-2">
-      <p className="text-gray-600">{text}</p>
-      <p className="text-gray-400 text-[11px]">{time}</p>
-    </div>
+    <a
+      href={link}
+      className="border border-orange-500/20 rounded-2xl p-4 flex flex-col items-center justify-center gap-2.5 bg-[#FFF8F4]/50 hover:bg-linear-to-br hover:from-orange-500 hover:to-amber-500 hover:text-white text-orange-700 hover:border-transparent transition duration-300 shadow-sm hover:shadow-md hover:shadow-orange-500/10 group cursor-pointer h-24"
+    >
+      <div className="text-lg text-[#3C1E0A] group-hover:text-white transition duration-300">
+        {icon}
+      </div>
+      <p className="text-[10px] font-black text-center text-[#3C1E0A] group-hover:text-white tracking-widest uppercase transition duration-300">
+        {label}
+      </p>
+    </a>
   );
 }
 
-function ActionCard({ icon, label }) {
-  return (
-    <div className="border border-[#ffe4d6] rounded-xl p-3 flex flex-col items-center justify-center gap-2 hover:bg-orange-50 transition h-20">
-      <div className="text-orange-500">{icon}</div>
-      <p className="text-[11px] text-center">{label}</p>
-    </div>
-  );
-}
+function AuditItem({ type, title, desc, time }) {
+  const icon =
+    type === "add" ? "✨" :
+      type === "renew" ? "🔄" :
+        type === "publish" ? "📚" : "👤";
 
-function MiniStat({ label, value }) {
   return (
-    <div>
-      <p className="font-semibold text-[13px]">{value}</p>
-      <p className="text-gray-500 text-[11px]">{label}</p>
+    <div className="flex items-start gap-3.5 p-3 rounded-2xl hover:bg-orange-500/5 border border-transparent hover:border-orange-500/10 transition duration-300">
+      <div className="w-8 h-8 rounded-xl bg-orange-500/10 flex items-center justify-center text-sm">
+        {icon}
+      </div>
+      <div className="flex-1">
+        <div className="flex justify-between items-center">
+          <h4 className="text-xs font-black text-[#3C1E0A]">{title}</h4>
+          <span className="text-[9px] font-bold text-orange-950/50 uppercase tracking-widest">{time}</span>
+        </div>
+        <p className="text-[11px] text-orange-950/70 font-semibold mt-0.5">{desc}</p>
+      </div>
     </div>
   );
 }
 
 function Bar({ h }) {
-  return <div className="w-3 bg-orange-400 rounded-md" style={{ height: h }} />;
+  return (
+    <div className="flex-1 bg-linear-to-t from-orange-600 to-amber-500 rounded-lg shadow-sm hover:opacity-85 transition duration-300 cursor-pointer" style={{ height: h }} />
+  );
 }

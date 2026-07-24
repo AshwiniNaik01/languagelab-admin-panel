@@ -6,6 +6,8 @@ export default function TextArea({
   onChange,
   rows = 5,
   error = "",
+  required = false,
+  ...rest
 }) {
   return (
     <div className="w-full">
@@ -15,6 +17,9 @@ export default function TextArea({
           className="block mb-2 text-sm font-medium text-gray-700"
         >
           {label}
+          {required && (
+            <span className="ml-1 text-orange-500">*</span>
+          )}
         </label>
       )}
 
@@ -25,6 +30,8 @@ export default function TextArea({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        required={required}
+        {...rest}
         className="
           w-full
           px-4

@@ -8,3 +8,10 @@ export const loginAdmin = async (payload) => {
 
   return response.data;
 };
+
+
+
+export const loginEditor = async (data) => {
+  const response = await api.post("/api/editor/login", data);
+  return response.data;
+};

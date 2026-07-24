@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Language Lab Admin Panel — Project Documentation</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #f97316;
+      --orange-dark: #ea580c;
+      --orange-light: #fff7ed;
+      --brown: #3C1E0A;
+      --text: #1e1e1e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --sidebar-w: 260px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f9fafb;
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: var(--sidebar-w);
+      background: var(--brown);
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
+      z-index: 100;
+      padding-bottom: 40px;
+    }
+
+    #sidebar .logo {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      margin-bottom: 8px;
+    }
+    #sidebar .logo h2 {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -.3px;
+    }
+    #sidebar .logo p {
+      color: rgba(255,255,255,.55);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+
+    #sidebar .section-label {
+      padding: 14px 20px 6px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.4);
+    }
+
+    #sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      color: rgba(255,255,255,.75);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      border-left: 3px solid transparent;
+      transition: all .2s;
+    }
+    #sidebar a:hover, #sidebar a.active {
+      color: #fff;
+      background: rgba(249,115,22,.2);
+      border-left-color: var(--orange);
+    }
+    #sidebar a .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--orange);
+      flex-shrink: 0;
+    }
+
+    /* ── MAIN ── */
+    #main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: calc(100% - var(--sidebar-w));
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, var(--brown) 0%, #7c3a1a 100%);
+      border-radius: 20px;
+      padding: 40px 48px;
+      margin-bottom: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 240px; height: 240px;
+      border-radius: 50%;
+      background: rgba(249,115,22,.15);
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; left: 40%;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: rgba(249,115,22,.1);
+    }
+    .hero h1 {
+      font-size: 30px;
+      font-weight: 900;
+      color: #fff;
+      position: relative;
+    }
+    .hero p {
+      color: rgba(255,255,255,.7);
+      font-size: 14px;
+      margin-top: 8px;
+      position: relative;
+      max-width: 560px;
+    }
+    .hero .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+      position: relative;
+    }
+    .badge {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.2);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* ── SECTIONS ── */
+    .section { margin-bottom: 64px; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .section-header .icon {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      background: var(--orange-light);
+      border: 1px solid rgba(249,115,22,.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .section-header h2 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--brown);
+    }
+    .section-header .subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── PAGE CARD ── */
+    .page-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 16px;
+      transition: box-shadow .2s;
+    }
+    .page-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
+
+    .page-card .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .page-card h3 {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--brown);
+    }
+    .page-card .route {
+      font-family: 'Consolas', monospace;
+      font-size: 11px;
+      background: var(--orange-light);
+      color: var(--orange-dark);
+      border: 1px solid rgba(249,115,22,.25);
+      padding: 3px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+    .page-card p {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.65;
+    }
+
+    .feature-list {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 8px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12.5px;
+      color: #374151;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    .feature-item .tick {
+      color: var(--orange);
+      font-size: 11px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    /* ── TECH GRID ── */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .tech-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+    }
+    .tech-card .t-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--brown);
+    }
+    .tech-card .t-version {
+      font-size: 11px;
+      color: var(--orange-dark);
+      font-weight: 700;
+      margin-top: 2px;
+      font-family: monospace;
+    }
+    .tech-card .t-desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* ── FLOW DIAGRAM ── */
+    .flow {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 20px 0;
+    }
+    .flow-step {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--brown);
+    }
+    .flow-arrow {
+      color: var(--orange);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    /* ── COMPONENT TABLE ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      background: var(--orange-light);
+      color: var(--brown);
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 2px solid rgba(249,115,22,.2);
+    }
+    td {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+      color: #374151;
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+    td code {
+      font-family: 'Consolas', monospace;
+      font-size: 11.5px;
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--orange-dark);
+    }
+    .table-wrapper {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    /* ── INFO BOX ── */
+    .info-box {
+      background: var(--orange-light);
+      border: 1px solid rgba(249,115,22,.25);
+      border-left: 4px solid var(--orange);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: var(--brown);
+      margin: 16px 0;
+      line-height: 1.6;
+    }
+    .info-box strong { font-weight: 800; }
+
+    /* ── FILE TREE ── */
+    .file-tree {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border-radius: 14px;
+      padding: 24px 28px;
+      font-family: 'Consolas', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+    .file-tree .dir { color: #569cd6; font-weight: 700; }
+    .file-tree .file { color: #ce9178; }
+    .file-tree .comment { color: #6a9955; }
+
+    /* ── ROLE CARDS ── */
+    .role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .role-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+    }
+    .role-card h4 {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--brown);
+      margin-bottom: 10px;
+    }
+    .role-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .role-card li {
+      font-size: 12.5px;
+      color: #374151;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .role-card li::before {
+      content: '▸';
+      color: var(--orange);
+      font-size: 11px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    /* ── SCROLL-TO-TOP ── */
+    #top { scroll-behavior: smooth; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 48px 0;
+    }
+
+    /* responsive */
+    @media (max-width: 900px) {
+      #sidebar { display: none; }
+      #main { margin-left: 0; max-width: 100%; padding: 24px; }
+      .role-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body id="top">
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<nav id="sidebar">
+  <div class="logo">
+    <h2>Language Lab</h2>
+    <p>Admin Panel — Docs v1.0</p>
+  </div>
+
+  <div class="section-label">Overview</div>
+  <a href="#overview"><span class="dot"></span> Project Overview</a>
+  <a href="#tech"><span class="dot"></span> Tech Stack</a>
+  <a href="#auth"><span class="dot"></span> Authentication Flow</a>
+  <a href="#structure"><span class="dot"></span> File Structure</a>
+
+  <div class="section-label">Admin Pages</div>
+  <a href="#page-login"><span class="dot"></span> Login Page</a>
+  <a href="#page-dashboard"><span class="dot"></span> Dashboard</a>
+  <a href="#page-institutes"><span class="dot"></span> Institutes</a>
+  <a href="#page-editors"><span class="dot"></span> Editors</a>
+  <a href="#page-students"><span class="dot"></span> Students</a>
+  <a href="#page-licenses"><span class="dot"></span> Licenses</a>
+  <a href="#page-courses"><span class="dot"></span> Courses</a>
+  <a href="#page-analytics"><span class="dot"></span> Analytics</a>
+  <a href="#page-content"><span class="dot"></span> Content</a>
+  <a href="#page-sessions"><span class="dot"></span> Sessions</a>
+  <a href="#page-profile"><span class="dot"></span> Profile</a>
+
+  <div class="section-label">Editor Panel</div>
+  <a href="#page-editor-dash"><span class="dot"></span> Editor Dashboard</a>
+  <a href="#page-editor-courses"><span class="dot"></span> Editor Courses</a>
+  <a href="#page-modules"><span class="dot"></span> Content Modules</a>
+  <a href="#page-assessments"><span class="dot"></span> Assessments</a>
+  <a href="#page-curriculum"><span class="dot"></span> Curriculum</a>
+  <a href="#page-games"><span class="dot"></span> Games</a>
+
+  <div class="section-label">Architecture</div>
+  <a href="#components"><span class="dot"></span> Components</a>
+  <a href="#services"><span class="dot"></span> Services &amp; API</a>
+  <a href="#middleware"><span class="dot"></span> Middleware</a>
+  <a href="#validation"><span class="dot"></span> Validation</a>
+</nav>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<main id="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Language Lab — Admin Panel</h1>
+    <p>Complete technical documentation covering every page, component, service, and architecture decision of the Language Lab Admin &amp; Editor platform.</p>
+    <div class="badges">
+      <span class="badge">Next.js 16</span>
+      <span class="badge">React 19</span>
+      <span class="badge">Tailwind CSS 4</span>
+      <span class="badge">Axios</span>
+      <span class="badge">Yup Validation</span>
+      <span class="badge">Chart.js</span>
+      <span class="badge">SweetAlert2</span>
+      <span class="badge">App Router</span>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!--  1. PROJECT OVERVIEW                    -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="overview" class="section">
+    <div class="section-header">
+      <div class="icon">🏛️</div>
+      <div>
+        <h2>Project Overview</h2>
+        <div class="subtitle">What this system is and how it is organized</div>
+      </div>
+    </div>
+
+    <p style="font-size:14px;color:#374151;line-height:1.75;max-width:760px;">
+      Language Lab Admin Panel is a full-featured web administration dashboard that allows a
+      <strong>Super Admin</strong> to manage educational institutes, editors, students, licenses, and
+      courses. A separate <strong>Editor Panel</strong> gives content editors the ability to create
+      and manage language-learning materials — text modules, video modules, audio modules,
+      vocabulary, exercises, assessments, curriculum, and games.
+    </p>
+
+    <div class="role-grid" style="margin-top:24px;">
+      <div class="role-card">
+        <h4>🛡️ Admin Role</h4>
+        <ul>
+          <li>Register and manage institutes</li>
+          <li>Create and manage editors</li>
+          <li>Manage student accounts</li>
+          <li>Issue and track licenses</li>
+          <li>View and manage courses</li>
+          <li>Access analytics &amp; reports</li>
+          <li>Manage sessions and content</li>
+          <li>View system audit log</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h4>🎓 Editor Role</h4>
+        <ul>
+          <li>Create &amp; manage courses</li>
+          <li>Author text learning modules</li>
+          <li>Upload video/audio modules</li>
+          <li>Build exercise modules</li>
+          <li>Create vocabulary modules</li>
+          <li>Design assessments</li>
+          <li>Plan curriculum</li>
+          <li>Manage educational games</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!--  2. TECH STACK                          -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="tech" class="section">
+    <div class="section-header">
+      <div class="icon">⚙️</div>
+      <div>
+        <h2>Tech Stack</h2>
+        <div class="subtitle">Libraries and frameworks used in this project</div>
+      </div>
+    </div>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="t-name">Next.js</div>
+        <div class="t-version">v16.2.9</div>
+        <div class="t-desc">React framework with App Router, file-based routing, middleware, and server-side features.</div>
+      </div>
+      <div class="tech-card">
+        <div class="t-name">React</div>
+        <div class="t-version">v19.2.4</div>
+        <div class="t-desc">UI library for building component-based interactive interfaces.</div>
+      </div>
+      <div class="tech-card">
+        <div class="t-name">Tailwind CSS</div>
+        <div class="t-version">v4</div>
+        <div class="t-desc">Utility-first CSS framework for rapid, responsive styling.</div>
+      </div>
+      <div class="tech-card">
+        <div class="t-name">Axios</div>
+        <div class="t-version">v1.18.0</div>
+        <div class="t-desc">HTTP client with interceptors for all API communication.</div>
+      </div>
+      <div class="tech-card">
+        <div class="t-name">Yup</div>
+        <div class="t-version">v1.7.1</div>
+        <div class="t-desc">Schema-based form validation — used across all forms.</div>
+      </div>
+      <div class="tech-card">
+        <div class="t-name">Chart.js</div>
+        <div class="t-version">v4.5.1</div>
+        <div class="t-desc">Canvas-based charting library for analytics dashboards.</div>
+      </div>
+      <div class="tech-card">
+        <div class="t-name">SweetAlert2</div>
+        <div class="t-version">v11.26</div>
+        <div class="t-desc">Beautiful dialog alerts for success, error, and confirm messages.</div>
+      </div>
+      <div class="tech-card">
+        <div class="t-name">js-cookie</div>
+        <div class="t-version">v3.0.8</div>
+        <div class="t-desc">Cookie management — stores auth tokens on login.</div>
+      </div>
+      <div class="tech-card">
+        <div class="t-name">Lucide React</div>
+        <div class="t-version">v1.18.0</div>
+        <div class="t-desc">Clean, consistent icon set used in UI components.</div>
+      </div>
+      <div class="tech-card">
+        <div class="t-name">React Icons</div>
+        <div class="t-version">v5.6.0</div>
+        <div class="t-desc">FontAwesome &amp; other icon packs for dashboard UI.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!--  3. AUTHENTICATION FLOW                 -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="auth" class="section">
+    <div class="section-header">
+      <div class="icon">🔐</div>
+      <div>
+        <h2>Authentication Flow</h2>
+        <div class="subtitle">How login, tokens, and route protection work</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Two separate roles, one login page.</strong> The login page shows an Admin form by
+      default. A sliding panel lets users switch to the Editor form. Each submits to a different
+      API endpoint and stores its token under a different cookie key.
+    </div>
+
+    <h3 style="font-size:14px;font-weight:800;color:var(--brown);margin:20px 0 10px;">Admin Login Flow</h3>
+    <div class="flow">
+      <div class="flow-step">User enters email + password</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Yup schema validates fields</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">POST /admin/login (API)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Token stored in <code>token</code> cookie</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Redirect → <code>/</code> (Dashboard)</div>
+    </div>
+
+    <h3 style="font-size:14px;font-weight:800;color:var(--brown);margin:20px 0 10px;">Editor Login Flow</h3>
+    <div class="flow">
+      <div class="flow-step">User enters email + password</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Yup schema validates fields</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">POST /editor/login (API)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Token stored in <code>token</code> cookie</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Redirect → <code>/editor</code></div>
+    </div>
+
+    <h3 style="font-size:14px;font-weight:800;color:var(--brown);margin:20px 0 10px;">Middleware Route Protection</h3>
+    <p style="font-size:13px;color:#374151;line-height:1.65;max-width:680px;">
+      <code>middleware.js</code> runs on every request to protected routes. It checks for a
+      <code>token</code> or <code>editor_token</code> cookie. If neither is present the user is
+      redirected to <code>/admin-login</code>.
+    </p>
+    <div style="margin-top:12px;" class="info-box">
+      <strong>Protected routes:</strong> /editor, /institutes, /students, /editors, /licenses,
+      /courses, /sessions, /analytics, /content, /profile
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!--  4. FILE STRUCTURE                      -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="structure" class="section">
+    <div class="section-header">
+      <div class="icon">📁</div>
+      <div>
+        <h2>File Structure</h2>
+        <div class="subtitle">Top-level directory layout</div>
+      </div>
+    </div>
+
+    <div class="file-tree">
+<span class="dir">Language-Lab-Admin-Panel/</span>
+├── <span class="dir">app/</span>                         <span class="comment"># Next.js App Router root</span>
+│   ├── <span class="dir">admin-login/</span>              <span class="comment"># /admin-login page</span>
+│   ├── <span class="dir">analytics/</span>               <span class="comment"># /analytics page</span>
+│   ├── <span class="dir">content/</span>                 <span class="comment"># /content page</span>
+│   ├── <span class="dir">courses/</span>                 <span class="comment"># /courses list + /courses/new</span>
+│   ├── <span class="dir">editors/</span>                 <span class="comment"># /editors list + /editors/new</span>
+│   ├── <span class="dir">institutes/</span>              <span class="comment"># /institutes list + /institutes/new</span>
+│   ├── <span class="dir">licenses/</span>                <span class="comment"># /licenses list + /licenses/new</span>
+│   ├── <span class="dir">profile/</span>                 <span class="comment"># /profile page</span>
+│   ├── <span class="dir">sessions/</span>                <span class="comment"># /sessions page</span>
+│   ├── <span class="dir">students/</span>                <span class="comment"># /students list + /students/new</span>
+│   ├── <span class="dir">editor/</span>                  <span class="comment"># Editor panel root</span>
+│   │   ├── <span class="dir">courses/</span>             <span class="comment"># Editor courses</span>
+│   │   ├── <span class="dir">modules/</span>             <span class="comment"># text / video / audio / exercise / vocab</span>
+│   │   ├── <span class="dir">assessments/</span>         <span class="comment"># Assessments</span>
+│   │   ├── <span class="dir">curriculum/</span>          <span class="comment"># Curriculum</span>
+│   │   ├── <span class="dir">games/</span>               <span class="comment"># Games</span>
+│   │   └── <span class="dir">profile/</span>             <span class="comment"># Editor profile</span>
+│   ├── <span class="dir">components/</span>              <span class="comment"># Reusable React components</span>
+│   │   ├── <span class="dir">form/</span>                <span class="comment"># Input, Dropdown, Checkbox, etc.</span>
+│   │   ├── <span class="dir">ui/</span>                  <span class="comment"># Button, Breadcrumb, EmptyState</span>
+│   │   └── <span class="dir">pages/</span>               <span class="comment"># Page-level wrapper components</span>
+│   ├── <span class="dir">layouts/</span>                 <span class="comment"># AdminLayout, EditorLayout</span>
+│   ├── <span class="dir">schemas/</span>                 <span class="comment"># Yup validation schemas</span>
+│   ├── <span class="dir">services/</span>                <span class="comment"># Axios API service functions</span>
+│   ├── <span class="dir">utils/</span>                   <span class="comment"># swal, imageUtils, apiCache</span>
+│   ├── <span class="dir">validations/</span>             <span class="comment"># Module-specific Yup schemas</span>
+│   ├── <span class="file">layout.js</span>                <span class="comment"># Root layout (wraps all pages)</span>
+│   ├── <span class="file">page.js</span>                  <span class="comment"># / → Dashboard</span>
+│   ├── <span class="file">error.js</span>                 <span class="comment"># Global error boundary</span>
+│   ├── <span class="file">not-found.js</span>             <span class="comment"># 404 page</span>
+│   └── <span class="file">globals.css</span>              <span class="comment"># Global Tailwind + CSS</span>
+├── <span class="file">middleware.js</span>                <span class="comment"># Auth middleware (token check)</span>
+├── <span class="file">next.config.mjs</span>              <span class="comment"># Next.js config</span>
+├── <span class="file">jsconfig.json</span>                <span class="comment"># @ path alias → project root</span>
+├── <span class="file">postcss.config.mjs</span>           <span class="comment"># PostCSS / Tailwind setup</span>
+├── <span class="file">.env</span>                         <span class="comment"># NEXT_PUBLIC_API_URL etc.</span>
+└── <span class="file">package.json</span>                 <span class="comment"># Dependencies and scripts</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!--  ADMIN PAGES                            -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="icon">🛡️</div>
+      <div>
+        <h2>Admin Pages — Detailed Breakdown</h2>
+        <div class="subtitle">Every page in the admin panel explained one by one</div>
+      </div>
+    </div>
+
+
+    <!-- LOGIN PAGE -->
+    <div id="page-login" class="page-card">
+      <div class="card-header">
+        <h3>1. Login Page</h3>
+        <span class="route">/admin-login</span>
+      </div>
+      <p>
+        The entry point for the entire platform. A single page with <strong>two login panels</strong>
+        (Admin and Editor) that slide in/out. A gradient orange panel acts as a switcher — clicking
+        "Switch to Editor" slides the form panel to reveal the Editor login form, and vice versa.
+        No navigation sidebar is shown on this page (it is public).
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Admin email + password form</div>
+        <div class="feature-item"><span class="tick">●</span>Editor email + password form</div>
+        <div class="feature-item"><span class="tick">●</span>Animated slide transition between forms</div>
+        <div class="feature-item"><span class="tick">●</span>Show/hide password toggle (eye icon)</div>
+        <div class="feature-item"><span class="tick">●</span>Yup client-side validation (inline errors)</div>
+        <div class="feature-item"><span class="tick">●</span>SweetAlert2 success/error feedback</div>
+        <div class="feature-item"><span class="tick">●</span>Token saved to cookie on success</div>
+        <div class="feature-item"><span class="tick">●</span>Redirect to dashboard after login</div>
+      </div>
+      <div class="info-box" style="margin-top:14px;">
+        <strong>File:</strong> <code>app/admin-login/page.js</code> — uses
+        <code>loginAdmin()</code> and <code>loginEditor()</code> from
+        <code>app/services/admin-login.js</code>
+      </div>
+    </div>
+
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page-card">
+      <div class="card-header">
+        <h3>2. Dashboard (Home)</h3>
+        <span class="route">/</span>
+      </div>
+      <p>
+        The main landing page after admin login. Shows a high-level system overview at a glance —
+        statistics, license monitor, institute activity feed, quick action shortcuts, audit log,
+        and a user engagement bar chart. All wrapped inside <code>AdminLayout</code> which provides
+        the sidebar and top navbar.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Stats: Institutes, Students, Licenses, Courses, Assessments</div>
+        <div class="feature-item"><span class="tick">●</span>License Monitor — expiring licenses with urgency badges</div>
+        <div class="feature-item"><span class="tick">●</span>Institute Activity — live onboarding feed</div>
+        <div class="feature-item"><span class="tick">●</span>Quick Management — 6 action shortcut cards</div>
+        <div class="feature-item"><span class="tick">●</span>Recent Audit Log — system events timeline</div>
+        <div class="feature-item"><span class="tick">●</span>User Engagement — mini bar chart widget</div>
+      </div>
+      <div class="info-box" style="margin-top:14px;">
+        <strong>Files:</strong> <code>app/page.js</code> → renders <code>app/components/Dashboard.jsx</code>
+        inside <code>app/layouts/AdminLayout.jsx</code>
+      </div>
+    </div>
+
+
+    <!-- INSTITUTES -->
+    <div id="page-institutes" class="page-card">
+      <div class="card-header">
+        <h3>3. Institutes List</h3>
+        <span class="route">/institutes</span>
+      </div>
+      <p>
+        Displays all registered educational institutes in a data table. Admins can browse, search,
+        and manage institutes. Each row has action buttons (edit, view, delete). An "Add Institute"
+        button links to the create form.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Paginated data table (reusable Table component)</div>
+        <div class="feature-item"><span class="tick">●</span>Institute name, location, license status columns</div>
+        <div class="feature-item"><span class="tick">●</span>Action buttons per row (edit / delete)</div>
+        <div class="feature-item"><span class="tick">●</span>Empty state when no institutes exist</div>
+        <div class="feature-item"><span class="tick">●</span>Table skeleton loader while fetching</div>
+      </div>
+    </div>
+
+    <div class="page-card">
+      <div class="card-header">
+        <h3>3b. New Institute</h3>
+        <span class="route">/institutes/new</span>
+      </div>
+      <p>
+        A form page to register a new educational institute. Uses <code>InstituteForm</code> component
+        with logo upload, text fields, dropdowns for state/city, and toggle switches. Validates all
+        fields with Yup before submitting to the API.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Logo file uploader</div>
+        <div class="feature-item"><span class="tick">●</span>Institute name, address, city, state fields</div>
+        <div class="feature-item"><span class="tick">●</span>Contact email and phone</div>
+        <div class="feature-item"><span class="tick">●</span>Yup validation with inline errors</div>
+        <div class="feature-item"><span class="tick">●</span>Submit → POST to API → success alert → redirect</div>
+      </div>
+    </div>
+
+
+    <!-- EDITORS -->
+    <div id="page-editors" class="page-card">
+      <div class="card-header">
+        <h3>4. Editors List</h3>
+        <span class="route">/editors</span>
+      </div>
+      <p>
+        Lists all content editors registered in the system. Shows their name, email, assigned
+        institute, and status. Admins can create new editors or deactivate existing ones.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Full list in data table</div>
+        <div class="feature-item"><span class="tick">●</span>Name, email, institute, active status</div>
+        <div class="feature-item"><span class="tick">●</span>Edit / delete per row</div>
+        <div class="feature-item"><span class="tick">●</span>Add New Editor button</div>
+      </div>
+    </div>
+
+    <div class="page-card">
+      <div class="card-header">
+        <h3>4b. New Editor</h3>
+        <span class="route">/editors/new</span>
+      </div>
+      <p>
+        Form to create a new editor account. Uses <code>EditorForm</code> and validates with
+        <code>neweditor.schema.js</code>. Assigns the editor to an institute and sets their
+        initial password.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>First name, last name, email</div>
+        <div class="feature-item"><span class="tick">●</span>Institute dropdown (fetched from API)</div>
+        <div class="feature-item"><span class="tick">●</span>Password and confirm password</div>
+        <div class="feature-item"><span class="tick">●</span>Yup validation + error display</div>
+      </div>
+    </div>
+
+
+    <!-- STUDENTS -->
+    <div id="page-students" class="page-card">
+      <div class="card-header">
+        <h3>5. Students List</h3>
+        <span class="route">/students</span>
+      </div>
+      <p>
+        A table of all students enrolled across institutes. Admins can view, filter, and manage
+        student records. Includes bulk operations and export capabilities.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Student name, email, institute, enrolment date</div>
+        <div class="feature-item"><span class="tick">●</span>Search / filter by institute</div>
+        <div class="feature-item"><span class="tick">●</span>Row-level edit and delete actions</div>
+        <div class="feature-item"><span class="tick">●</span>Loading skeleton while data fetches</div>
+      </div>
+    </div>
+
+    <div class="page-card">
+      <div class="card-header">
+        <h3>5b. New Student</h3>
+        <span class="route">/students/new</span>
+      </div>
+      <p>
+        Form to manually register a student. Uses <code>StudentForm</code> and
+        <code>student.schema.js</code>. Associates the student with a specific institute.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Full name, email, phone</div>
+        <div class="feature-item"><span class="tick">●</span>Institute dropdown</div>
+        <div class="feature-item"><span class="tick">●</span>Password fields</div>
+        <div class="feature-item"><span class="tick">●</span>Validation and success redirect</div>
+      </div>
+    </div>
+
+
+    <!-- LICENSES -->
+    <div id="page-licenses" class="page-card">
+      <div class="card-header">
+        <h3>6. Licenses List</h3>
+        <span class="route">/licenses</span>
+      </div>
+      <p>
+        Shows all license agreements issued to institutes. Each license has a type (Basic, Standard,
+        Premium), an expiry date, and an assigned institute. Licenses with near-expiry dates are
+        highlighted on the dashboard.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>License key, type, institute, expiry date</div>
+        <div class="feature-item"><span class="tick">●</span>Status badges (active / expiring / expired)</div>
+        <div class="feature-item"><span class="tick">●</span>Renew / delete actions</div>
+        <div class="feature-item"><span class="tick">●</span>Add New License button</div>
+      </div>
+    </div>
+
+    <div class="page-card">
+      <div class="card-header">
+        <h3>6b. New License</h3>
+        <span class="route">/licenses/new</span>
+      </div>
+      <p>
+        Form to issue a new license to an institute. Uses <code>LicenseForm</code> and validates
+        with <code>newlicenses.schema.js</code>.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Institute dropdown</div>
+        <div class="feature-item"><span class="tick">●</span>License type selection</div>
+        <div class="feature-item"><span class="tick">●</span>Start date and expiry date pickers</div>
+        <div class="feature-item"><span class="tick">●</span>Max students count</div>
+      </div>
+    </div>
+
+
+    <!-- COURSES (ADMIN) -->
+    <div id="page-courses" class="page-card">
+      <div class="card-header">
+        <h3>7. Courses (Admin View)</h3>
+        <span class="route">/courses</span>
+      </div>
+      <p>
+        Admin view of all published courses across the platform. Admins can review courses created
+        by editors, view their modules, and manage course visibility. Uses the shared
+        <code>CoursesContent</code> component.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Course name, institute, module count</div>
+        <div class="feature-item"><span class="tick">●</span>Published / draft status toggle</div>
+        <div class="feature-item"><span class="tick">●</span>Filter by institute</div>
+        <div class="feature-item"><span class="tick">●</span>Delete / view details actions</div>
+      </div>
+    </div>
+
+    <div class="page-card">
+      <div class="card-header">
+        <h3>7b. New Course (Admin)</h3>
+        <span class="route">/courses/new</span>
+      </div>
+      <p>
+        Form to create a new course from the admin side. Uses <code>CourseForm</code> and
+        <code>course.schema.js</code>.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Course title and description</div>
+        <div class="feature-item"><span class="tick">●</span>Language and level selection</div>
+        <div class="feature-item"><span class="tick">●</span>Institute assignment</div>
+        <div class="feature-item"><span class="tick">●</span>Thumbnail image upload</div>
+      </div>
+    </div>
+
+
+    <!-- ANALYTICS -->
+    <div id="page-analytics" class="page-card">
+      <div class="card-header">
+        <h3>8. Analytics</h3>
+        <span class="route">/analytics</span>
+      </div>
+      <p>
+        Analytics and reporting dashboard showing platform-wide usage statistics. Displays Chart.js
+        graphs for student activity, course completions, assessment scores, and institute engagement
+        over time.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Student enrollment trends (line chart)</div>
+        <div class="feature-item"><span class="tick">●</span>Course completion rates (bar chart)</div>
+        <div class="feature-item"><span class="tick">●</span>Assessment score distribution</div>
+        <div class="feature-item"><span class="tick">●</span>Institute-wise activity breakdown</div>
+        <div class="feature-item"><span class="tick">●</span>Date range filter</div>
+        <div class="feature-item"><span class="tick">●</span>Export data option</div>
+      </div>
+    </div>
+
+
+    <!-- CONTENT -->
+    <div id="page-content" class="page-card">
+      <div class="card-header">
+        <h3>9. Content Management</h3>
+        <span class="route">/content</span>
+      </div>
+      <p>
+        Central content management page for uploading and organizing learning materials. Admins
+        can upload resources, manage file organization, and configure material availability per
+        institute.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>File/material listing</div>
+        <div class="feature-item"><span class="tick">●</span>Upload new material</div>
+        <div class="feature-item"><span class="tick">●</span>Filter by type / institute</div>
+        <div class="feature-item"><span class="tick">●</span>Enable / disable per institute</div>
+      </div>
+    </div>
+
+
+    <!-- SESSIONS -->
+    <div id="page-sessions" class="page-card">
+      <div class="card-header">
+        <h3>10. Sessions</h3>
+        <span class="route">/sessions</span>
+      </div>
+      <p>
+        Session management and configuration page. Admins can view active testing sessions,
+        configure assessment windows, and track student session activity across institutes.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Active and scheduled sessions list</div>
+        <div class="feature-item"><span class="tick">●</span>Create new session / assessment window</div>
+        <div class="feature-item"><span class="tick">●</span>Session start/end times</div>
+        <div class="feature-item"><span class="tick">●</span>Institute and course assignment</div>
+      </div>
+    </div>
+
+
+    <!-- PROFILE -->
+    <div id="page-profile" class="page-card">
+      <div class="card-header">
+        <h3>11. Admin Profile</h3>
+        <span class="route">/profile</span>
+      </div>
+      <p>
+        Admin account profile page. Allows the logged-in admin to view and update their personal
+        information, change their password, and manage account settings.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Name, email display and edit</div>
+        <div class="feature-item"><span class="tick">●</span>Change password form</div>
+        <div class="feature-item"><span class="tick">●</span>Profile avatar / photo</div>
+        <div class="feature-item"><span class="tick">●</span>Account settings</div>
+      </div>
+    </div>
+
+  </div><!-- /admin section -->
+
+  <div class="divider"></div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!--  EDITOR PANEL PAGES                     -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="icon">🎓</div>
+      <div>
+        <h2>Editor Panel — Detailed Breakdown</h2>
+        <div class="subtitle">All pages available to editors after login</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      The Editor Panel is a completely separate UI from the Admin Panel — different sidebar,
+      different navbar (<code>EditorLayout</code>), and different API service calls. An editor
+      only sees and manages content for their assigned institute.
+    </div>
+
+
+    <!-- EDITOR DASHBOARD -->
+    <div id="page-editor-dash" class="page-card">
+      <div class="card-header">
+        <h3>12. Editor Dashboard</h3>
+        <span class="route">/editor</span>
+      </div>
+      <p>
+        The home page for editors after login. Displays a summary of the editor's assigned courses,
+        recent module activity, quick links to create new content, and basic statistics relevant
+        to their content library.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Assigned courses count</div>
+        <div class="feature-item"><span class="tick">●</span>Total modules created</div>
+        <div class="feature-item"><span class="tick">●</span>Recent activity feed</div>
+        <div class="feature-item"><span class="tick">●</span>Quick create buttons</div>
+      </div>
+    </div>
+
+
+    <!-- EDITOR COURSES -->
+    <div id="page-editor-courses" class="page-card">
+      <div class="card-header">
+        <h3>13. Editor Courses</h3>
+        <span class="route">/editor/courses</span>
+      </div>
+      <p>
+        Shows courses owned/created by the logged-in editor. Each course lists its title, language,
+        level, and module count. Uses the shared <code>CoursesContent</code> component but scoped
+        to the editor's institute.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Course cards with module counts</div>
+        <div class="feature-item"><span class="tick">●</span>Published / draft toggle</div>
+        <div class="feature-item"><span class="tick">●</span>Edit and delete per course</div>
+        <div class="feature-item"><span class="tick">●</span>Create new course button</div>
+      </div>
+    </div>
+
+    <div class="page-card">
+      <div class="card-header">
+        <h3>13b. New Course (Editor)</h3>
+        <span class="route">/editor/courses/new</span>
+      </div>
+      <p>
+        Editor-facing course creation form. Uses the shared <code>NewCourseContent</code> component
+        and <code>course.schema.js</code>. The course is automatically linked to the editor's
+        institute.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Course title, description, language, level</div>
+        <div class="feature-item"><span class="tick">●</span>Thumbnail image upload</div>
+        <div class="feature-item"><span class="tick">●</span>Tags / category multi-select</div>
+        <div class="feature-item"><span class="tick">●</span>Auto-linked to editor's institute</div>
+      </div>
+    </div>
+
+
+    <!-- MODULES -->
+    <div id="page-modules" class="page-card">
+      <div class="card-header">
+        <h3>14. Content Modules (5 Types)</h3>
+        <span class="route">/editor/modules/[type]</span>
+      </div>
+      <p>
+        Editors can create five types of learning modules. Each type has its own list page and
+        a separate creation form. All module list pages use the generic <code>ModuleTypePage</code>
+        wrapper component.
+      </p>
+
+      <div style="margin-top:16px;">
+
+        <div style="margin-bottom:18px;padding:16px;background:#f9fafb;border:1px solid var(--border);border-radius:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <strong style="font-size:13px;color:var(--brown);">14a. Text Module</strong>
+            <code style="font-size:11px;background:var(--orange-light);color:var(--orange-dark);padding:3px 8px;border-radius:5px;">/editor/modules/text</code>
+          </div>
+          <p style="font-size:12.5px;color:#374151;">
+            Rich text-based lessons. Editors write or paste article-style learning content with
+            headings, paragraphs, images, and formatting. Uses <code>TextModuleForm</code>.
+          </p>
+          <div class="feature-list" style="margin-top:10px;">
+            <div class="feature-item"><span class="tick">●</span>Title and lesson body</div>
+            <div class="feature-item"><span class="tick">●</span>Rich text editor</div>
+            <div class="feature-item"><span class="tick">●</span>Course and level assignment</div>
+            <div class="feature-item"><span class="tick">●</span>Ordering within course</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:18px;padding:16px;background:#f9fafb;border:1px solid var(--border);border-radius:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <strong style="font-size:13px;color:var(--brown);">14b. Video Module</strong>
+            <code style="font-size:11px;background:var(--orange-light);color:var(--orange-dark);padding:3px 8px;border-radius:5px;">/editor/modules/video</code>
+          </div>
+          <p style="font-size:12.5px;color:#374151;">
+            Video-based lessons. Editors upload or link video content with a title, description,
+            and transcript. Uses <code>VideoModuleForm</code>.
+          </p>
+          <div class="feature-list" style="margin-top:10px;">
+            <div class="feature-item"><span class="tick">●</span>Video file upload / URL</div>
+            <div class="feature-item"><span class="tick">●</span>Title and description</div>
+            <div class="feature-item"><span class="tick">●</span>Transcript / captions</div>
+            <div class="feature-item"><span class="tick">●</span>Duration and thumbnail</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:18px;padding:16px;background:#f9fafb;border:1px solid var(--border);border-radius:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <strong style="font-size:13px;color:var(--brown);">14c. Audio Module</strong>
+            <code style="font-size:11px;background:var(--orange-light);color:var(--orange-dark);padding:3px 8px;border-radius:5px;">/editor/modules/audio</code>
+          </div>
+          <p style="font-size:12.5px;color:#374151;">
+            Audio-based listening lessons. Editors upload pronunciation guides, dialogues, or
+            narrated content. Uses <code>AudioModuleForm</code>.
+          </p>
+          <div class="feature-list" style="margin-top:10px;">
+            <div class="feature-item"><span class="tick">●</span>Audio file upload</div>
+            <div class="feature-item"><span class="tick">●</span>Title and description</div>
+            <div class="feature-item"><span class="tick">●</span>Script / transcript text</div>
+            <div class="feature-item"><span class="tick">●</span>Speaker information</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:18px;padding:16px;background:#f9fafb;border:1px solid var(--border);border-radius:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <strong style="font-size:13px;color:var(--brown);">14d. Exercise Module</strong>
+            <code style="font-size:11px;background:var(--orange-light);color:var(--orange-dark);padding:3px 8px;border-radius:5px;">/editor/modules/exercise</code>
+          </div>
+          <p style="font-size:12.5px;color:#374151;">
+            Interactive exercises — MCQs, fill-in-the-blanks, matching, and ordering questions.
+            Uses <code>ExerciseModuleForm</code>.
+          </p>
+          <div class="feature-list" style="margin-top:10px;">
+            <div class="feature-item"><span class="tick">●</span>Exercise type selection</div>
+            <div class="feature-item"><span class="tick">●</span>Question and answer builder</div>
+            <div class="feature-item"><span class="tick">●</span>Correct answer marking</div>
+            <div class="feature-item"><span class="tick">●</span>Points / scoring config</div>
+          </div>
+        </div>
+
+        <div style="padding:16px;background:#f9fafb;border:1px solid var(--border);border-radius:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <strong style="font-size:13px;color:var(--brown);">14e. Vocabulary Module</strong>
+            <code style="font-size:11px;background:var(--orange-light);color:var(--orange-dark);padding:3px 8px;border-radius:5px;">/editor/modules/vocabulary</code>
+          </div>
+          <p style="font-size:12.5px;color:#374151;">
+            Vocabulary flashcard-style modules. Editors add words, definitions, example sentences,
+            and audio pronunciations. Uses <code>VocabularyModuleForm</code>.
+          </p>
+          <div class="feature-list" style="margin-top:10px;">
+            <div class="feature-item"><span class="tick">●</span>Word and definition pairs</div>
+            <div class="feature-item"><span class="tick">●</span>Example sentences</div>
+            <div class="feature-item"><span class="tick">●</span>Audio pronunciation upload</div>
+            <div class="feature-item"><span class="tick">●</span>Part of speech tagging</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ASSESSMENTS -->
+    <div id="page-assessments" class="page-card">
+      <div class="card-header">
+        <h3>15. Assessments</h3>
+        <span class="route">/editor/assessments</span>
+      </div>
+      <p>
+        Editors create and manage formal assessments (tests and quizzes). Assessments are linked
+        to courses and can be scheduled with time windows. Results feed into the admin analytics
+        dashboard.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Assessment list with status</div>
+        <div class="feature-item"><span class="tick">●</span>Create new assessment</div>
+        <div class="feature-item"><span class="tick">●</span>Question bank management</div>
+        <div class="feature-item"><span class="tick">●</span>Schedule / time window setting</div>
+        <div class="feature-item"><span class="tick">●</span>Passing score configuration</div>
+        <div class="feature-item"><span class="tick">●</span>View results and submissions</div>
+      </div>
+    </div>
+
+
+    <!-- CURRICULUM -->
+    <div id="page-curriculum" class="page-card">
+      <div class="card-header">
+        <h3>16. Curriculum</h3>
+        <span class="route">/editor/curriculum</span>
+      </div>
+      <p>
+        Curriculum planning and organization page. Editors can arrange modules into a structured
+        learning path, set prerequisites, and define the order in which students should progress
+        through content.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Drag-and-drop module ordering</div>
+        <div class="feature-item"><span class="tick">●</span>Unit / chapter grouping</div>
+        <div class="feature-item"><span class="tick">●</span>Prerequisites setup</div>
+        <div class="feature-item"><span class="tick">●</span>Completion criteria per unit</div>
+      </div>
+    </div>
+
+
+    <!-- GAMES -->
+    <div id="page-games" class="page-card">
+      <div class="card-header">
+        <h3>17. Games</h3>
+        <span class="route">/editor/games</span>
+      </div>
+      <p>
+        Gamification management page. Editors configure and assign educational games to reinforce
+        vocabulary, grammar, and language comprehension in an interactive, engaging format.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Game type catalog</div>
+        <div class="feature-item"><span class="tick">●</span>Configure game parameters</div>
+        <div class="feature-item"><span class="tick">●</span>Assign games to courses</div>
+        <div class="feature-item"><span class="tick">●</span>Leaderboard settings</div>
+      </div>
+    </div>
+
+
+    <!-- EDITOR PROFILE -->
+    <div class="page-card">
+      <div class="card-header">
+        <h3>18. Editor Profile</h3>
+        <span class="route">/editor/profile</span>
+      </div>
+      <p>
+        Profile page for the logged-in editor. Allows updating personal details, changing password,
+        and viewing assigned institute information.
+      </p>
+      <div class="feature-list">
+        <div class="feature-item"><span class="tick">●</span>Name and email edit</div>
+        <div class="feature-item"><span class="tick">●</span>Change password</div>
+        <div class="feature-item"><span class="tick">●</span>Assigned institute info</div>
+        <div class="feature-item"><span class="tick">●</span>Account settings</div>
+      </div>
+    </div>
+
+  </div><!-- /editor section -->
+
+  <div class="divider"></div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!--  COMPONENTS                             -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="components" class="section">
+    <div class="section-header">
+      <div class="icon">🧩</div>
+      <div>
+        <h2>Reusable Components</h2>
+        <div class="subtitle">Shared UI building blocks used across pages</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:13px;font-weight:800;color:var(--brown);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">Layout Components</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Component</th><th>File</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>AdminLayout</strong></td><td><code>layouts/AdminLayout.jsx</code></td><td>Wraps all admin pages — provides Sidebar + Navbar + content area</td></tr>
+          <tr><td><strong>EditorLayout</strong></td><td><code>layouts/EditorLayout.jsx</code></td><td>Wraps all editor pages — provides EditorSidebar + EditorNavbar</td></tr>
+          <tr><td><strong>Sidebar</strong></td><td><code>components/Sidebar.jsx</code></td><td>Admin left navigation with collapsible menu items</td></tr>
+          <tr><td><strong>EditorSidebar</strong></td><td><code>components/EditorSidebar.jsx</code></td><td>Editor-specific left nav with module / course links</td></tr>
+          <tr><td><strong>Navbar</strong></td><td><code>components/Navbar.jsx</code></td><td>Admin top bar with user info and notifications</td></tr>
+          <tr><td><strong>EditorNavbar</strong></td><td><code>components/EditorNavbar.jsx</code></td><td>Editor-specific top navigation bar</td></tr>
+          <tr><td><strong>SidebarContext</strong></td><td><code>components/SidebarContext.jsx</code></td><td>React context that syncs sidebar open/collapsed state</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:13px;font-weight:800;color:var(--brown);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;margin-top:24px;">Form Components</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Component</th><th>File</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>InputField</strong></td><td><code>form/InputField.jsx</code></td><td>Text input with label, error message, and required indicator</td></tr>
+          <tr><td><strong>TextArea</strong></td><td><code>form/TextArea.jsx</code></td><td>Multi-line text input with auto-resize</td></tr>
+          <tr><td><strong>Dropdown</strong></td><td><code>form/Dropdown.jsx</code></td><td>Single-select dropdown</td></tr>
+          <tr><td><strong>MultiSelectDropdown</strong></td><td><code>form/MultiSelectDropdown.jsx</code></td><td>Multi-select dropdown with tag chips</td></tr>
+          <tr><td><strong>Checkbox</strong></td><td><code>form/Checkbox.jsx</code></td><td>Styled checkbox input</td></tr>
+          <tr><td><strong>RadioGroup</strong></td><td><code>form/RadioGroup.jsx</code></td><td>Radio button group for mutually exclusive options</td></tr>
+          <tr><td><strong>ToggleSwitch</strong></td><td><code>form/ToggleSwitch.jsx</code></td><td>iOS-style toggle for boolean fields</td></tr>
+          <tr><td><strong>LogoFileUploader</strong></td><td><code>form/LogoFileUploader.jsx</code></td><td>Drag-and-drop file upload with preview for logo images</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:13px;font-weight:800;color:var(--brown);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;margin-top:24px;">UI Primitives</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Component</th><th>File</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Button</strong></td><td><code>ui/Button.jsx</code></td><td>Primary/secondary/danger button with loading state</td></tr>
+          <tr><td><strong>ActionIconButton</strong></td><td><code>ui/ActionIconButton.jsx</code></td><td>Small icon button for table row actions (edit/delete)</td></tr>
+          <tr><td><strong>Breadcrumb</strong></td><td><code>ui/Breadcrumb.jsx</code></td><td>Navigation breadcrumb trail</td></tr>
+          <tr><td><strong>EmptyState</strong></td><td><code>ui/EmptyState.jsx</code></td><td>Illustrated empty-state message when table has no data</td></tr>
+          <tr><td><strong>TableSkeleton</strong></td><td><code>ui/TableSkeleton.jsx</code></td><td>Animated skeleton rows while table data loads</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:13px;font-weight:800;color:var(--brown);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;margin-top:24px;">Core Components</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Component</th><th>File</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Dashboard</strong></td><td><code>components/Dashboard.jsx</code></td><td>Full admin dashboard with stats, charts, audit log, quick actions</td></tr>
+          <tr><td><strong>Table</strong></td><td><code>components/Table.jsx</code></td><td>Reusable sortable data table used on all list pages</td></tr>
+          <tr><td><strong>ProtectedRoute</strong></td><td><code>components/ProtectedRoute.jsx</code></td><td>Client-side auth wrapper — redirects to login if no token</td></tr>
+          <tr><td><strong>ErrorBoundary</strong></td><td><code>components/ErrorBoundary.jsx</code></td><td>Catches React render errors and shows a fallback UI</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!--  SERVICES & API                         -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="services" class="section">
+    <div class="section-header">
+      <div class="icon">🌐</div>
+      <div>
+        <h2>Services &amp; API Layer</h2>
+        <div class="subtitle">How the app communicates with the backend</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      All API calls go through <code>app/services/api.js</code> — an Axios instance pre-configured
+      with the base URL from <code>NEXT_PUBLIC_API_URL</code> and request interceptors that attach
+      the auth token from cookies automatically.
+    </div>
+
+    <div class="table-wrapper" style="margin-top:20px;">
+      <table>
+        <thead>
+          <tr><th>Service File</th><th>Responsibilities</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>api.js</code></td><td>Axios instance + interceptors (attach token from <code>token</code> or <code>editor_token</code> cookie)</td></tr>
+          <tr><td><code>admin-login.js</code></td><td><code>loginAdmin()</code> and <code>loginEditor()</code> — POST credentials, return token</td></tr>
+          <tr><td><code>institute.js</code></td><td>CRUD for institutes — get all, get by ID, create, update, delete</td></tr>
+          <tr><td><code>editor.js</code></td><td>CRUD for editors — get all, create, update, delete</td></tr>
+          <tr><td><code>student.js</code></td><td>CRUD for students — get all, create, update, delete</td></tr>
+          <tr><td><code>course.js</code></td><td>CRUD for courses — get all, get by editor, create, update, delete</td></tr>
+          <tr><td><code>editorPanel.js</code></td><td>Editor-specific API calls — modules, assessments, curriculum, games</td></tr>
+          <tr><td><code>superadmin.js</code></td><td>Super admin operations — license management, platform-level settings</td></tr>
+          <tr><td><code>dbService.js</code></td><td>Generic database service utilities</td></tr>
+          <tr><td><code>apiCache.js</code></td><td>In-memory caching for repeated API calls to reduce redundant requests</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!--  MIDDLEWARE                              -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="middleware" class="section">
+    <div class="section-header">
+      <div class="icon">🔒</div>
+      <div>
+        <h2>Middleware</h2>
+        <div class="subtitle">Route-level authentication guard</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;color:#374151;line-height:1.7;max-width:680px;">
+      <code>middleware.js</code> (Next.js Edge Middleware) intercepts every request before it
+      reaches a page. It checks the list of protected routes and, if the request matches one,
+      verifies that a <code>token</code> or <code>editor_token</code> cookie is present. If not,
+      the user is immediately redirected to <code>/admin-login</code>.
+    </p>
+
+    <div class="table-wrapper" style="margin-top:20px;">
+      <table>
+        <thead>
+          <tr><th>Protected Path Pattern</th><th>Who accesses it</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>/editor/*</code></td><td>Editors only</td></tr>
+          <tr><td><code>/institutes/*</code></td><td>Admin</td></tr>
+          <tr><td><code>/students/*</code></td><td>Admin</td></tr>
+          <tr><td><code>/editors/*</code></td><td>Admin</td></tr>
+          <tr><td><code>/licenses/*</code></td><td>Admin</td></tr>
+          <tr><td><code>/courses/*</code></td><td>Admin</td></tr>
+          <tr><td><code>/sessions/*</code></td><td>Admin</td></tr>
+          <tr><td><code>/analytics/*</code></td><td>Admin</td></tr>
+          <tr><td><code>/content/*</code></td><td>Admin</td></tr>
+          <tr><td><code>/profile/*</code></td><td>Admin &amp; Editor</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!--  VALIDATION                             -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="validation" class="section">
+    <div class="section-header">
+      <div class="icon">✅</div>
+      <div>
+        <h2>Validation Schemas</h2>
+        <div class="subtitle">Yup-based form validation across the platform</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      Every form validates locally with <strong>Yup</strong> before any API call is made. Errors
+      are displayed inline beneath each field. When <code>abortEarly: false</code> is set, ALL
+      field errors appear at once rather than stopping at the first failure.
+    </div>
+
+    <div class="table-wrapper" style="margin-top:20px;">
+      <table>
+        <thead>
+          <tr><th>Schema File</th><th>Used By</th><th>Key Rules</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>admin.schema.js</code></td><td>Admin Login form</td><td>Email format, password min 6 chars</td></tr>
+          <tr><td><code>editor.schema.js</code></td><td>Editor Login form</td><td>Email format, password required</td></tr>
+          <tr><td><code>neweditor.schema.js</code></td><td>Create Editor form</td><td>Name, email, password, confirm password match, institute required</td></tr>
+          <tr><td><code>institute.schema.js</code></td><td>Create/Edit Institute form</td><td>Name required, valid email, phone pattern</td></tr>
+          <tr><td><code>student.schema.js</code></td><td>Create/Edit Student form</td><td>Name, email, phone, institute required</td></tr>
+          <tr><td><code>course.schema.js</code></td><td>Create/Edit Course form</td><td>Title required, language and level required</td></tr>
+          <tr><td><code>newlicenses.schema.js</code></td><td>Create License form</td><td>Institute, type, start and expiry dates, max students</td></tr>
+          <tr><td><code>validations/moduleSchemas.js</code></td><td>All 5 module forms</td><td>Title required, course required, type-specific field rules</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- FOOTER -->
+  <div style="text-align:center;padding:32px 0 16px;color:var(--muted);font-size:12px;">
+    Language Lab Admin Panel — Project Documentation &nbsp;|&nbsp; Generated 2026-06-27 &nbsp;|&nbsp;
+    Next.js 16 · React 19 · Tailwind CSS 4
+  </div>
+
+</main>
+
+<script>
+  // Highlight active sidebar link on scroll
+  const links = document.querySelectorAll('#sidebar a');
+  const sections = [...links].map(l => {
+    const id = l.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  });
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = [...links].find(l => l.getAttribute('href') === '#' + entry.target.id);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.filter(Boolean).forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

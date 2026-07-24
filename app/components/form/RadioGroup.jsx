@@ -7,6 +7,7 @@ export default function RadioGroup({
   onChange,
   options = [],
   required = false,
+  ...rest
 }) {
   return (
     <div className="w-full">
@@ -33,6 +34,8 @@ export default function RadioGroup({
               value={option}
               checked={value === option}
               onChange={(e) => onChange(e.target.value)}
+              required={required}
+              {...rest}
               className="accent-orange-500 w-4 h-4"
             />
 

@@ -11,7 +11,7 @@ export default function MediaModulesForm({ topic_id, sub_topic_id, onSubmit, onC
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
-    
+
     // Structure words & questions lists mock based on type
     data.topic_id = topic_id || "topic1";
     data.sub_topic_id = sub_topic_id || "sub1";
@@ -34,11 +34,10 @@ export default function MediaModulesForm({ topic_id, sub_topic_id, onSubmit, onC
               key={t}
               type="button"
               onClick={() => setModuleType(t)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold capitalize border transition-all ${
-                moduleType === t 
-                  ? "bg-orange-500 text-white border-orange-500 shadow-sm" 
+              className={`px-4 py-2 rounded-xl text-xs font-semibold capitalize border transition-all ${moduleType === t
+                  ? "bg-orange-500 text-white border-orange-500 shadow-sm"
                   : "bg-white text-gray-600 border-orange-100 hover:bg-orange-50"
-              }`}
+                }`}
             >
               {t} Module
             </button>
@@ -129,7 +128,9 @@ export default function MediaModulesForm({ topic_id, sub_topic_id, onSubmit, onC
             <InputField label="Source Attribution" name="content_source" placeholder="BBC Learning English" />
           </div>
           <div>
-            <label className="block mb-2 text-xs font-semibold text-gray-700">Reading Passage Body Text (HTML supported)</label>
+            <label className="block mb-2 text-xs font-semibold text-gray-700">
+              Reading Passage Body Text (HTML supported) <span className="ml-1 text-orange-500">*</span>
+            </label>
             <textarea name="content_body" rows={4} className="w-full px-4 py-3 text-sm rounded-xl border border-orange-300 focus:outline-none" placeholder="Paste full article reading text here..." required />
           </div>
         </div>
@@ -141,14 +142,22 @@ export default function MediaModulesForm({ topic_id, sub_topic_id, onSubmit, onC
           <h4 className="font-semibold text-sm text-orange-600">Exercise Quiz Settings</h4>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block mb-2 text-xs font-semibold text-gray-700">Exercise Type</label>
+              <label className="block mb-2 text-xs font-semibold text-gray-700">
+                Exercise Type <span className="ml-1 text-orange-500">*</span>
+              </label>
               <select name="exercise_type" className="w-full rounded-xl border border-orange-300 px-3 py-2 text-xs" required>
                 <option value="mcq">Multiple Choice Questions (MCQ)</option>
                 <option value="fill_blank">Fill in the Blanks</option>
                 <option value="true_false">True or False</option>
-                <option value="match">Match Meanings</option>
-                <option value="reorder">Sentence Reordering</option>
+                <option value="short_answer">Short Answer</option>
+                  <option value="match">Match</option>
+                <option value="recorder">Sentence recordering</option>
+                <option value="spell_word">Spell Word</option>
               </select>
+
+              
+
+
             </div>
             <div>
               <label className="block mb-2 text-xs font-semibold text-gray-700">Difficulty</label>
