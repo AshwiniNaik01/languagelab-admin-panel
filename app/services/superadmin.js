@@ -45,6 +45,12 @@ export const expireLicense = (licenseId) =>
 export const renewLicense = (licenseId, payload) =>
   api.put(`/api/license/${licenseId}/renew`, payload);
 
+// Sets a single license's own concurrent-seat count — independent of the
+// seats_per_license used when it was generated (e.g. one license at 15 seats,
+// another at 5, both under the same institute).
+export const updateLicenseSeats = (licenseId, total_seats) =>
+  api.put(`/api/license/${licenseId}/seats`, { total_seats });
+
 // ── Session / seat management ─────────────────────────────────────────────────
 export const resetInstituteSeats = (instituteId) =>
   api.post(`/api/super-admin/institute/${instituteId}/reset-seats`);

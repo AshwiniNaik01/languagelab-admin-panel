@@ -33,6 +33,7 @@ export default function InstitutesPage() {
     const [showGenerateModal, setShowGenerateModal] = useState(false);
     const [selectedInstitute, setSelectedInstitute] = useState(null);
     const [licenseCount, setLicenseCount] = useState(1);
+    const [seatsPerLicense, setSeatsPerLicense] = useState(1);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [licenseLoading, setLicenseLoading] = useState(false);
@@ -132,6 +133,7 @@ export default function InstitutesPage() {
     const openGenerateModal = (institute) => {
         setSelectedInstitute(institute);
         setLicenseCount(1);
+        setSeatsPerLicense(1);
         setStartDate('');
         setEndDate('');
         setShowGenerateModal(true);
@@ -150,6 +152,7 @@ export default function InstitutesPage() {
         try {
             const res = await generateLicense(selectedInstitute._id, {
                 license_count: licenseCount,
+                seats_per_license: seatsPerLicense,
                 start_date: startDate,
                 expiry_date: endDate,
             });
@@ -298,7 +301,18 @@ export default function InstitutesPage() {
                                     <input type="number" min="1" value={licenseCount} onChange={(e) => setLicenseCount(Number(e.target.value))} className="flex-1 border border-orange-200 rounded-xl px-3 py-2 text-center font-bold" />
                                     <button type="button" className="w-10 h-10 rounded-xl bg-orange-500 text-white font-bold text-lg hover:bg-orange-600 transition" onClick={() => setLicenseCount((v) => v + 1)}>+</button>
                                 </div>
-                                <p className="text-xs text-slate-500 mt-1">Each key = 1 concurrent seat. {licenseCount} key{licenseCount > 1 ? 's' : ''} = {licenseCount} seat{licenseCount > 1 ? 's' : ''}.</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold mb-2">Concurrent Students Per Key</label>
+                                <div className="flex items-center gap-3">
+                                    <button type="button" className="w-10 h-10 rounded-xl border border-orange-200 font-bold text-lg hover:bg-orange-50 transition" onClick={() => setSeatsPerLicense((v) => Math.max(1, v - 1))}>−</button>
+                                    <input type="number" min="1" value={seatsPerLicense} onChange={(e) => setSeatsPerLicense(Number(e.target.value))} className="flex-1 border border-orange-200 rounded-xl px-3 py-2 text-center font-bold" />
+                                    <button type="button" className="w-10 h-10 rounded-xl bg-orange-500 text-white font-bold text-lg hover:bg-orange-600 transition" onClick={() => setSeatsPerLicense((v) => v + 1)}>+</button>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    {licenseCount} key{licenseCount > 1 ? 's' : ''} × {seatsPerLicense} seat{seatsPerLicense > 1 ? 's' : ''} each ={' '}
+                                    <strong>{licenseCount * seatsPerLicense} concurrent students</strong> total for this institute.
+                                </p>
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold mb-2">Start Date</label>
@@ -334,6 +348,11 @@ export default function InstitutesPage() {
                                 <p className="text-xs text-slate-500 mt-0.5">
                                     Institute: <strong>{generatedLicenses.institute_code}</strong> &nbsp;·&nbsp;
                                     {generatedLicenses.license_count} key{generatedLicenses.license_count > 1 ? 's' : ''}
+                                    {generatedLicenses.total_concurrent_seats !== undefined && (
+                                        <>
+                                            &nbsp;·&nbsp;<strong>{generatedLicenses.total_concurrent_seats}</strong> concurrent seats total
+                                        </>
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -343,15 +362,16 @@ export default function InstitutesPage() {
                         </div>
 
                         <div className="space-y-2 mb-6">
-                            <div className="grid grid-cols-5 gap-2 text-[10px] font-black text-slate-500 uppercase tracking-wider px-2">
-                                <span>#</span><span>License Code</span><span>User ID</span><span>Password</span><span>Status</span>
+                            <div className="grid grid-cols-6 gap-2 text-[10px] font-black text-slate-500 uppercase tracking-wider px-2">
+                                <span>#</span><span>License Code</span><span>User ID</span><span>Password</span><span>Seats</span><span>Status</span>
                             </div>
                             {generatedLicenses.licenses?.map((lic) => (
-                                <div key={lic.key_index} className="grid grid-cols-5 gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2.5 text-xs items-center">
+                                <div key={lic.key_index} className="grid grid-cols-6 gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2.5 text-xs items-center">
                                     <span className="font-black text-green-700">{lic.key_index}</span>
                                     <span className="font-mono font-bold text-slate-800">{lic.license_code}</span>
                                     <span className="font-mono font-bold text-purple-700">{lic.user_id}</span>
                                     <span className="font-mono font-black text-orange-700 bg-orange-50 px-2 py-0.5 rounded-lg">{lic.password}</span>
+                                    <span className="font-bold text-slate-700">{lic.total_seats ?? 1}</span>
                                     <span className="text-green-700 font-bold capitalize">{lic.status}</span>
                                 </div>
                             ))}
