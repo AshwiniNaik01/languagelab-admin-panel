@@ -103,9 +103,17 @@ export default function ChunkedFileUpload({
         )}
 
         {status === "idle" && currentUrl && (
-          <p className="mt-2 flex items-center gap-1 text-xs text-slate-400">
-            <UploadCloud size={12} /> Current file will be kept unless you upload a new one.
-          </p>
+          <>
+            <p className="mt-2 flex items-center gap-1 text-xs text-slate-400">
+              <UploadCloud size={12} /> Current file will be kept unless you upload a new one.
+            </p>
+            {accept?.startsWith("video") && (
+              <video controls className="mt-2 w-full max-h-40 rounded-lg bg-black" src={currentUrl} />
+            )}
+            {accept?.startsWith("audio") && (
+              <audio controls className="mt-2 w-full" src={currentUrl} />
+            )}
+          </>
         )}
 
         {status === "error" && uploadError && (

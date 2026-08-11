@@ -6,7 +6,7 @@ import Button from "../ui/Button";
 import { videoModuleSchema, parseYupErrors } from "../../validations/moduleSchemas";
 import {
   inp, inpErr, lbl, errTxt, Q_TYPES,
-  SectionDivider, useTopicSubtopic, TopicSubtopicSection, WordsEditor, QuestionsEditor,
+  SectionDivider, useTopicSubtopic, TopicSubtopicSection, WordsEditor, QuestionsEditor, ThumbnailUpload,
 } from "./shared/ModuleFormShared";
 import RichTextEditor from "./shared/RichTextEditor";
 import ChunkedFileUpload from "./shared/ChunkedFileUpload";
@@ -36,6 +36,8 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
   });
   const [videoUrl, setVideoUrl] = useState(initialData?.video?.url ?? "");
   const [videoUploading, setVideoUploading] = useState(false);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [removeThumbnail, setRemoveThumbnail] = useState(false);
   const set = (k) => (e) => { setF(p => ({ ...p, [k]: e.target.value })); clr(k); };
   const setDescription = (html) => { setF(p => ({ ...p, description: html })); clr("description"); };
 
@@ -116,6 +118,7 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
       url:    videoUrl,
       ...(f.duration_sec && { duration_sec: +f.duration_sec }),
       ...(f.transcript   && { transcript:    f.transcript }),
+      ...(removeThumbnail && { thumbnail_url: "" }),
     }));
     if (f.total_marks    !== "") fd.append("total_marks",    +f.total_marks);
     if (f.time_limit_sec !== "") fd.append("time_limit_sec", +f.time_limit_sec);
@@ -124,6 +127,7 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
     const validQs    = questions.filter(q => q.question_text.trim() && q.correct_answer.trim());
     fd.append("words",     JSON.stringify(validWords));
     fd.append("questions", JSON.stringify(validQs));
+    if (thumbnailFile) fd.append("thumbnailFile", thumbnailFile);
     onSubmit(fd);
   };
 
@@ -221,6 +225,13 @@ export default function VideoModuleForm({ onSubmit, onCancel, saving = false, in
           onBusyChange={setVideoUploading}
         />
         {errMsg("videoFile")}
+      </div>
+      <div>
+        <ThumbnailUpload
+          currentUrl={initialData?.video?.thumbnail_url ?? ""}
+          onChange={(file) => { setThumbnailFile(file); if (file) setRemoveThumbnail(false); }}
+          onRemove={() => setRemoveThumbnail(true)}
+        />
       </div>
 
       {/* ── Settings ─────────────────────────────────────────────────────── */}

@@ -6,7 +6,7 @@ import Button from "../ui/Button";
 import { audioModuleSchema, parseYupErrors } from "../../validations/moduleSchemas";
 import {
   inp, inpErr, lbl, errTxt, Q_TYPES,
-  SectionDivider, useTopicSubtopic, TopicSubtopicSection, WordsEditor, QuestionsEditor,
+  SectionDivider, useTopicSubtopic, TopicSubtopicSection, WordsEditor, QuestionsEditor, ThumbnailUpload,
 } from "./shared/ModuleFormShared";
 import RichTextEditor from "./shared/RichTextEditor";
 import ChunkedFileUpload from "./shared/ChunkedFileUpload";
@@ -40,6 +40,8 @@ export default function AudioModuleForm({ onSubmit, onCancel, saving = false, in
   });
   const [audioUrl, setAudioUrl] = useState(initialData?.audio?.url ?? "");
   const [audioUploading, setAudioUploading] = useState(false);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [removeThumbnail, setRemoveThumbnail] = useState(false);
   const set    = (k) => (e) => { setF(p => ({ ...p, [k]: e.target.value })); clr(k); };
   const toggle = (k) => () => setF(p => ({ ...p, [k]: !p[k] }));
   const setDescription = (html) => { setF(p => ({ ...p, description: html })); clr("description"); };
@@ -127,6 +129,7 @@ export default function AudioModuleForm({ onSubmit, onCancel, saving = false, in
       ...(f.language       && { language:       f.language }),
       ...(f.speaker_name   && { speaker_name:   f.speaker_name }),
       ...(f.transcript     && { transcript:     f.transcript }),
+      ...(removeThumbnail  && { thumbnail_url:  "" }),
     }));
     if (f.total_marks    !== "") fd.append("total_marks",    +f.total_marks);
     if (f.time_limit_sec !== "") fd.append("time_limit_sec", +f.time_limit_sec);
@@ -135,6 +138,7 @@ export default function AudioModuleForm({ onSubmit, onCancel, saving = false, in
     const validQs    = questions.filter(q => q.question_text.trim() && q.correct_answer.trim());
     fd.append("words",     JSON.stringify(validWords));
     fd.append("questions", JSON.stringify(validQs));
+    if (thumbnailFile) fd.append("thumbnailFile", thumbnailFile);
     onSubmit(fd);
   };
 
@@ -254,6 +258,13 @@ export default function AudioModuleForm({ onSubmit, onCancel, saving = false, in
           onBusyChange={setAudioUploading}
         />
         {errMsg("audioFile")}
+      </div>
+      <div>
+        <ThumbnailUpload
+          currentUrl={initialData?.audio?.thumbnail_url ?? ""}
+          onChange={(file) => { setThumbnailFile(file); if (file) setRemoveThumbnail(false); }}
+          onRemove={() => setRemoveThumbnail(true)}
+        />
       </div>
 
       {/* ── Settings ─────────────────────────────────────────────────────── */}

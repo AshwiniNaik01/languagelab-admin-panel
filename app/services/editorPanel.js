@@ -36,7 +36,13 @@ export const createAudioModule      = (data)    => api.post("/api/module/audio",
 export const createTextModule       = (data)    => api.post("/api/module/text", data);
 export const createExerciseModule   = (data)    => api.post("/api/module/exercise", data);
 export const createVocabularyModule = (data)    => api.post("/api/module/vocabulary", data);
-export const updateModule  = (type, id, data)   => api.put(`/api/module/${type}/${id}`, data);
+// Content-Type must be left for axios/the browser to set per-request: video
+// and audio module edits submit FormData (needs a multipart boundary), while
+// text/exercise/vocabulary submit plain objects (needs application/json).
+// The api instance's default "Content-Type: application/json" header would
+// otherwise stick even for FormData, silently breaking multipart parsing on
+// the backend — the request "succeeds" but the update body arrives empty.
+export const updateModule  = (type, id, data)   => api.put(`/api/module/${type}/${id}`, data, { headers: { "Content-Type": undefined } });
 export const deleteModule  = (type, id)         => api.delete(`/api/module/${type}/${id}`);
 
 // ── Student monitoring (read-only for editor) ─────────────────────────────────
