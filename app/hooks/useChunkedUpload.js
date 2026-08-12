@@ -106,7 +106,12 @@ export function useChunkedUpload() {
         setStatus("cancelled");
       } else {
         setStatus("error");
-        setError(err?.response?.data?.message || err.message || "Upload failed.");
+        const status = err?.response?.status;
+        setError(
+          status === 413
+            ? "The server rejected the file for being too large (413). Ask an admin to raise the upload size limit."
+            : err?.response?.data?.message || err.message || "Upload failed."
+        );
       }
       throw err;
     }

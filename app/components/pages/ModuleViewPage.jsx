@@ -435,9 +435,22 @@ export default function ModuleViewPage({ type }) {
         {/* ── Video player ── */}
         {mod.video?.url && (
           <Section title="Video">
+            {mod.video.thumbnail_url && (
+              <div className="mb-4">
+                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-2">
+                  Thumbnail
+                </p>
+                <img
+                  src={mod.video.thumbnail_url}
+                  alt="Video thumbnail"
+                  className="w-40 h-40 rounded-xl object-cover border border-orange-200"
+                />
+              </div>
+            )}
             <video
               controls
               className="w-full rounded-xl max-h-72 bg-black"
+              poster={mod.video.thumbnail_url || undefined}
               src={mod.video.url}
             />
             {mod.video.transcript && (
@@ -454,6 +467,18 @@ export default function ModuleViewPage({ type }) {
         {/* ── Audio player ── */}
         {mod.audio?.url && (
           <Section title="Audio">
+            {mod.audio.thumbnail_url && (
+              <div className="mb-4">
+                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-2">
+                  Thumbnail
+                </p>
+                <img
+                  src={mod.audio.thumbnail_url}
+                  alt="Audio thumbnail"
+                  className="w-40 h-40 rounded-xl object-cover border border-orange-200"
+                />
+              </div>
+            )}
             <audio controls className="w-full" src={mod.audio.url} />
             {mod.audio.transcript && (
               <div className="mt-4">

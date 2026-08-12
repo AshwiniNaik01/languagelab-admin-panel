@@ -42,6 +42,79 @@ export function SectionDivider({ title }) {
   );
 }
 
+/* ── Thumbnail image upload ───────────────────────────────────────────────
+   Images are tiny compared to video/audio, so unlike ChunkedFileUpload this
+   just holds the raw File and lets the parent form append it to its own
+   FormData as "thumbnailFile" on submit — no separate init/chunk/complete
+   round trip needed. */
+export function ThumbnailUpload({ label = "Thumbnail Image", currentUrl = "", onChange, onRemove, error }) {
+  const [preview, setPreview] = useState(currentUrl || "");
+
+  const handleFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPreview(URL.createObjectURL(file));
+    onChange?.(file);
+  };
+
+  // Clears the picker locally AND tells the parent to actually drop the
+  // saved thumbnail_url on submit — without this, "Remove" only cleared the
+  // preview while the old thumbnail silently stayed on the server.
+  const clear = () => {
+    setPreview("");
+    onChange?.(null);
+    onRemove?.();
+  };
+
+  return (
+    <div>
+      <label className={lbl}>
+        {label}{" "}
+        <span className="text-gray-400 font-normal text-xs">
+          (optional — shown as the preview image before playback)
+        </span>
+      </label>
+      <div className={`rounded-xl border px-4 py-3 ${error ? "border-2 border-red-500" : "border-orange-300"}`}>
+        <div className="flex items-center gap-4">
+          {preview ? (
+            <img
+              src={preview}
+              alt="Thumbnail preview"
+              className="w-20 h-20 rounded-lg object-cover border border-orange-200 shrink-0"
+            />
+          ) : (
+            <div className="w-20 h-20 rounded-lg bg-orange-50 border border-dashed border-orange-200 flex items-center justify-center text-orange-300 text-[10px] font-semibold shrink-0 text-center px-1">
+              No image
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFile}
+              className="block w-full text-sm text-slate-500 file:mr-3 file:rounded-xl file:border-0 file:bg-orange-50 file:px-4 file:py-2 file:font-semibold file:text-orange-700 hover:file:bg-orange-100"
+            />
+            {preview && preview === currentUrl && (
+              <p className="mt-2 text-xs text-slate-400">
+                Current thumbnail will be kept unless you upload a new one.
+              </p>
+            )}
+            {preview && (
+              <button
+                type="button"
+                onClick={clear}
+                className="mt-2 flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700"
+              >
+                <X size={12} /> Remove
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Topic / SubTopic ─────────────────────────────────────────────────────── */
 export function useTopicSubtopic(initialData, isEdit) {
   const searchParams = useSearchParams();
