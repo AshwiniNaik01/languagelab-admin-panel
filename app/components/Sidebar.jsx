@@ -18,6 +18,7 @@ import {
   PlusCircle,
   ListCollapse,
   MonitorCheck,
+  ClipboardList,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -29,6 +30,7 @@ export default function Sidebar() {
     licenses: false,
     editors: false,
     courses: false,
+    subject: false,
   });
 
   useEffect(() => {
@@ -38,6 +40,7 @@ export default function Sidebar() {
       licenses: pathname.startsWith("/licenses"),
       editors: pathname.startsWith("/editors"),
       courses: pathname.startsWith("/courses"),
+      subject: pathname.startsWith("/subject"),
     });
   }, [pathname, isCollapsed]);
 
@@ -167,6 +170,35 @@ export default function Sidebar() {
             </div>
           )}
         </div>
+
+        {/* Assignments */}
+<div className="border border-orange-500/10 rounded-2xl overflow-hidden bg-white/5">
+  {accordionBtn(
+    "assignments",
+    <ClipboardList size={15} />,
+    "Subjects"
+  )}
+
+  {!isCollapsed && openSections.assignments && (
+    <div className="p-1.5 space-y-1 bg-[#2A1204] border-t border-orange-500/10">
+      
+      {subLink(
+        "/subject",
+        <ListCollapse size={13} />,
+        "Manage Subjects"
+      )}
+
+      {subLink(
+        "/subject/new",
+        <PlusCircle size={13} />,
+        "Add Subject"
+      )}
+
+    </div>
+  )}
+</div>
+
+        
 
         {/* Sessions — standalone */}
         <Link
